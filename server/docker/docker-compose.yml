@@ -1,0 +1,26 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: armory_db
+    volumes:
+      - db_data:/var/lib/postgresql/data
+  app:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    ports:
+      - "8080:8080"
+    depends_on:
+      - localstack
+    env_file:
+      - .env
+    environment:
+    command: ["./api"]
+
+  volumes:
+    db_data:
