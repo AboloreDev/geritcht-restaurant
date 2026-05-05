@@ -15,6 +15,7 @@ type Config struct {
 	JWT        JWTConfig
 	Uploads    UploadConfig
 	Database   DatabaseConfig
+	Redis      RedisConfig
 }
 
 type DatabaseConfig struct {
@@ -36,6 +37,7 @@ type CloudinaryConfig struct {
 	CloudinaryName   string
 	CloudinaryAPIKey string
 	CloudinarySecret string
+	CloudinaryFolder string
 }
 
 type UploadConfig struct {
@@ -51,6 +53,10 @@ type JWTConfig struct {
 	JWTRefreshTokenExpiration time.Duration
 }
 
+type RedisConfig struct {
+	URL string
+}
+
 func LoadEnv() (*Config, error) {
 	_ = godotenv.Load()
 
@@ -61,7 +67,7 @@ func LoadEnv() (*Config, error) {
 
 	return &Config{
 		Server: ServerConfig{
-			Port:    GetEnv("PORT", "8080"),
+			Port:    GetEnv("PORT", "6000"),
 			GinMode: GetEnv("GIN_MODE", "debug"),
 		},
 
@@ -69,6 +75,7 @@ func LoadEnv() (*Config, error) {
 			CloudinaryName:   GetEnv("CLOUDINARY_NAME", "test"),
 			CloudinaryAPIKey: GetEnv("CLOUDINARY_API_KEY", "123456789"),
 			CloudinarySecret: GetEnv("CLOUDINARY_SECRET", "123456789"),
+			CloudinaryFolder: GetEnv("CLOUDINARY_FOLDER", "geritcht"),
 		},
 
 		SMTP: SMTPConfig{},
@@ -92,6 +99,10 @@ func LoadEnv() (*Config, error) {
 			User:     GetEnv("DB_USER", "postgres"),
 			Mode:     GetEnv("DB_SSL_MODE", "disable"),
 			URL:      GetEnv("DATABASE_URL", ""),
+		},
+
+		Redis: RedisConfig{
+			URL: GetEnv("REDIS_URL", "test"),
 		},
 	}, nil
 }

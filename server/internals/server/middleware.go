@@ -5,6 +5,7 @@ import (
 
 	"github.com/AboloreDev/geritcht-restaurant/internals/models"
 	"github.com/AboloreDev/geritcht-restaurant/internals/utils"
+
 	"github.com/gin-gonic/gin"
 )
 
@@ -25,7 +26,7 @@ func (s *Server) AuthMiddleware() gin.HandlerFunc {
 			return
 		}
 
-		claims, err := utils.ValidateToken(tokenParts[1], s.config.JWT.JWTSecret)
+		claims, err := utils.ValidateToken(tokenParts[1], s.cfg.JWT.JWTSecret)
 		if err != nil {
 			utils.UnAuthorized(ctx, "Invalid Token", err)
 			ctx.Abort()

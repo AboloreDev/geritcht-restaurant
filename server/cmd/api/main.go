@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"net/http"
 	"os"
@@ -11,9 +12,14 @@ import (
 
 	"github.com/AboloreDev/geritcht-restaurant/internals/config"
 	"github.com/AboloreDev/geritcht-restaurant/internals/database"
+	"github.com/AboloreDev/geritcht-restaurant/internals/interfaces"
 	"github.com/AboloreDev/geritcht-restaurant/internals/logger"
+	"github.com/AboloreDev/geritcht-restaurant/internals/providers"
+	redisImport "github.com/AboloreDev/geritcht-restaurant/internals/redis"
 	"github.com/AboloreDev/geritcht-restaurant/internals/server"
+	"github.com/AboloreDev/geritcht-restaurant/internals/services"
 	"github.com/gin-gonic/gin"
+	"github.com/redis/go-redis/v9"
 )
 
 func init() {
@@ -33,7 +39,7 @@ func main() {
 	// Set Gin Mode
 	gin.SetMode(cfg.Server.GinMode)
 
-	// load the database configurations
+	// // load the database configurations
 	db, err := database.New(&cfg.Database)
 	if err != nil {
 		log.Fatal().Err(err).Msg("could not connect to database")
@@ -45,8 +51,58 @@ func main() {
 	}
 	defer mainDB.Close()
 
+	// Upload Provider
+	var uploadProvider interfaces.UploadProvider
+	if cfg.Uploads.UploadProvider == "cloudinary" {
+		uploadProvider = providers.NewCloudinaryUploader(cfg)
+	} else {
+		uploadProvider = providers.NewLocalUploadProvider(cfg.Uploads.UploadPath)
+	}
+
+	// Initialise Redis
+	var redisStore interfaces.Cacher
+	if cfg.Redis.URL == "" {
+		log.Warn().Msg("No Redis URL — using NopStore")
+		redisStore = redisImport.NewNopCache()
+	} else {
+		client := redis.NewClient(&redis.Options{
+			Addr: cfg.Redis.URL,
+			DB:   0,
+		})
+
+		redisCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		defer cancel()
+
+		if err := client.Ping(redisCtx).Err(); err != nil {
+			log.Warn().Err(err).Msg("Redis ping failed — using NopStore")
+			redisStore = redisImport.NewNopCache()
+		} else {
+			log.Info().Msg("Redis connected successfully")
+			redisStore = redisImport.NewStore(client)
+		}
+	}
+
+	// Services
+	authServices := services.NewAuthService(db, cfg)
+	uploadServices := services.NewUploadServices(uploadProvider)
+	categoryServices := services.NewCategoryService(db, redisStore)
+	menuServices := services.NewMenuService(db, redisStore)
+	allegenServices := services.NewAllergenService(db)
+	dietaryTagsService := services.NewDietaryTagsService(db)
+	userServices := services.NewUserService(db)
+
 	// Initialise Server
-	srv := server.NewServer(cfg, db, log)
+	srv := server.NewServer(
+		cfg, db, log,
+		authServices,
+		redisStore,
+		uploadServices,
+		categoryServices,
+		menuServices,
+		allegenServices,
+		dietaryTagsService,
+		userServices,
+	)
 
 	router := srv.SetUpRoutes()
 	httpServer := &http.Server{
@@ -55,6 +111,15 @@ func main() {
 		ReadTimeout:  20 * time.Second,
 		WriteTimeout: 20 * time.Second,
 	}
+
+	// Start server
+	go func() {
+		log.Info().Str("port", cfg.Server.Port).Msg("http server started")
+		err = httpServer.ListenAndServe()
+		if err != nil && errors.Is(err, http.ErrServerClosed) {
+			log.Error().Err(err).Msg("Failed to start http server")
+		}
+	}()
 
 	// INITIATE GRACEFUL SHUTDOWN
 	quit := make(chan os.Signal, 1)
@@ -71,5 +136,5 @@ func main() {
 		return
 	}
 
-	log.Info().Msg("Shutting down server")
+	log.Info().Msg("Server shutting down")
 }

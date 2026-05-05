@@ -45,7 +45,6 @@ type ToggleAvailabilityRequest struct {
 type CreateAllergenRequest struct {
 	Name string `json:"name" binding:"required"`
 }
-
 type CreateDietaryTagRequest struct {
 	Name string `json:"name" binding:"required"`
 }

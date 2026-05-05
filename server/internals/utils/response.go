@@ -66,6 +66,10 @@ func InternalServerError(ctx *gin.Context, message string, err error) {
 	ErrorResponse(ctx, http.StatusInternalServerError, message, err)
 }
 
+func ConflictResponse(ctx *gin.Context, message string, err error) {
+	ErrorResponse(ctx, http.StatusConflict, message, err)
+}
+
 func NotFound(ctx *gin.Context, message string, err error) {
 	ErrorResponse(ctx, http.StatusNotFound, message, err)
 }

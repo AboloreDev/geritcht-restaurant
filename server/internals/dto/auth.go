@@ -7,7 +7,7 @@ type RegisterRequest struct {
 	Password    string `json:"password" binding:"required,min=8"`
 	FirstName   string `json:"first_name" binding:"required"`
 	LastName    string `json:"last_name" binding:"required"`
-	PhoneNumber string `json:"phone_number" binding:"required"`
+	PhoneNumber string `json:"phone_number"`
 }
 
 type LoginRequest struct {
@@ -64,8 +64,9 @@ type UserResponse struct {
 }
 
 type AuthResponse struct {
-	AccessToken string       `json:"access_token"`
-	User        UserResponse `json:"user"`
+	AccessToken  string       `json:"access_token"`
+	RefreshToken string       `json:"refresh_token"`
+	User         UserResponse `json:"user"`
 }
 
 type MessageResponse struct {

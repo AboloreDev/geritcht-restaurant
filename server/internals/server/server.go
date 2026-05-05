@@ -4,25 +4,51 @@ import (
 	"net/http"
 
 	"github.com/AboloreDev/geritcht-restaurant/internals/config"
+	"github.com/AboloreDev/geritcht-restaurant/internals/interfaces"
+	"github.com/AboloreDev/geritcht-restaurant/internals/services"
 	"github.com/gin-gonic/gin"
 	"github.com/rs/zerolog"
 	"gorm.io/gorm"
 )
 
 type Server struct {
-	config   *config.Config
-	database *gorm.DB
-	logger   zerolog.Logger
+	cfg                *config.Config
+	log                zerolog.Logger
+	db                 *gorm.DB
+	authServices       *services.AuthService
+	redisStore         interfaces.Cacher
+	uploadServices     *services.UploadService
+	categoryServices   *services.CategoryService
+	menuServices       *services.MenuService
+	allergenServices   *services.AllergenService
+	dietaryTagsService *services.DietaryTagsService
+	userServices       *services.UserService
 }
 
 func NewServer(
-	config *config.Config,
-	database *gorm.DB,
-	logger zerolog.Logger) *Server {
+	cfg *config.Config,
+	db *gorm.DB,
+	log zerolog.Logger,
+	authServices *services.AuthService,
+	redisStore interfaces.Cacher,
+	uploadServices *services.UploadService,
+	categoryServices *services.CategoryService,
+	menuServices *services.MenuService,
+	allergenServices *services.AllergenService,
+	dietaryTagsService *services.DietaryTagsService,
+	userServices *services.UserService) *Server {
 	return &Server{
-		config:   config,
-		logger:   logger,
-		database: database,
+		cfg:                cfg,
+		log:                log,
+		db:                 db,
+		authServices:       authServices,
+		redisStore:         redisStore,
+		uploadServices:     uploadServices,
+		categoryServices:   categoryServices,
+		menuServices:       menuServices,
+		allergenServices:   allergenServices,
+		dietaryTagsService: dietaryTagsService,
+		userServices:       userServices,
 	}
 }
 
@@ -30,13 +56,92 @@ func (s *Server) SetUpRoutes() *gin.Engine {
 	router := gin.New()
 
 	// Static Middlewares
-	router.Use(s.CORS())
 	router.Use(gin.Logger())
 	router.Use(gin.Recovery())
+	router.Use(s.CORS())
 
 	// ROUTES
 	// Health check route
 	router.GET("/health", s.HealthCheck)
+
+	api := router.Group("/api/v1")
+	{
+		auth := api.Group("/auth")
+		{
+			// Auth Routes
+			auth.POST("/register", s.RegisterUserHandler)
+			auth.POST("/login", s.LoginUserHandler)
+			auth.POST("/logout", s.LogoutHandler)
+			auth.POST("/refresh", s.RefreshTokenHandler)
+			auth.POST("/forgot", s.ForgotPasswordHandler)
+			auth.POST("/reset", s.ResetPasswordHandler)
+			auth.POST("/verify", s.VerifyEmailHandler)
+
+		}
+		protected := api.Group("/")
+		protected.Use(s.AuthMiddleware())
+		{
+			users := protected.Group("/users")
+			{
+				// User Protected Routes
+				users.PATCH("/password-change", s.ChangePasswordHandler)
+				users.GET("/profile", s.GetUserProfileHandler)
+				users.PATCH("/profile", s.UpdateUserProfileHandler)
+				users.PATCH("/profile/deactivate", s.DeactivateUserHandler)
+				users.PATCH("/profile/activate", s.ActivateUserHandler)
+				users.GET("/", s.AdminMiddleware(), s.GetAllUserHandler)
+			}
+
+			staffs := protected.Group("/staff")
+			{
+				// Staff Protected Routes
+				staffs.GET("/profile", s.StaffMiddleware(), s.GetStaffProfileHandler)
+				staffs.PATCH("/profile", s.StaffMiddleware(), s.UpdateStaffProfileHandler)
+				staffs.PATCH("/profile/deactivate", s.StaffMiddleware(), s.DeactivateStaffHandler)
+				staffs.PATCH("/profile/activate", s.StaffMiddleware(), s.ActivateStaffHandler)
+				staffs.GET("/", s.AdminMiddleware(), s.GetAllStaffsHandler)
+			}
+
+			category := protected.Group("/categories")
+			{
+				// Category Protected Routes
+				category.POST("/", s.AdminMiddleware(), s.CreateCategoryHandler)
+				category.PATCH("/:id", s.AdminMiddleware(), s.UpdateCategoryHandler)
+				category.DELETE("/:id", s.AdminMiddleware(), s.DeleteCategory)
+				category.GET("/categories", s.GetCategoriesHandler)
+				category.GET("/categories/:id", s.GetCategory)
+			}
+
+			menu := protected.Group("/menu")
+			{
+				// Menu Protected Routes
+				menu.POST("/", s.AdminMiddleware(), s.CreateMenuHandler)
+				menu.PATCH("/:id", s.AdminMiddleware(), s.UpdateMenuHandler)
+				menu.GET("/menu", s.GetAllMenuHandler)
+				menu.GET("/menu/:id", s.GetMenuHandler)
+				menu.DELETE("/:id", s.AdminMiddleware(), s.DeleteMenuHandler)
+				menu.PATCH("/:id/toggle", s.AdminMiddleware(), s.ToggleMenuAvailabilityHandler)
+			}
+
+			allergens := protected.Group("/allergens")
+			{
+				// Allergens and Dietary Tags Protected Routes
+				allergens.POST("/", s.AdminMiddleware(), s.CreateAllergenHandler)
+
+			}
+
+			tags := protected.Group("/tags")
+			{
+				tags.POST("/", s.AdminMiddleware(), s.CreateDietaryTagsHandler)
+			}
+		}
+
+		// Public routes
+		api.GET("/categories", s.GetCategoriesHandler)
+		api.GET("/categories/:id", s.GetCategory)
+		api.GET("/menu", s.GetAllMenuHandler)
+		api.GET("/menu/:id", s.GetMenuHandler)
+	}
 
 	return router
 }

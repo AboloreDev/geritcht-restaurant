@@ -43,13 +43,13 @@ migrate-up-neon:
 	migrate -path db/migrations -database "$(DATABASE_URL)" up
 
 migrate-up-local:
-	migrate -path db/migrations -database "postgresql://postgres:password@localhost:5432/geritcht_db?sslmode=disable" up
+	migrate -path db/migrations -database "postgresql://postgres:password@localhost:5433/geritcht_db?sslmode=disable" up
 
 migrate-down-neon:
 	migrate -path db/migrations -database "$(DATABASE_URL)" down
 
 migrate-down-local:
-	migrate -path db/migrations -database "postgresql://postgres:password@localhost:5432/geritcht_db?sslmode=disable" down
+	migrate -path db/migrations -database "postgresql://postgres:password@localhost:5433/geritcht_db?sslmode=disable" down
 	
 docker-up:
 	docker-compose -f docker/docker-compose.yml up -d

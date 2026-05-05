@@ -1,26 +1,35 @@
 services:
   postgres:
     image: postgres:16-alpine
+    container_name: geritcht-postgres
     ports:
-      - "5432:5432"
+      - "5433:5432"
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: password
-      POSTGRES_DB: armory_db
+      POSTGRES_DB: geritcht_db
     volumes:
-      - db_data:/var/lib/postgresql/data
-  app:
+      - geritcht_db_data:/var/lib/postgresql/data
+
+  redis:
+    image: redis:alpine
+    container_name: geritcht-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    command: ["redis-server", "--appendonly", "yes"]
+
+  geritcht:
     build:
       context: ..
       dockerfile: docker/Dockerfile
     ports:
-      - "8080:8080"
-    depends_on:
-      - localstack
+      - "6000:6000"
     env_file:
-      - .env
-    environment:
+      - ../.env
     command: ["./api"]
 
-  volumes:
-    db_data:
+volumes:
+  geritcht_db_data:
+  redis-data:
