@@ -110,19 +110,20 @@ func (s *Server) GetMenuHandler(ctx *gin.Context) {
 }
 
 func (s *Server) GetAllMenuHandler(ctx *gin.Context) {
-	pageStr := ctx.DefaultQuery("page", "1")
-	pageSizeStr := ctx.DefaultQuery("pageSize", "10")
+	var filter dto.MenuFilterRequest
 
-	page, _ := strconv.Atoi(pageStr)
-	pageSize, _ := strconv.Atoi(pageSizeStr)
+	if err := ctx.ShouldBindQuery(&filter); err != nil {
+		utils.BadRequest(ctx, "Invalid filter params", err)
+		return
+	}
 
-	response, meta, err := s.menuServices.GetAllMenuService(page, pageSize)
+	response, meta, err := s.menuServices.GetAllMenuService(filter)
 	if err != nil {
 		utils.InternalServerError(ctx, "Something went wrong", err)
 		return
 	}
 
-	utils.PaginatedSuccessResponse(ctx, "Menus retrieved successfully", response, *meta)
+	utils.PaginatedSuccessResponse(ctx, "Menu retrieved successfully", response, *meta)
 }
 
 func (s *Server) UploadMenuImageHandler(ctx *gin.Context) {

@@ -1,41 +1,48 @@
 package services
 
 import (
+	"fmt"
+	"log"
 	"time"
 
 	"github.com/AboloreDev/geritcht-restaurant/internals/config"
 	"github.com/AboloreDev/geritcht-restaurant/internals/domain"
 	"github.com/AboloreDev/geritcht-restaurant/internals/dto"
+	"github.com/AboloreDev/geritcht-restaurant/internals/events"
+	"github.com/AboloreDev/geritcht-restaurant/internals/interfaces"
 	"github.com/AboloreDev/geritcht-restaurant/internals/models"
 	"github.com/AboloreDev/geritcht-restaurant/internals/utils"
 	"gorm.io/gorm"
 )
 
 type AuthService struct {
-	db  *gorm.DB
-	cfg *config.Config
+	db        *gorm.DB
+	cfg       *config.Config
+	publisher interfaces.Publisher
 }
 
 func NewAuthService(
 	db *gorm.DB,
-	cfg *config.Config) *AuthService {
+	cfg *config.Config,
+	publisher interfaces.Publisher) *AuthService {
 	return &AuthService{
-		db:  db,
-		cfg: cfg,
+		db:        db,
+		cfg:       cfg,
+		publisher: publisher,
 	}
 }
 
 func (s *AuthService) RegisterUserService(req *dto.RegisterRequest) (*dto.AuthResponse, error) {
-	var user models.User
+	var existingUser models.User
 
-	err := s.db.Where("email = ? ", req.Email).First(&user).Error
+	err := s.db.Where("email = ? ", req.Email).First(&existingUser).Error
 	if err == nil {
 		return nil, domain.ErrConflict
 	}
 
 	hashedPassword, _ := utils.HashPassword(req.Password)
 
-	user = models.User{
+	user := models.User{
 		FirstName:     req.FirstName,
 		LastName:      req.LastName,
 		Email:         req.Email,
@@ -75,6 +82,21 @@ func (s *AuthService) RegisterUserService(req *dto.RegisterRequest) (*dto.AuthRe
 		return nil, err
 	}
 
+	// Publish message to the queue
+	err = s.publisher.PublishMessage(
+		events.ChannelEmailVerification,
+		events.VerificationEmailPayload{
+			Email:     user.Email,
+			FirstName: user.FirstName,
+			Token:     verificationToken,
+		},
+		map[string]string{"Priority": "Important Mail"},
+	)
+	if err != nil {
+		log.Printf("Failed to put messages in queue: %v", err)
+		return nil, err
+	}
+
 	return &dto.AuthResponse{
 		User: dto.UserResponse{
 			ID:            user.ID,
@@ -89,7 +111,7 @@ func (s *AuthService) RegisterUserService(req *dto.RegisterRequest) (*dto.AuthRe
 	}, nil
 }
 
-func (s *AuthService) VerifyEmailService(req *dto.VerifyEmailRequest) (*dto.AuthResponse, error) {
+func (s *AuthService) VerifyEmailService(req *dto.VerifyEmailRequest) (bool, error) {
 	var token models.Token
 
 	hashedToken := utils.HashToken(req.Token)
@@ -98,16 +120,16 @@ func (s *AuthService) VerifyEmailService(req *dto.VerifyEmailRequest) (*dto.Auth
 		Where("token_hash = ? AND expires_at > ?", hashedToken, time.Now()).
 		First(&token).Error
 	if err != nil {
-		return nil, domain.ErrTokeNotFoundOrExpired
+		return false, domain.ErrTokeNotFoundOrExpired
 	}
 
 	var user models.User
 	if err := s.db.First(&user, token.UserID).Error; err != nil {
-		return nil, domain.ErrUserNotFound
+		return false, domain.ErrUserNotFound
 	}
 
 	if user.EmailVerified {
-		return nil, domain.ErrAlreadyVerified
+		return false, domain.ErrAlreadyVerified
 	}
 
 	err = s.db.Transaction(func(tx *gorm.DB) error {
@@ -124,10 +146,10 @@ func (s *AuthService) VerifyEmailService(req *dto.VerifyEmailRequest) (*dto.Auth
 	})
 
 	if err != nil {
-		return nil, err
+		return false, err
 	}
 
-	return s.GenerateAuthResponse(&user)
+	return true, nil
 }
 
 func (s *AuthService) LoginUserService(req *dto.LoginRequest) (*dto.AuthResponse, error) {
@@ -152,7 +174,6 @@ func (s *AuthService) LoginUserService(req *dto.LoginRequest) (*dto.AuthResponse
 	}
 
 	return s.GenerateAuthResponse(&user)
-
 }
 
 func (s *AuthService) GenerateRefreshTokenService(refresh string) (*dto.AuthResponse, error) {
@@ -162,8 +183,7 @@ func (s *AuthService) GenerateRefreshTokenService(refresh string) (*dto.AuthResp
 	}
 
 	var refreshToken models.RefreshToken
-	hashedToken := utils.HashToken(refresh)
-	err = s.db.Where("token_hash = ? AND expires_at > ?", hashedToken, time.Now()).First(&refreshToken).Error
+	err = s.db.Where("token_hash = ? AND expires_at > ?", refresh, time.Now()).First(&refreshToken).Error
 	if err != nil {
 		return nil, domain.ErrTokeNotFoundOrExpired
 	}
@@ -174,7 +194,9 @@ func (s *AuthService) GenerateRefreshTokenService(refresh string) (*dto.AuthResp
 		return nil, domain.ErrNotFound
 	}
 
-	s.db.Delete(&refreshToken)
+	if err := s.db.Delete(&refreshToken).Error; err != nil {
+		return nil, fmt.Errorf("failed to delete refresh token: %w", err)
+	}
 
 	return s.GenerateAuthResponse(&user)
 }
@@ -199,7 +221,7 @@ func (s *AuthService) ForgotPasswordService(req *dto.ForgotPasswordRequest) erro
 		return nil
 	}
 
-	passwordResetToken, _ := utils.GeneratePasswordResetToken()
+	passwordResetToken, _ := utils.GenerateOTP()
 
 	hashedToken := utils.HashToken(passwordResetToken)
 
@@ -214,7 +236,38 @@ func (s *AuthService) ForgotPasswordService(req *dto.ForgotPasswordRequest) erro
 	if err != nil {
 		return nil
 	}
-	// TODO: Publisher to publish to email microservice
+
+	// Publish message to queue
+	err = s.publisher.PublishMessage(
+		events.ChannelEmailPasswordReset,
+		events.PasswordResetEmailPayload{
+			Email:     user.Email,
+			FirstName: user.FirstName,
+			Token:     passwordResetToken,
+		},
+		map[string]string{"Priority": "Important Mail"},
+	)
+
+	if err != nil {
+		log.Printf("Failed to put messages in queue: %v", err)
+		return err
+	}
+
+	return nil
+}
+
+func (s *AuthService) VerifyResetOTP(req *dto.VerifyResetToken) error {
+	var token models.Token
+
+	hashedToken := utils.HashToken(req.Token)
+
+	err := s.db.
+		Where("token_hash = ? AND expires_at > ?", hashedToken, time.Now()).
+		First(&token).Error
+
+	if err != nil {
+		return domain.ErrTokeNotFoundOrExpired
+	}
 
 	return nil
 }
@@ -245,7 +298,7 @@ func (s *AuthService) ResetPasswordService(req *dto.ResetPasswordRequest) error 
 		return err
 	}
 
-	return s.db.Transaction(func(tx *gorm.DB) error {
+	err = s.db.Transaction(func(tx *gorm.DB) error {
 		if err := tx.Model(&user).
 			Update("password", newHashedPassword).Error; err != nil {
 			return err
@@ -262,6 +315,26 @@ func (s *AuthService) ResetPasswordService(req *dto.ResetPasswordRequest) error 
 
 		return nil
 	})
+
+	if err != nil {
+		return err
+	}
+
+	// Publish password changed event
+	if err := s.publisher.PublishMessage(
+		events.ChannelEmailPasswordChanged,
+		events.PasswordChangedEmailPayload{
+			Email:     user.Email,
+			FirstName: user.FirstName,
+		},
+		map[string]string{
+			"Priority": "Low Priority",
+		},
+	); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (s *AuthService) ChangePasswordService(userID uint, req *dto.ChangePasswordRequest) error {
@@ -275,7 +348,7 @@ func (s *AuthService) ChangePasswordService(userID uint, req *dto.ChangePassword
 
 	ok := utils.CheckPassword(user.Password, req.CurrentPassword)
 	if !ok {
-		return ErrInvalidCredentials
+		return fmt.Errorf("Invalid credentials")
 	}
 
 	newHashedPassword, err := utils.HashPassword(req.NewPassword)

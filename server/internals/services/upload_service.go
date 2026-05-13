@@ -31,7 +31,7 @@ func (s *UploadService) UploadMenuImage(menuID uint, file *multipart.FileHeader)
 
 	newFileName := uuid.New().String() + ext
 
-	path := fmt.Sprintf("product/%d/%s", menuID, newFileName)
+	path := fmt.Sprintf("menu/%d/%s", menuID, newFileName)
 
 	return s.uploader.UploadFile(file, path)
 
@@ -46,13 +46,13 @@ func (s *UploadService) UploadCategoryImage(file *multipart.FileHeader) (string,
 
 	newFileName := uuid.New().String() + ext
 
-	path := fmt.Sprintf("product/%d/%s", newFileName)
+	path := fmt.Sprintf("category/%s", newFileName)
 
 	return s.uploader.UploadFile(file, path)
 }
 
 func (s *UploadService) DeleteFile(menuID uint) error {
-	path := fmt.Sprintf("product/%d/%s", menuID)
+	path := fmt.Sprintf("menu/%d/%s", menuID)
 
 	err := s.uploader.DeleteFile(path)
 	if err != nil {

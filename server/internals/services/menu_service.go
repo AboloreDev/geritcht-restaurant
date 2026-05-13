@@ -66,13 +66,14 @@ func (s *MenuService) ConvertToMenuResponse(menu *models.Menu) *dto.MenuResponse
 
 	return &dto.MenuResponse{
 		ID:         menu.ID,
-		CategoryID: menu.CategoryID,
+		CategoryID: menu.MenuCategoryID,
 		Category: &dto.MenuCategoryResponse{
-			ID:          menu.Category.ID,
-			Name:        menu.Category.Name,
-			Description: menu.Category.Description,
-			ImageURL:    menu.Category.ImageURL,
-			IsActive:    menu.Category.IsActive,
+			ID:           menu.MenuCategory.ID,
+			Name:         menu.MenuCategory.Name,
+			Description:  menu.MenuCategory.Description,
+			ImageURL:     menu.MenuCategory.ImageURL,
+			IsActive:     menu.MenuCategory.IsActive,
+			DisplayOrder: menu.MenuCategory.DisplayOrder,
 		},
 		Name:            menu.Name,
 		Description:     menu.Description,
@@ -83,6 +84,7 @@ func (s *MenuService) ConvertToMenuResponse(menu *models.Menu) *dto.MenuResponse
 		SpiceLevel:      menu.SpiceLevel,
 		Allergens:       allergens,
 		DietaryTags:     dietaryTags,
+		DisplayOrder:    menu.DisplayOrder,
 		Images:          menuImages,
 		CreatedAt:       menu.CreatedAt,
 		UpdatedAt:       menu.UpdatedAt,
@@ -93,32 +95,41 @@ func (s *MenuService) CreateMenuService(req *dto.CreateMenuRequest) (*dto.MenuRe
 	var category models.MenuCategory
 	var allergens []models.Allergen
 	var dietaryTags []models.DietaryTag
-	var existingMenu models.Menu
 	var count int64
 
+	// Check category exists
 	err := s.db.First(&category, req.CategoryID).Error
 	if err != nil {
 		return nil, domain.ErrNotFound
 	}
 
+	// Fetch allergens
 	err = s.db.Find(&allergens, req.AllergenIDs).Error
 	if err != nil {
 		return nil, domain.ErrNotFound
 	}
 
+	// Fetch dietary tags
 	err = s.db.Find(&dietaryTags, req.DietaryTagIDs).Error
 	if err != nil {
 		return nil, domain.ErrNotFound
 	}
 
-	s.db.Where("name = ? AND category_id = ?", req.Name, req.CategoryID).First(&existingMenu).Count(&count)
+	// Check duplicate menu
+	err = s.db.Model(&models.Menu{}).
+		Where("name = ? AND menu_category_id = ?", req.Name, req.CategoryID).
+		Count(&count).Error
+
+	if err != nil {
+		return nil, err
+	}
 
 	if count > 0 {
 		return nil, domain.ErrNameConflict
 	}
 
 	menu := models.Menu{
-		CategoryID:      category.ID,
+		MenuCategoryID:  category.ID,
 		Name:            req.Name,
 		Description:     req.Description,
 		Price:           req.Price,
@@ -126,15 +137,17 @@ func (s *MenuService) CreateMenuService(req *dto.CreateMenuRequest) (*dto.MenuRe
 		SpiceLevel:      req.SpiceLevel,
 		Allergens:       allergens,
 		DietaryTags:     dietaryTags,
+		DisplayOrder:    req.DisplayOrder,
 	}
 
+	// Create menu
 	err = s.db.Create(&menu).Error
 	if err != nil {
 		return nil, err
 	}
 
-	s.redisStore.Delete(ctx, "menu:all")
-	s.redisStore.Delete(ctx, fmt.Sprintf("menu:category:%d", menu.CategoryID))
+	s.redisStore.FlushByPattern(ctx, "menu:all:*")
+	s.redisStore.Delete(ctx, fmt.Sprintf("menu:category:%d", menu.MenuCategoryID))
 
 	return s.ConvertToMenuResponse(&menu), nil
 }
@@ -152,12 +165,34 @@ func (s *MenuService) UpdateMenuService(menuID uint, req *dto.UpdateMenuRequest)
 	var dietaryTags []models.DietaryTag
 	s.db.Find(&dietaryTags, req.DietaryTagIDs)
 
-	menu.CategoryID = req.CategoryID
-	menu.Name = req.Name
-	menu.Description = req.Description
-	menu.Price = req.Price
-	menu.PrepTimeMinutes = req.PrepTimeMinutes
-	menu.SpiceLevel = req.SpiceLevel
+	if req.CategoryID != 0 {
+		menu.MenuCategoryID = req.CategoryID
+	}
+
+	if req.Name != "" {
+		menu.Name = req.Name
+	}
+
+	if req.Description != "" {
+		menu.Description = req.Description
+	}
+
+	if req.Price != 0 {
+		menu.Price = req.Price
+	}
+
+	if req.PrepTimeMinutes != 0 {
+		menu.PrepTimeMinutes = req.PrepTimeMinutes
+	}
+
+	if req.SpiceLevel != 0 {
+		menu.SpiceLevel = req.SpiceLevel
+	}
+
+	if req.DisplayOrder != 0 {
+		menu.DisplayOrder = req.DisplayOrder
+	}
+
 	if req.IsAvailable != nil {
 		menu.IsAvailable = *req.IsAvailable
 	}
@@ -169,6 +204,7 @@ func (s *MenuService) UpdateMenuService(menuID uint, req *dto.UpdateMenuRequest)
 		return nil, err
 	}
 
+	s.redisStore.FlushByPattern(ctx, "menu:all:*")
 	s.redisStore.Delete(ctx, "menu:all")
 	s.redisStore.Delete(ctx, fmt.Sprintf("menu:item:%d", menuID))
 
@@ -192,8 +228,8 @@ func (s *MenuService) GetMenu(menuID uint) (*dto.MenuResponse, error) {
 		}
 	}
 
-	err := s.db.Preload("Images").Preload("Allergens").Preload("Category").
-		Preload("Ingredients").Preload("DietaryTags").
+	err := s.db.Preload("Images").Preload("Allergens").Preload("MenuCategory").
+		Preload("MenuItemIngredients").Preload("DietaryTags").
 		Where("id = ? AND is_available = ? ", menuID, true).First(&menu).Error
 	if err != nil {
 		return nil, err
@@ -209,21 +245,17 @@ func (s *MenuService) GetMenu(menuID uint) (*dto.MenuResponse, error) {
 }
 
 func (s *MenuService) DeleteMenu(menuID uint) error {
-	var menu models.Menu
+	result := s.db.Where("id = ?", menuID).Delete(&models.Menu{})
 
-	err := s.db.Where("id = ? ", menuID).Delete(&menu).Error
-	if err != nil {
+	if result.Error != nil {
+		return result.Error
+	}
+
+	if result.RowsAffected == 0 {
 		return domain.ErrNotFound
 	}
 
-	if err != nil {
-		return err
-	}
-	if s.db.RowsAffected == 0 {
-		return domain.ErrNotFound
-	}
-
-	s.redisStore.Delete(ctx, "menu:all")
+	s.redisStore.FlushByPattern(ctx, "menu:all:*")
 	s.redisStore.Delete(ctx, fmt.Sprintf("menu:item:%d", menuID))
 
 	return nil
@@ -233,7 +265,7 @@ func (s *MenuService) AddMenuImageService(menuID uint, altText, url string) erro
 	var menuImage models.MenuImage
 	var count int64
 
-	err := s.db.Model(&models.MenuImage{}).Where("menu_item_id = ?", menuID).Count(&count).Error
+	err := s.db.Model(&models.MenuImage{}).Where("menu_id = ?", menuID).Count(&count).Error
 	if err != nil {
 		return err
 	}
@@ -243,17 +275,20 @@ func (s *MenuService) AddMenuImageService(menuID uint, altText, url string) erro
 	}
 
 	menuImage = models.MenuImage{
-		MenuItemID: menuID,
-		AltText:    altText,
-		URL:        url,
-		IsPrimary:  count == 0,
-		CreatedAt:  time.Now(),
+		MenuID:    menuID,
+		AltText:   altText,
+		URL:       url,
+		IsPrimary: count == 0,
+		CreatedAt: time.Now(),
 	}
 
 	err = s.db.Create(&menuImage).Error
 	if err != nil {
 		return err
 	}
+
+	s.redisStore.FlushByPattern(ctx, "menu:all:*")
+	s.redisStore.Delete(ctx, fmt.Sprintf("menu:item:%d", menuID))
 
 	return nil
 }
@@ -267,7 +302,7 @@ func (s *MenuService) RemoveMenuImageService(menuImageID uint) error {
 		}
 
 		var totalImages int64
-		tx.Model(&models.MenuImage{}).Where("menu_item_id = ?", menuImage.MenuItemID).Count(&totalImages)
+		tx.Model(&models.MenuImage{}).Where("menu_id = ?", menuImage.MenuID).Count(&totalImages)
 
 		if totalImages <= 1 {
 			return errors.New("cannot delete the only image. Please delete the entire menu item or upload a new image first")
@@ -279,13 +314,14 @@ func (s *MenuService) RemoveMenuImageService(menuImageID uint) error {
 
 		if menuImage.IsPrimary {
 			var nextPrimaryImage models.MenuImage
-			err := tx.Where("menu_item_id = ? AND id != ?", menuImage.MenuItemID, menuImageID).First(&nextPrimaryImage).Error
+			err := tx.Where("menu_id = ? AND id != ?", menuImage.MenuID, menuImageID).First(&nextPrimaryImage).Error
 			if err == nil {
 				tx.Model(&nextPrimaryImage).Update("is_primary", true)
 			}
 		}
 
-		s.redisStore.Delete(ctx, fmt.Sprintf("menu:item:%d", menuImage.MenuItemID))
+		s.redisStore.FlushByPattern(ctx, "menu:all:*")
+		s.redisStore.Delete(ctx, fmt.Sprintf("menu:item:%d", menuImage.MenuID))
 
 		return nil
 	})
@@ -303,48 +339,62 @@ func (s *MenuService) ToggleMenuAvailabilityService(menuID uint, isAvailable *bo
 		menu.IsAvailable = *isAvailable
 	}
 
-	return s.db.Save(&menu).Error
+	err = s.db.Save(&menu).Error
+	if err != nil {
+		return err
+	}
+
+	s.redisStore.FlushByPattern(ctx, "menu:all:*")
+
+	return nil
 }
 
-func (s *MenuService) GetAllMenuService(page, pageSize int) ([]*dto.MenuResponse, *utils.PaginatedMeta, error) {
-	var menus []models.Menu
-	cacheKey := fmt.Sprintf("menu:all:p%d:s%d", page, pageSize)
-	var count int64
-	offset := utils.Pagination(page, pageSize)
-
+func (s *MenuService) GetAllMenuService(filter dto.MenuFilterRequest) ([]*dto.MenuResponse, *utils.PaginatedMeta, error) {
+	cacheKey := utils.BuildMenuCacheKey(filter)
 	cached, err := s.redisStore.Get(ctx, cacheKey)
 	if err == nil && cached != "" {
 		var cachedResponse struct {
 			Data []*dto.MenuResponse  `json:"data"`
 			Meta *utils.PaginatedMeta `json:"meta"`
 		}
-		err := json.Unmarshal([]byte(cached), &cachedResponse)
-		if err == nil {
+		if err := json.Unmarshal([]byte(cached), &cachedResponse); err == nil {
 			return cachedResponse.Data, cachedResponse.Meta, nil
 		}
 	}
 
-	s.db.Model(&models.Menu{}).Where("is_available = ?", true).Count(&count)
+	offset := utils.Pagination(filter.Page, filter.PageSize)
 
-	err = s.db.Preload("Images").Preload("Allergens").Preload("Category").
-		Preload("Ingredients").Preload("DietaryTags").
-		Where("is_available = ?", true).Find(&menus).
-		Order("created_at DESC").Offset(offset).Limit(pageSize).Error
+	query := s.db.Model(&models.Menu{}).Where("is_available = ?", true)
+
+	query = utils.ApplyMenuFilters(query, filter)
+
+	var count int64
+	query.Count(&count)
+
+	query = utils.ApplyMenuSorting(query, filter)
+
+	var menus []models.Menu
+	err = query.
+		Preload("Images").
+		Preload("Allergens").
+		Preload("MenuCategory").
+		Preload("DietaryTags").
+		Offset(offset).
+		Limit(filter.PageSize).
+		Find(&menus).Error
 	if err != nil {
 		return nil, nil, err
 	}
 
 	response := make([]*dto.MenuResponse, 0, len(menus))
-
 	for _, menu := range menus {
 		response = append(response, s.ConvertToMenuResponse(&menu))
 	}
 
-	totalPages := int(count + int64(pageSize) - 1/int64(pageSize))
-
+	totalPages := int((count + int64(filter.PageSize) - 1) / int64(filter.PageSize))
 	meta := &utils.PaginatedMeta{
-		Page:       page,
-		Limit:      pageSize,
+		Page:       filter.Page,
+		Limit:      filter.PageSize,
 		Total:      count,
 		TotalPages: totalPages,
 	}
@@ -354,12 +404,8 @@ func (s *MenuService) GetAllMenuService(page, pageSize int) ([]*dto.MenuResponse
 		Meta *utils.PaginatedMeta `json:"meta"`
 	}{Data: response, Meta: meta}
 
-	data, err := json.Marshal(&cacheData)
-	if err != nil {
-		return nil, nil, fmt.Errorf("failed to marshal data: %v", err)
-	}
-
-	s.redisStore.Set(ctx, cacheKey, string(data), 1*time.Hour)
+	data, _ := json.Marshal(&cacheData)
+	s.redisStore.Set(ctx, cacheKey, string(data), utils.GetCacheTTL(filter))
 
 	return response, meta, nil
 }

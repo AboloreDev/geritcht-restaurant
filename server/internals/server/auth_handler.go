@@ -49,7 +49,7 @@ func (s *Server) LoginUserHandler(ctx *gin.Context) {
 		case domain.ErrNotVerified:
 			utils.Forbidden(ctx, "Please verify your email first", err)
 		default:
-			utils.InternalServerError(ctx, "Something went wrong", err)
+			utils.UnAuthorized(ctx, "Login failed", err)
 		}
 		return
 	}
@@ -57,7 +57,7 @@ func (s *Server) LoginUserHandler(ctx *gin.Context) {
 	ctx.SetCookie(
 		"refresh_token",
 		response.RefreshToken,
-		int(s.cfg.JWT.JWTRefreshTokenExpiration.Seconds()),
+		int(s.cfg.JWT.JWTRefreshTokenExpiration),
 		"/",
 		"",
 		false,
@@ -76,6 +76,7 @@ func (s *Server) RefreshTokenHandler(ctx *gin.Context) {
 		return
 	}
 
+	response, err := s.authServices.GenerateRefreshTokenService(token)
 	if err != nil {
 		switch err {
 		case domain.ErrInvalidRefreshToken, domain.ErrTokeNotFoundOrExpired:
@@ -86,16 +87,10 @@ func (s *Server) RefreshTokenHandler(ctx *gin.Context) {
 		return
 	}
 
-	response, err := s.authServices.GenerateRefreshTokenService(token)
-	if err != nil {
-		utils.BadRequest(ctx, "Something went wrong", err)
-		return
-	}
-
 	ctx.SetCookie(
 		"refresh_token",
 		response.RefreshToken,
-		int(s.cfg.JWT.JWTRefreshTokenExpiration.Seconds()),
+		int(s.cfg.JWT.JWTRefreshTokenExpiration),
 		"/",
 		"",
 		false,
@@ -172,7 +167,32 @@ func (s *Server) ForgotPasswordHandler(ctx *gin.Context) {
 		return
 	}
 
-	utils.SuccessResponse(ctx, "Password reset link send to Mail, Check Your Inbox", nil)
+	utils.SuccessResponse(ctx, "Password reset code send to Mail, Check Your Inbox", nil)
+}
+
+func (s *Server) VerifyResetOTPHandler(ctx *gin.Context) {
+	var req dto.VerifyResetToken
+
+	err := ctx.ShouldBindJSON(&req)
+	if err != nil {
+		utils.BadRequest(ctx, "Invalid Request Data", err)
+		return
+	}
+
+	err = s.authServices.VerifyResetOTP(&req)
+	if err != nil {
+		switch err {
+		case domain.ErrTokeNotFoundOrExpired:
+			utils.BadRequest(ctx, "Invalid or expired verification token", err)
+		case domain.ErrUserNotFound:
+			utils.NotFound(ctx, "User not found", err)
+		default:
+			utils.InternalServerError(ctx, "Something went wrong", err)
+		}
+		return
+	}
+
+	utils.SuccessResponse(ctx, "Verification Success", nil)
 }
 
 func (s *Server) ResetPasswordHandler(ctx *gin.Context) {

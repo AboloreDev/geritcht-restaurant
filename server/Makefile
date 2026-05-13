@@ -26,8 +26,11 @@ build:
     		fi \
     done
 
-run: 
+run-api:
 	go run ./cmd/api
+
+run-notifier:
+	go run ./cmd/notifier
 
 dev:
 	go run ./cmd/api
@@ -56,6 +59,11 @@ docker-up:
 
 docker-down:
 	docker-compose -f docker/docker-compose.yml down
+
+docker-rebuild:
+	docker compose -f docker/docker-compose.yml down
+	docker compose -f docker/docker-compose.yml build --no-cache
+	docker compose -f docker/docker-compose.yml up -d
 
 docs-generate:
 	mkdir -p docs

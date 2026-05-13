@@ -1,6 +1,6 @@
-CREATE TABLE menu (
+CREATE TABLE menus (
     id               BIGSERIAL PRIMARY KEY,
-    category_id      BIGINT NOT NULL REFERENCES menu_categories(id) ON DELETE RESTRICT,
+    menu_category_id      BIGINT NOT NULL REFERENCES menu_categories(id) ON DELETE RESTRICT,
     name             VARCHAR(255) NOT NULL,
     description      TEXT,
     price            DECIMAL(10,2) NOT NULL,
@@ -13,6 +13,6 @@ CREATE TABLE menu (
     deleted_at       TIMESTAMPTZ
 );
 
-CREATE INDEX idx_menu_items_category_id ON menu(category_id);
-CREATE INDEX idx_menu_items_is_available ON menu(is_available);
-CREATE INDEX idx_menu_items_deleted_at ON menu(deleted_at);
+CREATE INDEX idx_menus_menu_category_id ON menus(menu_category_id);
+CREATE INDEX idx_menus_is_available ON menus(is_available);
+CREATE INDEX idx_menus_deleted_at ON menus(deleted_at);

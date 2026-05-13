@@ -4,7 +4,7 @@ CREATE TABLE daily_summaries (
     total_orders    INT NOT NULL DEFAULT 0,
     total_revenue   DECIMAL(10,2) NOT NULL DEFAULT 0,
     total_customers INT NOT NULL DEFAULT 0,
-    popular_item_id BIGINT REFERENCES menu(id) ON DELETE SET NULL,
+    popular_item_id BIGINT REFERENCES menus(id) ON DELETE SET NULL,
     created_at      TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 

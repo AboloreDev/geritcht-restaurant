@@ -24,11 +24,12 @@ type CreateMenuRequest struct {
 	SpiceLevel      int     `json:"spice_level"`
 	AllergenIDs     []uint  `json:"allergen_ids"`
 	DietaryTagIDs   []uint  `json:"dietary_tag_ids"`
+	DisplayOrder    int     `json:"display_order"`
 }
 
 type UpdateMenuRequest struct {
-	CategoryID      uint    `json:"category_id"`
-	Name            string  `json:"name"`
+	CategoryID      uint    `json:"category_id" binding:"required"`
+	Name            string  `json:"name" `
 	Description     string  `json:"description"`
 	Price           float64 `json:"price"`
 	PrepTimeMinutes int     `json:"prep_time_minutes"`
@@ -36,6 +37,7 @@ type UpdateMenuRequest struct {
 	IsAvailable     *bool   `json:"is_available"`
 	AllergenIDs     []uint  `json:"allergen_ids"`
 	DietaryTagIDs   []uint  `json:"dietary_tag_ids"`
+	DisplayOrder    int     `json:"display_order"`
 }
 
 type ToggleAvailabilityRequest struct {
@@ -49,15 +51,11 @@ type CreateDietaryTagRequest struct {
 	Name string `json:"name" binding:"required"`
 }
 
-type MenuFilterRequest struct {
-	CategoryID    uint    `form:"category_id"`
-	MinPrice      float64 `form:"min_price"`
-	MaxPrice      float64 `form:"max_price"`
-	IsAvailable   *bool   `form:"is_available"`
-	AllergenIDs   []uint  `form:"allergen_ids"`
-	DietaryTagIDs []uint  `form:"dietary_tag_ids"`
-	SpiceLevel    int     `form:"spice_level"`
-	Search        string  `form:"search"`
+type UpdateAllergenRequest struct {
+	Name string `json:"name" binding:"required"`
+}
+type UpdateDietaryTagRequest struct {
+	Name string `json:"name" binding:"required"`
 }
 
 type AllergenResponse struct {
@@ -99,10 +97,25 @@ type MenuResponse struct {
 	ImageURL        string                `json:"image_url"`
 	IsAvailable     bool                  `json:"is_available"`
 	PrepTimeMinutes int                   `json:"prep_time_minutes"`
+	DisplayOrder    int                   `json:"display_order"`
 	SpiceLevel      int                   `json:"spice_level"`
 	Allergens       []AllergenResponse    `json:"allergens,omitempty"`
 	DietaryTags     []DietaryTagResponse  `json:"dietary_tags,omitempty"`
 	Images          []MenuImageResponse   `json:"images,omitempty"`
 	CreatedAt       time.Time             `json:"created_at"`
 	UpdatedAt       time.Time             `json:"updated_at"`
+}
+
+type MenuFilterRequest struct {
+	CategoryID      uint    `form:"category_id"`
+	MinPrice        float64 `form:"min_price"`
+	MaxPrice        float64 `form:"max_price"`
+	SpiceLevel      int     `form:"spice_level"`
+	Dietary         string  `form:"dietary"`
+	AllergenExclude string  `form:"allergen_exclude"`
+	Search          string  `form:"search"`
+	SortBy          string  `form:"sort_by"`
+	SortOrder       string  `form:"sort_order"`
+	Page            int     `form:"page,default=1"`
+	PageSize        int     `form:"page_size,default=10"`
 }

@@ -55,3 +55,14 @@ func (r *Store) Exists(ctx context.Context, keys string) (bool, error) {
 func (r *Store) Flush(ctx context.Context) error {
 	return r.client.FlushAll(ctx).Err()
 }
+
+func (r *Store) FlushByPattern(ctx context.Context, pattern string) error {
+	keys, err := r.client.Keys(ctx, pattern).Result()
+	if err != nil {
+		return err
+	}
+	if len(keys) == 0 {
+		return nil
+	}
+	return r.client.Del(ctx, keys...).Err()
+}

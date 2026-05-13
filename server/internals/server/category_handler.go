@@ -60,13 +60,16 @@ func (s *Server) UpdateCategoryHandler(ctx *gin.Context) {
 	}
 
 	response, err := s.categoryServices.UpdateCategoryService(categoryID, &req)
-	switch err {
-	case domain.ErrNotFound:
-		utils.NotFound(ctx, "Category not found", err)
-	case domain.ErrNameConflict:
-		utils.ConflictResponse(ctx, "Category name already exists", err)
-	default:
-		utils.InternalServerError(ctx, "Something went wrong", err)
+	if err != nil {
+		switch err {
+		case domain.ErrNotFound:
+			utils.NotFound(ctx, "Category not found", err)
+		case domain.ErrNameConflict:
+			utils.ConflictResponse(ctx, "Category name already exists", err)
+		default:
+			utils.InternalServerError(ctx, "Something went wrong", err)
+		}
+		return
 	}
 
 	utils.SuccessResponse(ctx, "Category updated successfully", response)
@@ -106,7 +109,12 @@ func (s *Server) DeleteCategory(ctx *gin.Context) {
 
 	err = s.categoryServices.DeleteCategoryService(categoryID)
 	if err != nil {
-		utils.BadRequest(ctx, "Error deleting category", err)
+		switch err {
+		case domain.ErrNotFound:
+			utils.NotFound(ctx, "Category not found", err)
+		default:
+			utils.ConflictResponse(ctx, err.Error(), err)
+		}
 		return
 	}
 

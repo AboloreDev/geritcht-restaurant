@@ -38,19 +38,20 @@ func (s *CategoryService) ConvertCategoryResponse(category *models.MenuCategory)
 	for _, item := range category.Menu {
 		menuItem = append(menuItem, dto.MenuResponse{
 			ID:         item.ID,
-			CategoryID: item.CategoryID,
+			CategoryID: item.MenuCategoryID,
 			Name:       item.Name,
 		})
 	}
 
 	return &dto.MenuCategoryResponse{
-		ID:          category.ID,
-		Name:        category.Name,
-		Description: category.Description,
-		ImageURL:    category.ImageURL,
-		MenuItems:   menuItem,
-		IsActive:    category.IsActive,
-		CreatedAt:   category.CreatedAt,
+		ID:           category.ID,
+		Name:         category.Name,
+		Description:  category.Description,
+		ImageURL:     category.ImageURL,
+		MenuItems:    menuItem,
+		IsActive:     category.IsActive,
+		CreatedAt:    category.CreatedAt,
+		DisplayOrder: category.DisplayOrder,
 	}
 }
 
@@ -63,11 +64,12 @@ func (s *CategoryService) CreateCategoryService(req *dto.CreateCategoryRequest, 
 	}
 
 	category := models.MenuCategory{
-		Name:        req.Name,
-		Description: req.Description,
-		IsActive:    true,
-		CreatedAt:   time.Now(),
-		ImageURL:    imageURL,
+		Name:         req.Name,
+		Description:  req.Description,
+		IsActive:     true,
+		CreatedAt:    time.Now(),
+		ImageURL:     imageURL,
+		DisplayOrder: req.DisplayOrder,
 	}
 
 	err = s.db.Create(&category).Error
@@ -75,7 +77,7 @@ func (s *CategoryService) CreateCategoryService(req *dto.CreateCategoryRequest, 
 		return nil, err
 	}
 
-	s.redisStore.Delete(ctx, "menu:categories")
+	s.redisStore.FlushByPattern(ctx, "menu:categories:*")
 
 	return s.ConvertCategoryResponse(&category), nil
 }
@@ -88,8 +90,15 @@ func (s *CategoryService) UpdateCategoryService(categoryID uint, req *dto.Update
 		return nil, domain.ErrNotFound
 	}
 
-	category.Name = req.Name
-	category.Description = req.Description
+	if req.Name != "" {
+		category.Name = req.Name
+	}
+	if req.Description != "" {
+		category.Description = req.Description
+	}
+	if req.DisplayOrder != 0 {
+		category.DisplayOrder = req.DisplayOrder
+	}
 	if req.IsActive != nil {
 		category.IsActive = *req.IsActive
 	}
@@ -100,9 +109,10 @@ func (s *CategoryService) UpdateCategoryService(categoryID uint, req *dto.Update
 	}
 
 	s.redisStore.Delete(ctx,
-		"menu:categories",
 		fmt.Sprintf("menu:category:%d", categoryID),
 	)
+
+	s.redisStore.FlushByPattern(ctx, "menu:categories:*")
 
 	return s.ConvertCategoryResponse(&category), nil
 
@@ -117,15 +127,16 @@ func (s *CategoryService) DeleteCategoryService(categoryID uint) error {
 		return fmt.Errorf("cannot delete category with %d menu", count)
 	}
 
-	err := s.db.Delete(&category, categoryID).Error
-	if err != nil {
-		return err
+	result := s.db.Where("id = ?", categoryID).Delete(&category)
+	if result.Error != nil {
+		return result.Error
+	}
+	if result.RowsAffected == 0 {
+		return domain.ErrNotFound
 	}
 
-	s.redisStore.Delete(ctx,
-		"menu:categories",
-		fmt.Sprintf("menu:category:%d", categoryID),
-	)
+	s.redisStore.Delete(ctx, fmt.Sprintf("menu:category:%d", categoryID))
+	s.redisStore.FlushByPattern(ctx, "menu:categories:*")
 
 	return nil
 }
@@ -150,7 +161,7 @@ func (s *CategoryService) GetCategoriesService(page, pageSize int) ([]*dto.MenuC
 
 	s.db.Model(models.MenuCategory{}).Count(&count)
 
-	err = s.db.Preload("Menu").Offset(offset).Limit(pageSize).Find(&categories).Error
+	err = s.db.Order("display_order ASC").Offset(offset).Limit(pageSize).Find(&categories).Error
 	if err != nil {
 		return nil, nil, err
 	}
@@ -161,7 +172,7 @@ func (s *CategoryService) GetCategoriesService(page, pageSize int) ([]*dto.MenuC
 		response = append(response, s.ConvertCategoryResponse(&category))
 	}
 
-	totalPages := int(count + int64(pageSize) - 1/int64(pageSize))
+	totalPages := int((count + int64(pageSize) - 1) / int64(pageSize))
 
 	meta := &utils.PaginatedMeta{
 		Page:       page,
@@ -202,7 +213,7 @@ func (s *CategoryService) GetCategoryService(categoryID uint) (*dto.MenuCategory
 	}
 
 	var category models.MenuCategory
-	err := s.db.Preload("Menu").Where("id = ? AND is_active = ?", categoryID, true).First(&category).Error
+	err := s.db.Where("id = ? AND is_active = ?", categoryID, true).First(&category).Error
 	if err != nil {
 		return nil, domain.ErrNotFound
 	}

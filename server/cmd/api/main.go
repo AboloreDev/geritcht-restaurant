@@ -15,6 +15,7 @@ import (
 	"github.com/AboloreDev/geritcht-restaurant/internals/interfaces"
 	"github.com/AboloreDev/geritcht-restaurant/internals/logger"
 	"github.com/AboloreDev/geritcht-restaurant/internals/providers"
+	"github.com/AboloreDev/geritcht-restaurant/internals/publisher"
 	redisImport "github.com/AboloreDev/geritcht-restaurant/internals/redis"
 	"github.com/AboloreDev/geritcht-restaurant/internals/server"
 	"github.com/AboloreDev/geritcht-restaurant/internals/services"
@@ -29,6 +30,7 @@ func init() {
 func main() {
 	// Initialise logger
 	log := logger.New()
+	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
 
 	// Load the env
 	cfg, err := config.LoadEnv()
@@ -51,13 +53,11 @@ func main() {
 	}
 	defer mainDB.Close()
 
-	// Upload Provider
-	var uploadProvider interfaces.UploadProvider
-	if cfg.Uploads.UploadProvider == "cloudinary" {
-		uploadProvider = providers.NewCloudinaryUploader(cfg)
-	} else {
-		uploadProvider = providers.NewLocalUploadProvider(cfg.Uploads.UploadPath)
+	opt, err := redis.ParseURL(cfg.Redis.URL)
+	if err != nil {
+		log.Fatal().Err(err).Msg("invalid Redis URL")
 	}
+	client := redis.NewClient(opt)
 
 	// Initialise Redis
 	var redisStore interfaces.Cacher
@@ -65,15 +65,7 @@ func main() {
 		log.Warn().Msg("No Redis URL — using NopStore")
 		redisStore = redisImport.NewNopCache()
 	} else {
-		client := redis.NewClient(&redis.Options{
-			Addr: cfg.Redis.URL,
-			DB:   0,
-		})
-
-		redisCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-		defer cancel()
-
-		if err := client.Ping(redisCtx).Err(); err != nil {
+		if err := client.Ping(ctx).Err(); err != nil {
 			log.Warn().Err(err).Msg("Redis ping failed — using NopStore")
 			redisStore = redisImport.NewNopCache()
 		} else {
@@ -82,13 +74,38 @@ func main() {
 		}
 	}
 
+	defer func() {
+		if err := client.Close(); err != nil {
+			log.Error().Err(err).Msg("error closing redis connection")
+		}
+	}()
+
+	// Upload Provider
+	var uploadProvider interfaces.UploadProvider
+	if cfg.Uploads.UploadProvider == "cloudinary" {
+		uploadProvider = providers.NewCloudinaryUploader(cfg)
+	} else {
+		uploadProvider = providers.NewLocalUploadProvider(cfg.Uploads.UploadPath)
+	}
+
+	// Event Publisher Initialisation
+	eventPublisher, err := publisher.NewEventPublisher(
+		ctx,
+		&config.RedisConfig{
+			QUEUE_NAME: cfg.Redis.QUEUE_NAME,
+		}, client)
+	if err != nil {
+		log.Error().Err(err).Msg("Failed to initialise events")
+		return
+	}
+
 	// Services
-	authServices := services.NewAuthService(db, cfg)
+	authServices := services.NewAuthService(db, cfg, eventPublisher)
 	uploadServices := services.NewUploadServices(uploadProvider)
 	categoryServices := services.NewCategoryService(db, redisStore)
 	menuServices := services.NewMenuService(db, redisStore)
-	allegenServices := services.NewAllergenService(db)
-	dietaryTagsService := services.NewDietaryTagsService(db)
+	allegenServices := services.NewAllergenService(db, redisStore)
+	dietaryTagsService := services.NewDietaryTagsService(db, redisStore)
 	userServices := services.NewUserService(db)
 
 	// Initialise Server
@@ -127,7 +144,6 @@ func main() {
 	<-quit
 
 	log.Info().Msg("shutting down server")
-	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
 	defer cancel()
 
 	err = httpServer.Shutdown(ctx)

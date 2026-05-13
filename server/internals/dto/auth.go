@@ -22,7 +22,9 @@ type RefreshTokenRequest struct {
 type VerifyEmailRequest struct {
 	Token string `json:"token" binding:"required"`
 }
-
+type VerifyResetToken struct {
+	Token string `json:"token" binding:"required"`
+}
 type ForgotPasswordRequest struct {
 	Email string `json:"email" binding:"required,email"`
 }

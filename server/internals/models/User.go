@@ -24,7 +24,7 @@ type User struct {
 	Cart           []Cart          `json:"-"`
 	Orders         []Order         `json:"-"`
 	Reservations   []Reservation   `json:"-"`
-	StockMovements []StockMovement `json:"-"`
+	StockMovements []StockMovement `json:"-" gorm:"foreignKey:CreatedBy"`
 }
 
 type RefreshToken struct {

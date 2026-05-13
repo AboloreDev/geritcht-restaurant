@@ -21,7 +21,7 @@ type Ingredient struct {
 }
 
 type MenuItemIngredient struct {
-	MenuItemID   uint      `json:"menu_item_id" gorm:"primaryKey"`
+	MenuID       uint      `json:"menu_item_id" gorm:"primaryKey"`
 	IngredientID uint      `json:"ingredient_id" gorm:"primaryKey"`
 	Quantity     float64   `json:"quantity" gorm:"not null"`
 	CreatedAt    time.Time `json:"created_at"`

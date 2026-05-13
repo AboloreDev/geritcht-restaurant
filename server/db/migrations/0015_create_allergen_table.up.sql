@@ -13,13 +13,13 @@ CREATE TABLE dietary_tags (
 );
 
 CREATE TABLE menu_item_allergens (
-    menu_id BIGINT NOT NULL REFERENCES menu(id) ON DELETE CASCADE,
+    menu_id BIGINT NOT NULL REFERENCES menus(id) ON DELETE CASCADE,
     allergen_id  BIGINT NOT NULL REFERENCES allergens(id) ON DELETE CASCADE,
     PRIMARY KEY (menu_id, allergen_id)
 );
 
 CREATE TABLE menu_item_dietary (
-    menu_id   BIGINT NOT NULL REFERENCES menu(id) ON DELETE CASCADE,
+    menu_id   BIGINT NOT NULL REFERENCES menus(id) ON DELETE CASCADE,
     dietary_tag_id BIGINT NOT NULL REFERENCES dietary_tags(id) ON DELETE CASCADE,
     PRIMARY KEY (menu_id, dietary_tag_id)
 );

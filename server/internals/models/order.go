@@ -30,7 +30,7 @@ type Order struct {
 type OrderItem struct {
 	ID                  uint           `json:"id" gorm:"primaryKey"`
 	OrderID             uint           `json:"order_id" gorm:"not null;index"`
-	MenuItemID          uint           `json:"menu_item_id" gorm:"not null;index"`
+	MenuID              uint           `json:"menu_item_id" gorm:"not null;index"`
 	Quantity            int            `json:"quantity" gorm:"not null"`
 	Price               float64        `json:"price" gorm:"not null"`
 	SpecialInstructions string         `json:"special_instructions"`

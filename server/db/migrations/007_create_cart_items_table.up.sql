@@ -1,7 +1,7 @@
 CREATE TABLE cart_items (
     id                   BIGSERIAL PRIMARY KEY,
-    cart_id              BIGINT NOT NULL REFERENCES cart(id) ON DELETE CASCADE,
-    menu_id         BIGINT NOT NULL REFERENCES menu(id) ON DELETE RESTRICT,
+    cart_id              BIGINT NOT NULL REFERENCES carts(id) ON DELETE CASCADE,
+    menu_id         BIGINT NOT NULL REFERENCES menus(id) ON DELETE RESTRICT,
     quantity             INT NOT NULL DEFAULT 1,
     special_instructions TEXT,
     created_at           TIMESTAMPTZ NOT NULL DEFAULT NOW(),

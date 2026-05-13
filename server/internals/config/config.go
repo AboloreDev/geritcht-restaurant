@@ -11,7 +11,7 @@ import (
 type Config struct {
 	Server     ServerConfig
 	Cloudinary CloudinaryConfig
-	SMTP       SMTPConfig
+	Resend     ResendConfig
 	JWT        JWTConfig
 	Uploads    UploadConfig
 	Database   DatabaseConfig
@@ -45,7 +45,10 @@ type UploadConfig struct {
 	UploadSize     int64
 	UploadProvider string
 }
-type SMTPConfig struct{}
+type ResendConfig struct {
+	ResendAPIKey   string
+	ResendFromMail string
+}
 
 type JWTConfig struct {
 	JWTSecret                 string
@@ -54,7 +57,8 @@ type JWTConfig struct {
 }
 
 type RedisConfig struct {
-	URL string
+	URL        string
+	QUEUE_NAME string
 }
 
 func LoadEnv() (*Config, error) {
@@ -78,7 +82,10 @@ func LoadEnv() (*Config, error) {
 			CloudinaryFolder: GetEnv("CLOUDINARY_FOLDER", "geritcht"),
 		},
 
-		SMTP: SMTPConfig{},
+		Resend: ResendConfig{
+			ResendAPIKey:   GetEnv("RESEND_API_KEY", "your_resend_api_key"),
+			ResendFromMail: GetEnv("FROM_MAIL", "onboarding@resend.dev"),
+		},
 
 		JWT: JWTConfig{
 			JWTSecret:                 GetEnv("JWT_SECRET", "your_jwt_secret"),
@@ -102,7 +109,8 @@ func LoadEnv() (*Config, error) {
 		},
 
 		Redis: RedisConfig{
-			URL: GetEnv("REDIS_URL", "test"),
+			URL:        GetEnv("REDIS_URL", "test"),
+			QUEUE_NAME: GetEnv("QUEUE_NAME", "queue"),
 		},
 	}, nil
 }

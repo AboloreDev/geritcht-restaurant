@@ -4,16 +4,19 @@ import (
 	"crypto/rand"
 	"crypto/sha256"
 	"encoding/hex"
+	"fmt"
+	"math/big"
 )
 
 func GenerateVerificationToken() (string, error) {
-	b := make([]byte, 32)
+	max := big.NewInt(900000)
 
-	if _, err := rand.Read(b); err != nil {
+	n, err := rand.Int(rand.Reader, max)
+	if err != nil {
 		return "", err
 	}
 
-	return hex.EncodeToString(b), nil
+	return fmt.Sprintf("%06d", n.Int64()+100000), nil
 }
 
 func HashToken(token string) string {
@@ -21,14 +24,15 @@ func HashToken(token string) string {
 	return hex.EncodeToString(hash[:])
 }
 
-func GeneratePasswordResetToken() (string, error) {
-	b := make([]byte, 32)
+func GenerateOTP() (string, error) {
+	max := big.NewInt(900000)
 
-	if _, err := rand.Read(b); err != nil {
+	n, err := rand.Int(rand.Reader, max)
+	if err != nil {
 		return "", err
 	}
 
-	return hex.EncodeToString(b), nil
+	return fmt.Sprintf("%06d", n.Int64()+100000), nil
 }
 
 func IsValidExtensions(ext string) bool {

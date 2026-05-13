@@ -20,15 +20,15 @@ services:
       - redis-data:/data
     command: ["redis-server", "--appendonly", "yes"]
 
-  geritcht:
-    build:
-      context: ..
-      dockerfile: docker/Dockerfile
-    ports:
-      - "6000:6000"
-    env_file:
-      - ../.env
-    command: ["./api"]
+  # geritcht:
+  #   build:
+  #     context: ..
+  #     dockerfile: docker/Dockerfile
+  #   ports:
+  #     - "6000:6000"
+  #   env_file:
+  #     - ../.env
+  #   command: ["./api"]
 
 volumes:
   geritcht_db_data:

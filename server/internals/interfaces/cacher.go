@@ -11,4 +11,5 @@ type Cacher interface {
 	Delete(ctx context.Context, keys ...string) error
 	Exists(ctx context.Context, key string) (bool, error)
 	Flush(ctx context.Context) error
+	FlushByPattern(ctx context.Context, pattern string) error
 }

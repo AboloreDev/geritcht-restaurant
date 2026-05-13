@@ -1,5 +1,5 @@
 CREATE TABLE menu_item_ingredients (
-    menu_id  BIGINT NOT NULL REFERENCES menu(id) ON DELETE CASCADE,
+    menu_id  BIGINT NOT NULL REFERENCES menus(id) ON DELETE CASCADE,
     ingredient_id BIGINT NOT NULL REFERENCES ingredients(id) ON DELETE RESTRICT,
     quantity      DECIMAL(10,2) NOT NULL,
     created_at    TIMESTAMPTZ NOT NULL DEFAULT NOW(),

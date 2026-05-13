@@ -74,8 +74,9 @@ func (s *Server) SetUpRoutes() *gin.Engine {
 			auth.POST("/logout", s.LogoutHandler)
 			auth.POST("/refresh", s.RefreshTokenHandler)
 			auth.POST("/forgot", s.ForgotPasswordHandler)
-			auth.POST("/reset", s.ResetPasswordHandler)
+			auth.POST("/reset-password", s.ResetPasswordHandler)
 			auth.POST("/verify", s.VerifyEmailHandler)
+			auth.POST("/verify-reset-otp", s.VerifyResetOTPHandler)
 
 		}
 		protected := api.Group("/")
@@ -121,18 +122,26 @@ func (s *Server) SetUpRoutes() *gin.Engine {
 				menu.GET("/menu/:id", s.GetMenuHandler)
 				menu.DELETE("/:id", s.AdminMiddleware(), s.DeleteMenuHandler)
 				menu.PATCH("/:id/toggle", s.AdminMiddleware(), s.ToggleMenuAvailabilityHandler)
+				menu.POST("/:id/images", s.AdminMiddleware(), s.UploadMenuImageHandler)
+				menu.DELETE("/images/:id", s.AdminMiddleware(), s.DeleteMenuImageHandler)
 			}
 
 			allergens := protected.Group("/allergens")
 			{
 				// Allergens and Dietary Tags Protected Routes
 				allergens.POST("/", s.AdminMiddleware(), s.CreateAllergenHandler)
+				allergens.GET("/", s.AdminMiddleware(), s.GetAllAllergenHandler)
+				allergens.PATCH("/:id", s.AdminMiddleware(), s.UpdateAllegenHandler)
+				allergens.DELETE("/:id", s.AdminMiddleware(), s.DeleteAllergenHandler)
 
 			}
 
 			tags := protected.Group("/tags")
 			{
-				tags.POST("/", s.AdminMiddleware(), s.CreateDietaryTagsHandler)
+				tags.POST("/", s.AdminMiddleware(), s.CreateDietaryTagHandler)
+				tags.GET("/", s.AdminMiddleware(), s.GetAllDietaryTagHandler)
+				tags.PATCH("/:id", s.AdminMiddleware(), s.UpdateDietaryTagHandler)
+				tags.DELETE("/:id", s.AdminMiddleware(), s.DeleteDietaryTagHandler)
 			}
 		}
 

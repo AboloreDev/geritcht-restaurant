@@ -30,3 +30,7 @@ func (c *NopCache) Exists(ctx context.Context, key string) (bool, error) {
 func (c *NopCache) Flush(ctx context.Context) error {
 	return nil
 }
+
+func (c *NopCache) FlushByPattern(ctx context.Context, pattern string) error {
+	return nil
+}
