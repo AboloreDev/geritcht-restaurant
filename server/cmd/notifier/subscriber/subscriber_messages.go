@@ -2,6 +2,7 @@ package subscriber
 
 import (
 	"encoding/json"
+	"fmt"
 	"log"
 
 	"github.com/AboloreDev/geritcht-restaurant/internals/email"
@@ -54,6 +55,90 @@ func (s *EventSubscriber) HandleSendPasswordChangedMail(msg *message.Message, em
 	log.Printf("Sending notification to %s", data.Email)
 
 	emailClient.SendPasswordChangedMail(data)
+
+	log.Println("Email successfully sent")
+
+	return nil
+}
+
+func (s *EventSubscriber) HandleReservationConfirmationMail(msg *message.Message, emailClient *email.ResendEmailClient) error {
+	var data events.ReservationConfirmPayload
+
+	err := json.Unmarshal(msg.Payload, &data)
+	if err != nil {
+		return err
+	}
+
+	log.Printf("Sending notification to %s", data.Email)
+	fmt.Println(data.Email)
+
+	emailClient.SendReservationConfirmation(data)
+
+	log.Println("Email successfully sent")
+
+	return nil
+}
+func (s *EventSubscriber) HandleReservationReminderMail(msg *message.Message, emailClient *email.ResendEmailClient) error {
+	var data events.ReservationReminderPayload
+
+	err := json.Unmarshal(msg.Payload, &data)
+	if err != nil {
+		return err
+	}
+
+	log.Printf("Sending notification to %s", data.Email)
+
+	emailClient.SendReservationReminderMail(data)
+
+	log.Println("Email successfully sent")
+
+	return nil
+}
+
+func (s *EventSubscriber) HandleReservationCancellationMail(msg *message.Message, emailClient *email.ResendEmailClient) error {
+	var data events.ReservationCancelledPayload
+
+	err := json.Unmarshal(msg.Payload, &data)
+	if err != nil {
+		return err
+	}
+
+	log.Printf("Sending notification to %s", data.Email)
+
+	emailClient.SendReservationCancellationMail(data)
+
+	log.Println("Email successfully sent")
+
+	return nil
+}
+
+func (s *EventSubscriber) HandleReservationCheckInMail(msg *message.Message, emailClient *email.ResendEmailClient) error {
+	var data events.ReservationCheckInPayload
+
+	err := json.Unmarshal(msg.Payload, &data)
+	if err != nil {
+		return err
+	}
+
+	log.Printf("Sending notification to %s", data.Email)
+
+	emailClient.SendReservationCheckInMail(data)
+
+	log.Println("Email successfully sent")
+
+	return nil
+}
+func (s *EventSubscriber) HandleReservationNoShowMail(msg *message.Message, emailClient *email.ResendEmailClient) error {
+	var data events.ReservationNoShowPayload
+
+	err := json.Unmarshal(msg.Payload, &data)
+	if err != nil {
+		return err
+	}
+
+	log.Printf("Sending notification to %s", data.Email)
+
+	emailClient.SendReservationNoShowMail(data)
 
 	log.Println("Email successfully sent")
 

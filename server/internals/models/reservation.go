@@ -3,6 +3,7 @@ package models
 import (
 	"time"
 
+	"gorm.io/datatypes"
 	"gorm.io/gorm"
 )
 
@@ -11,7 +12,7 @@ type Reservation struct {
 	UserID          uint              `json:"user_id" gorm:"not null;index"`
 	TableID         uint              `json:"table_id" gorm:"not null;index"`
 	Date            time.Time         `json:"date" gorm:"not null"`
-	TimeSlot        time.Time         `json:"time_slot" gorm:"not null"`
+	TimeSlot        datatypes.Time    `json:"time_slot" gorm:"not null;type:time"`
 	PartySize       int               `json:"party_size" gorm:"not null"`
 	Status          ReservationStatus `json:"status" gorm:"default:pending"`
 	SpecialRequests string            `json:"special_requests"`
@@ -29,7 +30,7 @@ type Waitlist struct {
 	ID         uint           `json:"id" gorm:"primaryKey"`
 	UserID     uint           `json:"user_id" gorm:"not null;index"`
 	Date       time.Time      `json:"date" gorm:"not null"`
-	TimeSlot   time.Time      `json:"time_slot" gorm:"not null"`
+	TimeSlot   datatypes.Time `json:"time_slot" gorm:"not null;type:time"`
 	PartySize  int            `json:"party_size" gorm:"not null"`
 	Status     WaitlistStatus `json:"status" gorm:"default:waiting"`
 	NotifiedAt *time.Time     `json:"notified_at"`
@@ -49,6 +50,7 @@ const (
 	ReservationStatusCheckedIn ReservationStatus = "checked_in"
 	ReservationStatusNoShow    ReservationStatus = "no_show"
 	ReservationStatusCancelled ReservationStatus = "cancelled"
+	ReservationStatusCompleted ReservationStatus = "completed"
 )
 
 type WaitlistStatus string

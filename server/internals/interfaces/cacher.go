@@ -3,6 +3,8 @@ package interfaces
 import (
 	"context"
 	"time"
+
+	"github.com/redis/go-redis/v9"
 )
 
 type Cacher interface {
@@ -12,4 +14,5 @@ type Cacher interface {
 	Exists(ctx context.Context, key string) (bool, error)
 	Flush(ctx context.Context) error
 	FlushByPattern(ctx context.Context, pattern string) error
+	Hold(ctx context.Context, keys string, value interface{}, args redis.SetArgs) error
 }

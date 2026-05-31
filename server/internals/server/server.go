@@ -12,17 +12,20 @@ import (
 )
 
 type Server struct {
-	cfg                *config.Config
-	log                zerolog.Logger
-	db                 *gorm.DB
-	authServices       *services.AuthService
-	redisStore         interfaces.Cacher
-	uploadServices     *services.UploadService
-	categoryServices   *services.CategoryService
-	menuServices       *services.MenuService
-	allergenServices   *services.AllergenService
-	dietaryTagsService *services.DietaryTagsService
-	userServices       *services.UserService
+	cfg                 *config.Config
+	log                 zerolog.Logger
+	db                  *gorm.DB
+	authServices        *services.AuthService
+	redisStore          interfaces.Cacher
+	uploadServices      *services.UploadService
+	categoryServices    *services.CategoryService
+	menuServices        *services.MenuService
+	allergenServices    *services.AllergenService
+	dietaryTagsService  *services.DietaryTagsService
+	userServices        *services.UserService
+	reservationServices *services.ReservationService
+	waitlistService     *services.WaitlistService
+	tableServices       *services.TableService
 }
 
 func NewServer(
@@ -36,19 +39,25 @@ func NewServer(
 	menuServices *services.MenuService,
 	allergenServices *services.AllergenService,
 	dietaryTagsService *services.DietaryTagsService,
-	userServices *services.UserService) *Server {
+	reservationServices *services.ReservationService,
+	waitlistService *services.WaitlistService,
+	userServices *services.UserService,
+	tableServices *services.TableService) *Server {
 	return &Server{
-		cfg:                cfg,
-		log:                log,
-		db:                 db,
-		authServices:       authServices,
-		redisStore:         redisStore,
-		uploadServices:     uploadServices,
-		categoryServices:   categoryServices,
-		menuServices:       menuServices,
-		allergenServices:   allergenServices,
-		dietaryTagsService: dietaryTagsService,
-		userServices:       userServices,
+		cfg:                 cfg,
+		log:                 log,
+		db:                  db,
+		authServices:        authServices,
+		redisStore:          redisStore,
+		uploadServices:      uploadServices,
+		categoryServices:    categoryServices,
+		menuServices:        menuServices,
+		allergenServices:    allergenServices,
+		dietaryTagsService:  dietaryTagsService,
+		userServices:        userServices,
+		waitlistService:     waitlistService,
+		reservationServices: reservationServices,
+		tableServices:       tableServices,
 	}
 }
 
@@ -143,6 +152,29 @@ func (s *Server) SetUpRoutes() *gin.Engine {
 				tags.PATCH("/:id", s.AdminMiddleware(), s.UpdateDietaryTagHandler)
 				tags.DELETE("/:id", s.AdminMiddleware(), s.DeleteDietaryTagHandler)
 			}
+
+			table := protected.Group("/tables")
+			{
+				// Table Protected Routes
+				table.POST("/", s.AdminMiddleware(), s.CreateTableHandler)
+				table.GET("/", s.GetAllTablesHandler)
+				table.GET("/:id", s.GetTableHandler)
+				table.PATCH("/:id", s.AdminMiddleware(), s.UpdateTableHandler)
+				table.DELETE("/:id", s.AdminMiddleware(), s.DeleteTableHandler)
+			}
+
+			reservation := protected.Group("/reservations")
+			{
+				// Reservation Protected Routes
+				reservation.POST("/", s.CreateReservationHandler)
+				reservation.GET("/", s.RoleMiddleware("admin", "staff"), s.GetAllReservationsHandler)
+				reservation.GET("/:id/user", s.GetUserReservationHandler)
+				reservation.GET("/user", s.GetAllUserReservationsHandler)
+				reservation.GET("/today", s.GetTodayReservationHandler)
+				reservation.POST("/:id", s.CheckInReservationHandler)
+				reservation.POST("/:id/cancel", s.RoleMiddleware("admin", "staff"), s.CancelReservationHandler)
+				reservation.GET("/availability", s.CheckAvailabilityHandler)
+			}
 		}
 
 		// Public routes
@@ -150,6 +182,9 @@ func (s *Server) SetUpRoutes() *gin.Engine {
 		api.GET("/categories/:id", s.GetCategory)
 		api.GET("/menu", s.GetAllMenuHandler)
 		api.GET("/menu/:id", s.GetMenuHandler)
+		api.GET("/table", s.GetAllTablesHandler)
+		api.GET("/table/:id", s.GetTableHandler)
+		api.GET("/availability", s.CheckAvailabilityHandler)
 	}
 
 	return router

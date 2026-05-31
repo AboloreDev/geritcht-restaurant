@@ -78,6 +78,16 @@ func (s *EventSubscriber) handleMessage(msg *message.Message, emailClient *email
 		return s.HandleSendPasswordReset(msg, emailClient)
 	case events.ChannelEmailPasswordChanged:
 		return s.HandleSendPasswordChangedMail(msg, emailClient)
+	case events.ChannelEmailReservationConfirm:
+		return s.HandleReservationConfirmationMail(msg, emailClient)
+	case events.ChannelEmailReservationCancelled:
+		return s.HandleReservationCancellationMail(msg, emailClient)
+	case events.ChannelEmailReservationReminder:
+		return s.HandleReservationReminderMail(msg, emailClient)
+	case events.ChannelEmailReservationCheckedIn:
+		return s.HandleReservationCheckInMail(msg, emailClient)
+	case events.ChannelEmailReservationNoShow:
+		return s.HandleReservationNoShowMail(msg, emailClient)
 	default:
 		log.Printf("Unknown event type %s", eventType)
 		return nil

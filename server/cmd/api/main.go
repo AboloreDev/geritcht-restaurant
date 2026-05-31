@@ -30,7 +30,12 @@ func init() {
 func main() {
 	// Initialise logger
 	log := logger.New()
-	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
+	// App Context
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+
+	// Worker context
+	workerCtx, cancel := context.WithCancel(context.Background())
+	defer cancel()
 
 	// Load the env
 	cfg, err := config.LoadEnv()
@@ -98,6 +103,7 @@ func main() {
 		log.Error().Err(err).Msg("Failed to initialise events")
 		return
 	}
+	defer eventPublisher.CloseMessage()
 
 	// Services
 	authServices := services.NewAuthService(db, cfg, eventPublisher)
@@ -107,6 +113,17 @@ func main() {
 	allegenServices := services.NewAllergenService(db, redisStore)
 	dietaryTagsService := services.NewDietaryTagsService(db, redisStore)
 	userServices := services.NewUserService(db)
+	reservationServices := services.NewReservationService(db, redisStore, eventPublisher)
+	waitlistServices := services.NewWaitlistService(db)
+	tableServices := services.NewTableService(db, redisStore)
+
+	// DB Workers
+	noShowWorker := services.NewNoShowWorker(db, eventPublisher, redisStore)
+	reminderWorker := services.NewReminderWorker(db, redisStore, eventPublisher)
+
+	// Go routines for worker
+	go noShowWorker.StartMarkNoShowWorker(workerCtx, log)
+	go reminderWorker.StartReminderWorker(workerCtx, log)
 
 	// Initialise Server
 	srv := server.NewServer(
@@ -118,7 +135,10 @@ func main() {
 		menuServices,
 		allegenServices,
 		dietaryTagsService,
+		reservationServices,
+		waitlistServices,
 		userServices,
+		tableServices,
 	)
 
 	router := srv.SetUpRoutes()

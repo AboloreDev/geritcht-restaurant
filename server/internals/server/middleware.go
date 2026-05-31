@@ -80,3 +80,37 @@ func (s *Server) StaffMiddleware() gin.HandlerFunc {
 		ctx.Next()
 	}
 }
+
+func (s *Server) RoleMiddleware(roles ...string) gin.HandlerFunc {
+	return func(ctx *gin.Context) {
+
+		if len(roles) == 0 {
+			ctx.Next()
+			return
+		}
+
+		userRole, exists := ctx.Get("user_role")
+		if !exists {
+			utils.Forbidden(ctx, "Forbidden", nil)
+			ctx.Abort()
+			return
+		}
+
+		roleStr, ok := userRole.(string)
+		if !ok {
+			utils.Forbidden(ctx, "Invalid Role", nil)
+			ctx.Abort()
+			return
+		}
+
+		for _, role := range roles {
+			if roleStr == role {
+				ctx.Next()
+				return
+			}
+		}
+
+		utils.Forbidden(ctx, "Forbidden", nil)
+		ctx.Abort()
+	}
+}

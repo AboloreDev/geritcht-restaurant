@@ -15,8 +15,7 @@ type UploadService struct {
 	uploader interfaces.UploadProvider
 }
 
-func NewUploadServices(uploader interfaces.UploadProvider,
-) *UploadService {
+func NewUploadServices(uploader interfaces.UploadProvider) *UploadService {
 	return &UploadService{
 		uploader: uploader,
 	}

@@ -3,6 +3,8 @@ package redis
 import (
 	"context"
 	"time"
+
+	"github.com/redis/go-redis/v9"
 )
 
 type NopCache struct{}
@@ -32,5 +34,9 @@ func (c *NopCache) Flush(ctx context.Context) error {
 }
 
 func (c *NopCache) FlushByPattern(ctx context.Context, pattern string) error {
+	return nil
+}
+
+func (c *NopCache) Hold(ctx context.Context, keys string, value interface{}, args redis.SetArgs) error {
 	return nil
 }

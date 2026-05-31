@@ -64,5 +64,16 @@ func (r *Store) FlushByPattern(ctx context.Context, pattern string) error {
 	if len(keys) == 0 {
 		return nil
 	}
+
 	return r.client.Del(ctx, keys...).Err()
+}
+
+func (r *Store) Hold(ctx context.Context, keys string, value interface{}, args redis.SetArgs) error {
+	err := r.client.SetArgs(ctx, keys, value, args).Err()
+
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

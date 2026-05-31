@@ -3,6 +3,7 @@ package dto
 import "time"
 
 type CreateReservationRequest struct {
+	TableID         uint   `json:"table_id" binding:"required"`
 	Date            string `json:"date" binding:"required"`
 	TimeSlot        string `json:"time_slot" binding:"required"`
 	PartySize       int    `json:"party_size" binding:"required,gt=0"`
@@ -59,9 +60,19 @@ type ReservationResponse struct {
 	CreatedAt       time.Time     `json:"created_at"`
 }
 
+type TableAvailabilityResponse struct {
+	ID       uint   `json:"id"`
+	Name     string `json:"name"`
+	Capacity int    `json:"capacity"`
+	Location string `json:"location"`
+	Status   string `json:"status"`
+}
+
 type AvailabilityResponse struct {
-	Date      string             `json:"date"`
-	TimeSlots []TimeSlotResponse `json:"time_slots"`
+	Date      string                      `json:"date"`
+	TimeSlot  string                      `json:"time_slot"`
+	PartySize int                         `json:"party_size"`
+	Tables    []TableAvailabilityResponse `json:"tables"`
 }
 
 type TimeSlotResponse struct {
@@ -88,4 +99,5 @@ type ReservationListResponse struct {
 	Total        int64                 `json:"total"`
 	Page         int                   `json:"page"`
 	PageSize     int                   `json:"page_size"`
+	TotalPages   int                   `json:"total_pages"`
 }
