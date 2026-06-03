@@ -13,13 +13,13 @@ import (
 )
 
 type CheckoutWorker struct {
-	db *gorm.DB
+	db         *gorm.DB
 	redisStore interfaces.Cacher
 }
 
 func NewCheckoutWorker(db *gorm.DB, redisStore interfaces.Cacher) *CheckoutWorker {
 	return &CheckoutWorker{
-		db: db,
+		db:         db,
 		redisStore: redisStore,
 	}
 }
@@ -32,22 +32,21 @@ func (w *CheckoutWorker) Start(appCtx context.Context, log zerolog.Logger) {
 
 	for {
 		select {
-			case <-ticker.C:
-				w.processCheckOut(log)
-				log.Info().Msg("Running checkout worker")
-			case <-ctx.Done():
-				log.Info().Msg("Shutting down checkout worker")
-				return
+		case <-ticker.C:
+			w.processCheckOut(log)
+			log.Info().Msg("Running checkout worker")
+		case <-ctx.Done():
+			log.Info().Msg("Shutting down checkout worker")
+			return
 		}
 	}
 }
 
-
-	func DataTypesTimeToHourMinute(t datatypes.Time) (int, int) {
-    totalSeconds := int64(t) / 1e9
-    hours := int(totalSeconds / 3600)
-    minutes := int((totalSeconds % 3600) / 60)
-    return hours, minutes
+func DataTypesTimeToHourMinute(t datatypes.Time) (int, int) {
+	totalSeconds := int64(t) / 1e9
+	hours := int(totalSeconds / 3600)
+	minutes := int((totalSeconds % 3600) / 60)
+	return hours, minutes
 }
 
 func (w *CheckoutWorker) processCheckOut(log zerolog.Logger) {
@@ -55,16 +54,14 @@ func (w *CheckoutWorker) processCheckOut(log zerolog.Logger) {
 	var reservations []models.Reservation
 	today := now.Format("2006-01-02")
 
-
-
 	err := w.db.Preload("Table").
 		Where("date = ? AND status = ?", today, models.ReservationStatusCheckedIn).
 		Find(&reservations).Error
 
-		if err != nil {
-			log.Error().Err(err).Msg("Error fetching checked-in reservations")
-		}
-	
+	if err != nil {
+		log.Error().Err(err).Msg("Error fetching checked-in reservations")
+	}
+
 	for _, reservation := range reservations {
 		hours, minutes := DataTypesTimeToHourMinute(reservation.TimeSlot)
 
@@ -74,9 +71,9 @@ func (w *CheckoutWorker) processCheckOut(log zerolog.Logger) {
 		}
 
 		slotTime := time.Date(
-            now.Year(), now.Month(), now.Day(),
-            hours, minutes, 0, 0, now.Location(),
-        )
+			now.Year(), now.Month(), now.Day(),
+			hours, minutes, 0, 0, now.Location(),
+		)
 
 		endTime := slotTime.Add(reservationDuration)
 
@@ -88,33 +85,32 @@ func (w *CheckoutWorker) processCheckOut(log zerolog.Logger) {
 
 func (w *CheckoutWorker) checkout(reservation models.Reservation, log zerolog.Logger) {
 	err := w.db.Transaction(func(tx *gorm.DB) error {
-        if err := tx.Model(&reservation).
-            Update("status", models.ReservationStatusCompleted).Error; err != nil {
-            return err
-        }
+		if err := tx.Model(&reservation).
+			Update("status", models.ReservationStatusCompleted).Error; err != nil {
+			return err
+		}
 
-        if err := tx.Model(&models.Table{}).
-            Where("id = ?", reservation.TableID).
-            Update("status", models.TableStatusAvailable).Error; err != nil {
-            return err
-        }
+		if err := tx.Model(&models.Table{}).
+			Where("id = ?", reservation.TableID).
+			Update("status", models.TableStatusAvailable).Error; err != nil {
+			return err
+		}
 
-        return nil
-    })
-    if err != nil {
-        log.Error().Err(err).
-            Uint("reservation_id", reservation.ID).
-            Msg("failed to checkout reservation")
-        return
-    }
+		return nil
+	})
+	if err != nil {
+		log.Error().Err(err).
+			Uint("reservation_id", reservation.ID).
+			Msg("failed to checkout reservation")
+		return
+	}
 
+	w.redisStore.Delete(ctx,
+		fmt.Sprintf("table:item:%d", reservation.TableID),
+	)
 
-    w.redisStore.Delete(ctx,
-        fmt.Sprintf("table:item:%d", reservation.TableID),
-    )
-
-    log.Info().
-        Uint("reservation_id", reservation.ID).
-        Uint("table_id", reservation.TableID).
-        Msg("reservation checked out automatically")
+	log.Info().
+		Uint("reservation_id", reservation.ID).
+		Uint("table_id", reservation.TableID).
+		Msg("reservation checked out automatically")
 }

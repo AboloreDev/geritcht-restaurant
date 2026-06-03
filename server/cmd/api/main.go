@@ -116,14 +116,23 @@ func main() {
 	reservationServices := services.NewReservationService(db, redisStore, eventPublisher)
 	waitlistServices := services.NewWaitlistService(db)
 	tableServices := services.NewTableService(db, redisStore)
+	paymentService := services.NewPaymentService(db, redisStore, eventPublisher, &config.Config{
+		Paystack: config.PaystackConfig{
+			PaystackSecretKey: cfg.Paystack.PaystackSecretKey,
+			PaystackPublicKey: cfg.Paystack.PaystackPublicKey,
+		},
+	})
+	orderService := services.NewOrderService(db)
 
 	// DB Workers
 	noShowWorker := services.NewNoShowWorker(db, eventPublisher, redisStore)
 	reminderWorker := services.NewReminderWorker(db, redisStore, eventPublisher)
+	outboxWorker := services.NewOutboxWorker(db, eventPublisher)
 
 	// Go routines for worker
 	go noShowWorker.StartMarkNoShowWorker(workerCtx, log)
 	go reminderWorker.StartReminderWorker(workerCtx, log)
+	go outboxWorker.StartOutboxWorker(workerCtx, log)
 
 	// Initialise Server
 	srv := server.NewServer(
@@ -139,6 +148,8 @@ func main() {
 		waitlistServices,
 		userServices,
 		tableServices,
+		paymentService,
+		orderService,
 	)
 
 	router := srv.SetUpRoutes()

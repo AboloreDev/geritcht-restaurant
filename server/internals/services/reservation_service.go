@@ -226,51 +226,50 @@ func (s *ReservationService) CreateReservation(req *dto.CreateReservationRequest
 }
 
 func (s *ReservationService) GetAllUserReservations(userID uint, req *dto.ReservationFilterRequest) (*dto.ReservationListResponse, error) {
-    var reservations []models.Reservation
-    var count int64
+	var reservations []models.Reservation
+	var count int64
 
-    if req.Page <= 0 {
-        req.Page = 1
-    }
-    if req.PageSize <= 0 {
-        req.PageSize = 10
-    }
+	if req.Page <= 0 {
+		req.Page = 1
+	}
+	if req.PageSize <= 0 {
+		req.PageSize = 10
+	}
 
-    offset := utils.Pagination(req.Page, req.PageSize)
+	offset := utils.Pagination(req.Page, req.PageSize)
 
-    query := s.db.Preload("User").Preload("Table").
-        Where("user_id = ?", userID)
+	query := s.db.Preload("User").Preload("Table").
+		Where("user_id = ?", userID)
 
-   
-    if req.Date != "" {
-        query = query.Where("date = ?", req.Date)
-    }
-    if req.Status != "" {
-        query = query.Where("status = ?", req.Status)
-    }
+	if req.Date != "" {
+		query = query.Where("date = ?", req.Date)
+	}
+	if req.Status != "" {
+		query = query.Where("status = ?", req.Status)
+	}
 
-    query = query.Order("date ASC, time_slot ASC")
-    query.Model(&models.Reservation{}).Count(&count)
+	query = query.Order("date ASC, time_slot ASC")
+	query.Model(&models.Reservation{}).Count(&count)
 
-    err := query.Offset(offset).Limit(req.PageSize).Find(&reservations).Error
-    if err != nil {
-        return nil, err
-    }
+	err := query.Offset(offset).Limit(req.PageSize).Find(&reservations).Error
+	if err != nil {
+		return nil, err
+	}
 
-    response := make([]dto.ReservationResponse, 0, len(reservations))
-    for _, rsv := range reservations {
-        response = append(response, *mapper.ReservationResponse(&rsv))
-    }
+	response := make([]dto.ReservationResponse, 0, len(reservations))
+	for _, rsv := range reservations {
+		response = append(response, *mapper.ReservationResponse(&rsv))
+	}
 
-    totalPages := int((count + int64(req.PageSize) - 1) / int64(req.PageSize))
+	totalPages := int((count + int64(req.PageSize) - 1) / int64(req.PageSize))
 
-    return &dto.ReservationListResponse{
-        Reservations: response,
-        Total:        count,
-        Page:         req.Page,
-        PageSize:     req.PageSize,
-        TotalPages:   totalPages,
-    }, nil
+	return &dto.ReservationListResponse{
+		Reservations: response,
+		Total:        count,
+		Page:         req.Page,
+		PageSize:     req.PageSize,
+		TotalPages:   totalPages,
+	}, nil
 }
 
 func (s *ReservationService) GetUserReservation(userID uint, reservationID uint) (*dto.ReservationResponse, error) {
@@ -298,14 +297,14 @@ func (s *ReservationService) GetAllReservations(req *dto.ReservationFilterReques
 	var reservation []models.Reservation
 	var count int64
 
-	 if req.Page <= 0 {
-        req.Page = 1
-    }
-    if req.PageSize <= 0 {
-        req.PageSize = 10
-    }
+	if req.Page <= 0 {
+		req.Page = 1
+	}
+	if req.PageSize <= 0 {
+		req.PageSize = 10
+	}
 
-    offset := utils.Pagination(req.Page, req.PageSize)
+	offset := utils.Pagination(req.Page, req.PageSize)
 
 	query := s.db.Preload("User").Preload("Table")
 
@@ -348,16 +347,16 @@ func (s *ReservationService) GetTodayReservations(req *dto.ReservationFilterRequ
 	var reservation []models.Reservation
 	var count int64
 
-	 if req.Page <= 0 {
-        req.Page = 1
-    }
+	if req.Page <= 0 {
+		req.Page = 1
+	}
 
-    if req.PageSize <= 0 {
-        req.PageSize = 10
-    }
+	if req.PageSize <= 0 {
+		req.PageSize = 10
+	}
 
 	req.Date = time.Now().Format("2006-01-02")
-	
+
 	offset := utils.Pagination(req.Page, req.PageSize)
 
 	query := s.db.Preload("User").Preload("Table")
@@ -467,10 +466,9 @@ func (s *ReservationService) CheckInReservation(reservationID uint, userID uint)
 		TableID: reservation.TableID,
 		Status:  string(models.ReservationStatusCheckedIn),
 		Table: dto.TableResponse{
-			ID:     reservation.Table.ID,
-			Status: string(models.TableStatusOccupied),
+			ID:       reservation.Table.ID,
+			Status:   string(models.TableStatusOccupied),
 			Capacity: reservation.Table.Capacity,
-			
 		},
 		CheckedInAt: reservation.CheckedInAt,
 	}, nil
@@ -555,7 +553,6 @@ func (s *ReservationService) CancelRservation(userID uint, reservationID uint) (
 	s.redisStore.FlushByPattern(ctx,
 		fmt.Sprintf("availability:%s:%s:*", reservation.Date, reservation.TimeSlot),
 	)
-	
 
 	if err := s.db.Preload("User").Preload("Waitlist").
 		First(&reservation, reservation.ID).Error; err != nil {
@@ -577,7 +574,6 @@ func (s *ReservationService) CancelRservation(userID uint, reservationID uint) (
 		log.Printf("Failed to put messages in queue: %v", err)
 		return nil, err
 	}
-
 
 	if err := s.db.Preload("User").Preload("Table").
 		First(&reservation, reservation.ID).Error; err != nil {
@@ -606,8 +602,8 @@ func (s *ReservationService) CancelRservation(userID uint, reservationID uint) (
 		TableID: reservation.TableID,
 		Status:  string(models.ReservationStatusCancelled),
 		Table: dto.TableResponse{
-			ID:     reservation.Table.ID,
-			Status: string(models.TableStatusOccupied),
+			ID:       reservation.Table.ID,
+			Status:   string(models.TableStatusOccupied),
 			Capacity: reservation.Table.Capacity,
 		},
 		CheckedInAt: reservation.CheckedInAt,

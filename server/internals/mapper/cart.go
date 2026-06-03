@@ -12,19 +12,19 @@ func ConvertToCartResponse(cart *models.Cart) *dto.CartResponse {
 	for i := range cart.CartItems {
 		subtotal := cart.CartItems[i].Menu.Price * float64(cart.CartItems[i].Quantity)
 		total = total + subtotal
-	
+
 		cartItem[i] = dto.CartItemResponse{
-			ID:       cart.CartItems[i].ID,
+			ID:         cart.CartItems[i].ID,
 			MenuItemID: cart.CartItems[i].MenuID,
 			MenuItem: dto.MenuResponse{
-				ID:    cart.CartItems[i].Menu.ID,
-				Name:  cart.CartItems[i].Menu.Name,
-				Price: cart.CartItems[i].Menu.Price,
+				ID:              cart.CartItems[i].Menu.ID,
+				Name:            cart.CartItems[i].Menu.Name,
+				Price:           cart.CartItems[i].Menu.Price,
 				PrepTimeMinutes: cart.CartItems[i].Menu.PrepTimeMinutes,
-				SpiceLevel: cart.CartItems[i].Menu.SpiceLevel,
+				SpiceLevel:      cart.CartItems[i].Menu.SpiceLevel,
 			},
-			Quantity: cart.CartItems[i].Quantity,
-			Subtotal:  subtotal,
+			Quantity:            cart.CartItems[i].Quantity,
+			Subtotal:            subtotal,
 			SpecialInstructions: cart.CartItems[i].SpecialInstructions,
 		}
 	}

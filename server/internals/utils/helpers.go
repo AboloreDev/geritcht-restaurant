@@ -46,3 +46,15 @@ func IsValidExtensions(ext string) bool {
 
 	return false
 }
+
+func GeneratePaymentReference() string {
+	bytes := make([]byte, 10)
+	rand.Read(bytes)
+	return fmt.Sprintf("PAY-%X", bytes)
+}
+
+func GenerateIdempotencyKey() string {
+	bytes := make([]byte, 16)
+	rand.Read(bytes)
+	return hex.EncodeToString(bytes)
+}

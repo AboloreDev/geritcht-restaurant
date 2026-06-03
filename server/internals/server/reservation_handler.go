@@ -172,7 +172,7 @@ func (s *Server) CheckInReservationHandler(ctx *gin.Context) {
 	}
 	reservationID := uint(id)
 
-	response, err := s.reservationServices.CheckInReservation( reservationID, userID)
+	response, err := s.reservationServices.CheckInReservation(reservationID, userID)
 	if err != nil {
 		switch err {
 		case domain.ErrNotFound:

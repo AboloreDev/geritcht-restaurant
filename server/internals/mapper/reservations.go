@@ -23,7 +23,7 @@ func ReservationResponse(reservation *models.Reservation) *dto.ReservationRespon
 			ID:          reservation.User.ID,
 			FirstName:   reservation.User.FirstName,
 			LastName:    reservation.User.LastName,
-			Role: string(reservation.User.Role),
+			Role:        string(reservation.User.Role),
 			Email:       reservation.User.Email,
 			PhoneNumber: reservation.User.PhoneNumber,
 		},

@@ -20,9 +20,9 @@ type ReminderWorker struct {
 
 func NewReminderWorker(db *gorm.DB, redisStore interfaces.Cacher, publisher interfaces.Publisher) *ReminderWorker {
 	return &ReminderWorker{
-		db:        db,
+		db:         db,
 		redisStore: redisStore,
-		publisher: publisher,
+		publisher:  publisher,
 	}
 }
 
@@ -38,7 +38,7 @@ func (w *ReminderWorker) StartReminderWorker(ctx context.Context, log zerolog.Lo
 			log.Info().Msg("reminder worker stopped")
 			return
 		case <-ticker.C:
-			w.processReminder(log) 
+			w.processReminder(log)
 		case <-heartbeat.C:
 			log.Info().Msg("reminder worker is alive")
 		}
@@ -54,7 +54,7 @@ func (w *ReminderWorker) processReminder(log zerolog.Logger) {
 
 	// convert to datatypes.Time for DB comparison
 	targetSlot, err := utils.ParseToDataTypesTime(
-		target.Format("15:04"), 
+		target.Format("15:04"),
 	)
 	if err != nil {
 		log.Error().Err(err).Msg("failed to parse target time slot")

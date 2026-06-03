@@ -12,6 +12,7 @@ const (
 	ChannelEmailWaitlistNotification = "email:waitlist_notification"
 	ChannelEmailReservationCancelled = "email:cancelled"
 	ChannelEmailReservationNoShow    = "email:noshow"
+	ChannelOrderConfirmation         = "email:order_confirmed"
 )
 
 type VerificationEmailPayload struct {
@@ -38,6 +39,15 @@ type OrderReceiptEmailPayload struct {
 	Items       []OrderItemPayload `json:"items"`
 	TotalAmount float64            `json:"total_amount"`
 	Reference   string             `json:"reference"`
+}
+
+type OrderConfirmationPayload struct {
+	Email     string `json:"email"`
+	FirstName string `json:"first_name"`
+	UserID    uint   `json:"user_id"`
+	OrderID   uint   `json:"order_id"`
+	Amount    int64  `json:"amount"`
+	Reference string `json:"reference"`
 }
 
 type OrderItemPayload struct {

@@ -26,6 +26,8 @@ type Server struct {
 	reservationServices *services.ReservationService
 	waitlistService     *services.WaitlistService
 	tableServices       *services.TableService
+	paymentService      *services.PaymentService
+	orderService        *services.OrderService
 }
 
 func NewServer(
@@ -42,7 +44,9 @@ func NewServer(
 	reservationServices *services.ReservationService,
 	waitlistService *services.WaitlistService,
 	userServices *services.UserService,
-	tableServices *services.TableService) *Server {
+	tableServices *services.TableService,
+	paymentService *services.PaymentService,
+	orderService *services.OrderService) *Server {
 	return &Server{
 		cfg:                 cfg,
 		log:                 log,
@@ -58,6 +62,8 @@ func NewServer(
 		waitlistService:     waitlistService,
 		reservationServices: reservationServices,
 		tableServices:       tableServices,
+		paymentService:      paymentService,
+		orderService:        orderService,
 	}
 }
 

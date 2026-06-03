@@ -16,6 +16,7 @@ type Config struct {
 	Uploads    UploadConfig
 	Database   DatabaseConfig
 	Redis      RedisConfig
+	Paystack   PaystackConfig
 }
 
 type DatabaseConfig struct {
@@ -54,6 +55,13 @@ type JWTConfig struct {
 	JWTSecret                 string
 	JWTTokenExpiration        time.Duration
 	JWTRefreshTokenExpiration time.Duration
+}
+
+type PaystackConfig struct {
+	PaystackSecretKey     string
+	PaystackPublicKey     string
+	PaystakcinitialiseURL string
+	PaystackVerifyURL     string
 }
 
 type RedisConfig struct {
@@ -110,6 +118,13 @@ func LoadEnv() (*Config, error) {
 		Redis: RedisConfig{
 			URL:        GetEnv("REDIS_URL", "test"),
 			QUEUE_NAME: GetEnv("QUEUE_NAME", "queue"),
+		},
+
+		Paystack: PaystackConfig{
+			PaystackSecretKey:     GetEnv("PAYSTACK_SECRET_KEY", "test"),
+			PaystackPublicKey:     GetEnv("PAYSTACK_PUBLIC_KEY", "test"),
+			PaystakcinitialiseURL: GetEnv("PAYSTACK_INITIALISE_URL", "https://api.paystack.co/transaction/initialize"),
+			PaystackVerifyURL:     GetEnv("PAYSTACK_VERIFY_URL", "https://api.paystack.co/transaction/verify"),
 		},
 	}, nil
 }

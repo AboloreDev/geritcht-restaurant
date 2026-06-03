@@ -13,6 +13,7 @@ const (
 	PaymentStatusPaid     PaymentStatus = "paid"
 	PaymentStatusFailed   PaymentStatus = "failed"
 	PaymentStatusRefunded PaymentStatus = "refunded"
+	PaymentStatusPending  PaymentStatus = "pending"
 )
 
 type Payment struct {
