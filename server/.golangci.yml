@@ -1,0 +1,30 @@
+version: "2"
+
+run:
+  timeout: 5m
+  modules-download-mode: readonly
+
+linters:
+  enable:
+    - errcheck
+    - govet
+    - ineffassign
+    - staticcheck
+    - unused
+    - revive
+    - bodyclose
+    - gocritic
+
+  settings:
+    govet:
+      enable:
+        - shadow
+
+    revive:
+      rules:
+        - name: exported
+          disabled: true
+
+issues:
+  max-issues-per-linter: 0
+  max-same-issues: 0
