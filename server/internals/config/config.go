@@ -123,8 +123,8 @@ func LoadEnv() (*Config, error) {
 		Paystack: PaystackConfig{
 			PaystackSecretKey:     GetEnv("PAYSTACK_SECRET_KEY", "test"),
 			PaystackPublicKey:     GetEnv("PAYSTACK_PUBLIC_KEY", "test"),
-			PaystakcinitialiseURL: GetEnv("PAYSTACK_INITIALISE_URL", "https://api.paystack.co/transaction/initialize"),
-			PaystackVerifyURL:     GetEnv("PAYSTACK_VERIFY_URL", "https://api.paystack.co/transaction/verify"),
+			PaystakcinitialiseURL: GetEnv("PAYSTACK_INITIALISE_URL", "https://api.paystack.co/transaction/initialize/"),
+			PaystackVerifyURL:     GetEnv("PAYSTACK_VERIFY_URL", "https://api.paystack.co/transaction/verify/"),
 		},
 	}, nil
 }

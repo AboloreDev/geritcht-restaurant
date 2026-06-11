@@ -18,7 +18,7 @@ func NewCartService(db *gorm.DB) *CartService {
 
 func (s *CartService) GetUserCart(userID uint) (*dto.CartResponse, error) {
 	var cart models.Cart
-	err := s.db.Preload("CartItems.Menu.Category").
+	err := s.db.Preload("CartItems.Menu").
 		Where("user_id = ?", userID).First(&cart).Error
 	if err != nil {
 		return nil, err
@@ -64,7 +64,7 @@ func (s *CartService) AddItemToCart(userID uint, req *dto.AddToCartRequest) (*dt
 		}
 	}
 
-	return s.GetUserCart(userID)
+	return mapper.ConvertToCartResponse(&cart), nil
 }
 
 func (s *CartService) UpdateCartItem(userID uint, itemID uint, req *dto.UpdateCartItemRequest) (*dto.CartResponse, error) {

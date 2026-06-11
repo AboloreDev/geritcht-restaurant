@@ -6,6 +6,7 @@ import (
 	"github.com/AboloreDev/geritcht-restaurant/internals/config"
 	"github.com/AboloreDev/geritcht-restaurant/internals/interfaces"
 	"github.com/AboloreDev/geritcht-restaurant/internals/services"
+	websockets "github.com/AboloreDev/geritcht-restaurant/internals/web-sockets"
 	"github.com/gin-gonic/gin"
 	"github.com/rs/zerolog"
 	"gorm.io/gorm"
@@ -28,6 +29,8 @@ type Server struct {
 	tableServices       *services.TableService
 	paymentService      *services.PaymentService
 	orderService        *services.OrderService
+	cartServices        *services.CartService
+	hub *websockets.Hub
 }
 
 func NewServer(
@@ -46,7 +49,9 @@ func NewServer(
 	userServices *services.UserService,
 	tableServices *services.TableService,
 	paymentService *services.PaymentService,
-	orderService *services.OrderService) *Server {
+	orderService *services.OrderService,
+	cartServices *services.CartService,
+	hub *websockets.Hub) *Server {
 	return &Server{
 		cfg:                 cfg,
 		log:                 log,
@@ -64,6 +69,8 @@ func NewServer(
 		tableServices:       tableServices,
 		paymentService:      paymentService,
 		orderService:        orderService,
+		cartServices:        cartServices,
+		hub: hub,
 	}
 }
 
@@ -181,6 +188,41 @@ func (s *Server) SetUpRoutes() *gin.Engine {
 				reservation.POST("/:id/cancel", s.RoleMiddleware("admin", "staff"), s.CancelReservationHandler)
 				reservation.GET("/availability", s.CheckAvailabilityHandler)
 			}
+
+			cart := protected.Group("/cart")
+			{
+				// Cart Protected Routes
+				cart.GET("/", s.GetUserCart)
+				cart.POST("/", s.AddToCartHandler)
+				cart.PATCH("/:id", s.UpdateCartItemHandler)
+				cart.DELETE("/", s.ClearCartHandler)
+				cart.DELETE("/:id", s.RemoveCartItemHandler)
+			}
+
+			order := protected.Group("/orders")
+			{
+				// Order Protected Routes
+				order.POST("/takeout", s.CreateTakeoutOrderHandler)
+				order.GET("/takeout/:id", s.GetTakeoutOrderHandler)
+				order.GET("/takeout/all", s.GetAllTakeoutOrdersHandler)
+			}
+
+			payment := protected.Group("/payments")
+			{
+				// Payment Protected Routes
+				payment.POST("/initialize", s.InitilaisePaymentHandler)
+				payment.POST("/verify", s.VerifyPaymentHandler)
+				payment.POST("/refund/:id", s.ProcessTakeoutRefundHandler)
+				payment.GET("/history", s.GetAllPaymentHistory)
+				payment.GET("/payment/:id", s.GetPaymentDetailsHandler)
+				payment.GET("/refund/:id", s.GetRefundDetailsHandler)
+				payment.GET("/:reference", s.GetPaymentByReferenceHandler)
+
+			}
+			websocket := protected.Group("/")
+			{
+				websocket.GET("/ws/orders/:id", s.AuthMiddleware(), s.WebSocketHandler)
+			}
 		}
 
 		// Public routes
@@ -191,6 +233,7 @@ func (s *Server) SetUpRoutes() *gin.Engine {
 		api.GET("/table", s.GetAllTablesHandler)
 		api.GET("/table/:id", s.GetTableHandler)
 		api.GET("/availability", s.CheckAvailabilityHandler)
+		api.POST("/payments/webhook", s.WebhookHandler)
 	}
 
 	return router

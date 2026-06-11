@@ -10,6 +10,10 @@ type VerifyPaymentRequest struct {
 	Reference string `json:"reference" binding:"required"`
 }
 
+type ProcessRefundRequest struct {
+	Notes string `json:"notes"`
+}
+
 type PaymentResponse struct {
 	ID                uint       `json:"id"`
 	OrderID           uint       `json:"order_id"`

@@ -19,6 +19,7 @@ import (
 	redisImport "github.com/AboloreDev/geritcht-restaurant/internals/redis"
 	"github.com/AboloreDev/geritcht-restaurant/internals/server"
 	"github.com/AboloreDev/geritcht-restaurant/internals/services"
+	websockets "github.com/AboloreDev/geritcht-restaurant/internals/web-sockets"
 	"github.com/gin-gonic/gin"
 	"github.com/redis/go-redis/v9"
 )
@@ -122,18 +123,24 @@ func main() {
 			PaystackPublicKey: cfg.Paystack.PaystackPublicKey,
 		},
 	})
-	orderService := services.NewOrderService(db)
+	orderService := services.NewOrderService(db, redisStore)
+	cartService := services.NewCartService(db)
+	// websockts hub for order
+	hub := websockets.NewHub()
 
 	// DB Workers
 	noShowWorker := services.NewNoShowWorker(db, eventPublisher, redisStore)
 	reminderWorker := services.NewReminderWorker(db, redisStore, eventPublisher)
 	outboxWorker := services.NewOutboxWorker(db, eventPublisher)
+	orderStatusAutoWorker := services.NewOrderAutoWorker(db, hub)
 
 	// Go routines for worker
 	go noShowWorker.StartMarkNoShowWorker(workerCtx, log)
 	go reminderWorker.StartReminderWorker(workerCtx, log)
 	go outboxWorker.StartOutboxWorker(workerCtx, log)
+	go orderStatusAutoWorker.StartOrderUpdateWorker(workerCtx, log)
 
+	
 	// Initialise Server
 	srv := server.NewServer(
 		cfg, db, log,
@@ -150,6 +157,8 @@ func main() {
 		tableServices,
 		paymentService,
 		orderService,
+		cartService,
+		hub,
 	)
 
 	router := srv.SetUpRoutes()

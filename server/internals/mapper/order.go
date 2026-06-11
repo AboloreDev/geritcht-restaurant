@@ -25,6 +25,7 @@ func OrderResponse(order *models.Order) *dto.OrderResponse {
 		ID:     order.ID,
 		UserID: order.UserID,
 		User: &dto.UserResponse{
+			ID: order.User.ID,
 			FirstName:   order.User.FirstName,
 			Email:       order.User.Email,
 			PhoneNumber: order.User.PhoneNumber,
@@ -35,6 +36,7 @@ func OrderResponse(order *models.Order) *dto.OrderResponse {
 		PaymentStatus: string(order.PaymentStatus),
 		Payment: &dto.PaymentResponse{
 			ID:     order.Payment.ID,
+			OrderID: order.Payment.OrderID,
 			Amount: order.Payment.Amount,
 			Status: string(order.Payment.Status),
 		},
