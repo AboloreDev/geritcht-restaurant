@@ -77,3 +77,11 @@ func (r *Store) Hold(ctx context.Context, keys string, value interface{}, args r
 
 	return nil
 }
+
+func (r *Store) Expire(ctx context.Context, key string, ttl time.Duration) error {
+	return r.client.Expire(ctx, key, ttl).Err()
+}
+
+func (r *Store) Increment(ctx context.Context, key string) (int64, error) {
+	return r.client.Incr(ctx, key).Result()
+}

@@ -18,7 +18,7 @@ func (s *Server) CreateDietaryTagHandler(ctx *gin.Context) {
 		return
 	}
 
-	response, err := s.dietaryTagsService.CreateDietaryTagService(&req)
+	response, err := s.dietaryTagsService.CreateDietaryTagService(ctx.Request.Context(), &req)
 	if err != nil {
 		switch err {
 		case domain.ErrNameConflict:
@@ -49,7 +49,7 @@ func (s *Server) UpdateDietaryTagHandler(ctx *gin.Context) {
 		return
 	}
 
-	response, err := s.dietaryTagsService.UpdateDietaryTagService(tagID, &req)
+	response, err := s.dietaryTagsService.UpdateDietaryTagService(ctx.Request.Context(), tagID, &req)
 	if err != nil {
 		switch err {
 		case domain.ErrNotFound:
@@ -75,7 +75,7 @@ func (s *Server) DeleteDietaryTagHandler(ctx *gin.Context) {
 	}
 	tagID := uint(id)
 
-	err = s.dietaryTagsService.DeleteDietaryTagService(tagID)
+	err = s.dietaryTagsService.DeleteDietaryTagService(ctx.Request.Context(), tagID)
 	if err != nil {
 		switch err {
 		case domain.ErrNotFound:
@@ -96,7 +96,7 @@ func (s *Server) GetAllDietaryTagHandler(ctx *gin.Context) {
 	page, _ := strconv.Atoi(pageStr)
 	pageSize, _ := strconv.Atoi(pageSizeStr)
 
-	response, meta, err := s.dietaryTagsService.GetAllDietaryTagService(page, pageSize)
+	response, meta, err := s.dietaryTagsService.GetAllDietaryTagService(ctx.Request.Context(), page, pageSize)
 	if err != nil {
 		utils.InternalServerError(ctx, "Failed to fetch tags", err)
 		return

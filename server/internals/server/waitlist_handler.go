@@ -18,7 +18,7 @@ func (s *Server) JoinWaitlistHandler(ctx *gin.Context) {
 		return
 	}
 
-	response, err := s.waitlistService.JoinWaitlist(userID, waitlist)
+	response, err := s.waitlistService.JoinWaitlist(ctx.Request.Context(), userID, waitlist)
 	if err != nil {
 		switch err {
 		case domain.ErrInvalidTableCapacity:
@@ -45,7 +45,7 @@ func (s *Server) GetWaitlistPositionHandler(ctx *gin.Context) {
 	date := ctx.Query("date")
 	timeSlot := ctx.Query("time_slot")
 
-	response, err := s.waitlistService.GetWaitlistPosition(userID, date, timeSlot)
+	response, err := s.waitlistService.GetWaitlistPosition(ctx.Request.Context(), userID, date, timeSlot)
 	if err != nil {
 		switch err {
 		case domain.ErrNotFound:

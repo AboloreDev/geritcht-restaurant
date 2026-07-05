@@ -18,7 +18,7 @@ func (s *Server) CreateAllergenHandler(ctx *gin.Context) {
 		return
 	}
 
-	response, err := s.allergenServices.CreateAllergenServices(&req)
+	response, err := s.allergenServices.CreateAllergenServices(ctx.Request.Context(), &req)
 	if err != nil {
 		switch err {
 		case domain.ErrNameConflict:
@@ -49,7 +49,7 @@ func (s *Server) UpdateAllegenHandler(ctx *gin.Context) {
 		return
 	}
 
-	response, err := s.allergenServices.UpdateAllergenService(allergenID, &req)
+	response, err := s.allergenServices.UpdateAllergenService(ctx.Request.Context(), allergenID, &req)
 	if err != nil {
 		switch err {
 		case domain.ErrNotFound:
@@ -75,7 +75,7 @@ func (s *Server) DeleteAllergenHandler(ctx *gin.Context) {
 	}
 	allergenID := uint(id)
 
-	err = s.allergenServices.DeleteAllergenService(allergenID)
+	err = s.allergenServices.DeleteAllergenService(ctx.Request.Context(), allergenID)
 	if err != nil {
 		switch err {
 		case domain.ErrNotFound:
@@ -95,7 +95,7 @@ func (s *Server) GetAllAllergenHandler(ctx *gin.Context) {
 	page, _ := strconv.Atoi(pageStr)
 	pageSize, _ := strconv.Atoi(pageSizeStr)
 
-	response, meta, err := s.allergenServices.GetAllAllergenService(page, pageSize)
+	response, meta, err := s.allergenServices.GetAllAllergenService(ctx.Request.Context(), page, pageSize)
 	if err != nil {
 		utils.InternalServerError(ctx, "Failed to fetch allergens", err)
 		return

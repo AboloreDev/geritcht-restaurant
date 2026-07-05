@@ -18,7 +18,7 @@ func (s *Server) CreateTableHandler(ctx *gin.Context) {
 		return
 	}
 
-	response, err := s.tableServices.CreateTableService(&req)
+	response, err := s.tableServices.CreateTableService(ctx.Request.Context(), &req)
 	if err != nil {
 		switch err {
 		case domain.ErrTableNameConflict:
@@ -50,7 +50,7 @@ func (s *Server) UpdateTableHandler(ctx *gin.Context) {
 		return
 	}
 
-	response, err := s.tableServices.UpdateTableService(tableID, &req)
+	response, err := s.tableServices.UpdateTableService(ctx.Request.Context(), tableID, &req)
 	if err != nil {
 		switch err {
 		case domain.ErrNotFound:
@@ -80,7 +80,7 @@ func (s *Server) UpdateTableStatusHandler(ctx *gin.Context) {
 		return
 	}
 
-	response, err := s.tableServices.UpdateTableStatusService(tableID, &req)
+	response, err := s.tableServices.UpdateTableStatusService(ctx.Request.Context(), tableID, &req)
 	if err != nil {
 		switch err {
 		case domain.ErrNotFound:
@@ -103,7 +103,7 @@ func (s *Server) GetTableHandler(ctx *gin.Context) {
 	}
 	tableID := uint(id)
 
-	response, err := s.tableServices.GetTableService(tableID)
+	response, err := s.tableServices.GetTableService(ctx.Request.Context(), tableID)
 	if err != nil {
 		switch err {
 		case domain.ErrNotFound:
@@ -126,7 +126,7 @@ func (s *Server) DeleteTableHandler(ctx *gin.Context) {
 	}
 	tableID := uint(id)
 
-	err = s.tableServices.DeleteTableService(tableID)
+	err = s.tableServices.DeleteTableService(ctx.Request.Context(), tableID)
 	if err != nil {
 		switch err {
 		case domain.ErrNotFound:
@@ -146,7 +146,7 @@ func (s *Server) GetAllTablesHandler(ctx *gin.Context) {
 	page, _ := strconv.Atoi(pageStr)
 	pageSize, _ := strconv.Atoi(pageSizeStr)
 
-	response, meta, err := s.tableServices.GetAllTablesService(page, pageSize)
+	response, meta, err := s.tableServices.GetAllTablesService(ctx.Request.Context(), page, pageSize)
 	if err != nil {
 		utils.InternalServerError(ctx, "failed to fetch tables", err)
 	}

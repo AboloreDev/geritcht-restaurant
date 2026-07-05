@@ -19,17 +19,15 @@ import (
 	"github.com/AboloreDev/geritcht-restaurant/internals/interfaces"
 	"github.com/AboloreDev/geritcht-restaurant/internals/mapper"
 	"github.com/AboloreDev/geritcht-restaurant/internals/models"
+	"github.com/AboloreDev/geritcht-restaurant/internals/repositories"
 	"github.com/AboloreDev/geritcht-restaurant/internals/utils"
 	"github.com/google/uuid"
 	"github.com/redis/go-redis/v9"
 	"gorm.io/gorm"
 )
 
-type PaymentService struct {
-	db             *gorm.DB
-	redisStore     interfaces.Cacher
-	eventPublisher interfaces.Publisher
-	config         *config.Config
+type HTTPClient interface {
+	Do(req *http.Request) (*http.Response, error)
 }
 
 type PaystackInitialiseResponse struct {
@@ -74,23 +72,41 @@ type PaystackWebhookPayload struct {
 	} `json:"data"`
 }
 
+type PaymentService struct {
+	db             *gorm.DB
+	redisStore     interfaces.Cacher
+	eventPublisher interfaces.Publisher
+	config         *config.Config
+	inventoryRepo  repositories.InventoryRepositoryInterface
+	HTTPClient     HTTPClient
+	paymentRepo    repositories.PaymentRepositoryInterface
+	inventory      InventoryService
+}
+
 func NewPaymentService(
 	db *gorm.DB,
 	redisStore interfaces.Cacher,
 	eventPublisher interfaces.Publisher,
 	config *config.Config,
+	inventoryRepo repositories.InventoryRepositoryInterface,
+	HTTPClient HTTPClient,
+	paymentRepo repositories.PaymentRepositoryInterface,
+	inventory InventoryService,
 ) *PaymentService {
 	return &PaymentService{
 		db:             db,
 		redisStore:     redisStore,
 		eventPublisher: eventPublisher,
 		config:         config,
+		inventoryRepo:  inventoryRepo,
+		HTTPClient:     HTTPClient,
+		paymentRepo:    paymentRepo,
+		inventory:      inventory,
 	}
 }
 
 func (s *PaymentService) callPaystackInitialize(email string, amount int64, reference string, orderID uint) (*PaystackInitialiseResponse, error) {
-	url := "https://api.paystack.co/transaction/initialize"
-
+	url := fmt.Sprintf("%s/transaction/initialize", s.config.Paystack.PaystackURL)
 	// Creating the payload
 	payload := map[string]interface{}{
 		"email":  email,
@@ -105,9 +121,9 @@ func (s *PaymentService) callPaystackInitialize(email string, amount int64, refe
 	if err != nil {
 		return nil, err
 	}
-	
+
 	// Call Paystck endpoint
-	req, err := http.NewRequest("POST",url, bytes.NewBuffer(body))
+	req, err := http.NewRequest("POST", url, bytes.NewBuffer(body))
 	if err != nil {
 		return nil, err
 	}
@@ -116,9 +132,7 @@ func (s *PaymentService) callPaystackInitialize(email string, amount int64, refe
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("Authorization", "Bearer "+s.config.Paystack.PaystackSecretKey)
 
-	client := &http.Client{Timeout: 10 * time.Second}
-
-	response, err := client.Do(req)
+	response, err := s.HTTPClient.Do(req)
 	if err != nil {
 		return nil, err
 	}
@@ -141,7 +155,7 @@ func (s *PaymentService) callPaystackInitialize(email string, amount int64, refe
 }
 
 func (s *PaymentService) callPaystackVerify(reference string) (*PaystackVerifyResponse, error) {
-	url := fmt.Sprintf("https://api.paystack.co/transaction/verify/%s", reference)
+	url := fmt.Sprintf("%s/transaction/verify/%s", s.config.Paystack.PaystackURL, reference)
 
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
@@ -151,9 +165,7 @@ func (s *PaymentService) callPaystackVerify(reference string) (*PaystackVerifyRe
 	req.Header.Set("Authorization", "Bearer "+s.config.Paystack.PaystackSecretKey)
 	req.Header.Set("Content-Type", "application/json")
 
-	client := &http.Client{Timeout: 10 * time.Second}
-
-	resp, err := client.Do(req)
+	resp, err := s.HTTPClient.Do(req)
 	if err != nil {
 		return nil, err
 	}
@@ -184,7 +196,7 @@ func (s *PaymentService) callPaystackRefund(reference string, amount int64) (*Pa
 		return nil, err
 	}
 
-	url := "https://api.paystack.co/refund"
+	url := fmt.Sprintf("%s/refund", s.config.Paystack.PaystackURL)
 
 	req, err := http.NewRequest("POST", url, bytes.NewBuffer(body))
 	if err != nil {
@@ -194,9 +206,7 @@ func (s *PaymentService) callPaystackRefund(reference string, amount int64) (*Pa
 	req.Header.Set("Authorization", "Bearer "+s.config.Paystack.PaystackSecretKey)
 	req.Header.Set("Content-Type", "application/json")
 
-	client := &http.Client{Timeout: 10 * time.Second}
-
-	resp, err := client.Do(req)
+	resp, err := s.HTTPClient.Do(req)
 	if err != nil {
 		return nil, err
 	}
@@ -222,13 +232,8 @@ func (s *PaymentService) verifySignature(body []byte, signature string) bool {
 	return hmac.Equal([]byte(expectedMac), []byte(signature))
 }
 
-func (s *PaymentService) InitialisePayment(userID uint, req *dto.InitializePaymentRequest) (*dto.InitializePaymentResponse, error) {
-	var order models.Order
-	var payment models.Payment
-
-	err := s.db.Preload("User").
-		Where("user_id = ? AND id = ?", userID, req.OrderID).
-		First(&order).Error
+func (s *PaymentService) InitialisePayment(ctx context.Context, userID uint, req *dto.InitializePaymentRequest) (*dto.InitializePaymentResponse, error) {
+	order, err := s.paymentRepo.GetOrderByIDAndUser(ctx, nil, req.OrderID, userID)
 	if err != nil {
 		return nil, domain.ErrOrderNotFound
 	}
@@ -236,12 +241,11 @@ func (s *PaymentService) InitialisePayment(userID uint, req *dto.InitializePayme
 	if order.Status != models.OrderStatusPending {
 		return nil, domain.ErrInvalidOrderStatus
 	}
-
 	if order.PaymentStatus != models.PaymentStatusUnpaid {
 		return nil, domain.ErrOrderAlreadyPaid
 	}
 
-	err = s.db.Where("order_id = ?", order.ID).First(&payment).Error
+	payment, err := s.paymentRepo.GetPaymentByOrderID(ctx, order.ID)
 	if err != nil {
 		return nil, domain.ErrPaymentNotFound
 	}
@@ -256,23 +260,21 @@ func (s *PaymentService) InitialisePayment(userID uint, req *dto.InitializePayme
 		return nil, fmt.Errorf("paystack initialization failed: %w", err)
 	}
 
-	err = s.db.Model(&payment).Updates(map[string]interface{}{
+	if err := s.paymentRepo.UpdatePayment(ctx, nil, payment, map[string]interface{}{
 		"status": models.PaymentStatusPending,
-	}).Error
-	if err != nil {
+	}); err != nil {
 		return nil, err
 	}
 
 	return &dto.InitializePaymentResponse{
 		AuthorizationURL: response.Data.AuthorizationURL,
 		Reference:        response.Data.Reference,
-		Payment:          *mapper.PaymentResponse(&payment),
+		Payment:          *mapper.PaymentResponse(payment),
 	}, nil
 }
 
-func (s *PaymentService) VerifyPayment(req *dto.VerifyPaymentRequest) (*dto.PaymentResponse, error) {
-	var payment models.Payment
-	err := s.db.Where("reference = ?", req.Reference).First(&payment).Error
+func (s *PaymentService) VerifyPayment(ctx context.Context, req *dto.VerifyPaymentRequest) (*dto.PaymentResponse, error) {
+	payment, err := s.paymentRepo.GetPaymentByReference(ctx, req.Reference)
 	if err != nil {
 		return nil, domain.ErrPaymentNotFound
 	}
@@ -292,15 +294,13 @@ func (s *PaymentService) VerifyPayment(req *dto.VerifyPaymentRequest) (*dto.Paym
 	}, nil
 }
 
-func (s *PaymentService) HandlePaystackWebhook(body []byte, signature string) error {
-	// Verify the signarure
+func (s *PaymentService) HandlePaystackWebhook(ctx context.Context, body []byte, signature string) error {
 	if !s.verifySignature(body, signature) {
 		return domain.ErrInvalidSignature
 	}
 
 	var payload PaystackWebhookPayload
-	err := json.Unmarshal(body, &payload)
-	if err != nil {
+	if err := json.Unmarshal(body, &payload); err != nil {
 		return err
 	}
 
@@ -310,105 +310,128 @@ func (s *PaymentService) HandlePaystackWebhook(body []byte, signature string) er
 
 	reference := payload.Data.Reference
 
-	var payment models.Payment
-	err = s.db.Where("reference = ?", reference).First(&payment).Error
+	payment, err := s.paymentRepo.GetPaymentByReference(ctx, reference)
 	if err != nil {
 		return domain.ErrPaymentNotFound
 	}
 
+	// idempotency check
 	if payment.Status == models.PaymentStatusPaid {
 		return nil
 	}
 
-	// prevents two webhook deliveries processing simultaneously
+	// distributed lock
 	lockKey := fmt.Sprintf("lock:webhook:payment:%s", reference)
 	lockValue, _ := json.Marshal(reference)
-
-	err = s.redisStore.Hold(context.Background(), lockKey, lockValue, redis.SetArgs{
+	if err := s.redisStore.Hold(ctx, lockKey, lockValue, redis.SetArgs{
 		Mode: "NX",
 		TTL:  30 * time.Second,
-	})
+	}); err != nil {
+		return nil
+	}
+	defer s.redisStore.Delete(ctx, lockKey)
+
+	// Check again, to avoid double order confirmation, double cart deletion
+	// if the payment is paid, return nil
+	err = s.paymentRepo.RecheckPaymentWithReference(ctx, reference)
 	if err != nil {
 		return nil
 	}
 
-	defer func() {
-		log.Println("Releasing lock")
-		err := s.redisStore.Delete(context.Background(), lockKey)
-		if err != nil {
-			log.Printf("Failed to release lock: %v", err)
-		}
-	}()
-
-	// Prevent partial payment
-	// User pays 100 for 5000 order
+	// amount verification
 	expectedAmount := int64(payment.Amount * 100)
 	if payload.Data.Amount != expectedAmount {
 		return domain.ErrPaymentAmountMismatch
 	}
 
-	// Atomic update
 	err = s.db.Transaction(func(tx *gorm.DB) error {
 		now := time.Now()
-		err := tx.Model(&payment).Updates(map[string]interface{}{
+
+		// update payment
+		if err := s.paymentRepo.UpdatePayment(ctx, tx, payment, map[string]interface{}{
 			"status":    models.PaymentStatusPaid,
 			"reference": payload.Data.Reference,
-			"paidAt":    &now,
-		}).Error
+			"paid_at":   &now,
+		}); err != nil {
+			return err
+		}
+
+		// confirm order
+		if err := s.paymentRepo.UpdateOrderStatus(ctx, tx, payment.OrderID, map[string]interface{}{
+			"payment_status": models.PaymentStatusPaid,
+			"status":         models.OrderStatusConfirmed,
+		}); err != nil {
+			return err
+		}
+
+		// deduct stock
+		fullOrder, err := s.paymentRepo.GetOrderByID(ctx, tx, payment.OrderID)
 		if err != nil {
 			return err
 		}
 
-		err = tx.Model(&models.Order{}).
-			Where("id = ?", payment.OrderID).
-			Updates(map[string]interface{}{
-				"payment_status": models.PaymentStatusPaid,
-				"status":         models.OrderStatusConfirmed,
-			}).Error
+		err = s.inventory.DeductStock(ctx, tx, fullOrder.OrderItems, payment.OrderID, payment.UserID)
 		if err != nil {
+			return nil
+		}
+
+		// clear cart
+		if err := s.paymentRepo.ClearCartByUserID(ctx, tx, payment.UserID); err != nil {
 			return err
 		}
 
-		var cart models.Cart
-		err = tx.Unscoped().Where("cart_id = ?", cart.ID).Delete(&models.CartItem{}).Error
-		if err != nil {
-			return err
+		var itemsOrdered []events.OrderItemPayload
+		for _, item := range fullOrder.OrderItems {
+			itemsOrdered = append(itemsOrdered, events.OrderItemPayload{
+				Name:     item.Menu.Name,
+				Quantity: item.Quantity,
+				Price:    item.Price,
+			})
 		}
 
+		// write outbox
 		orderConfirmation, _ := json.Marshal(events.OrderConfirmationPayload{
 			UserID:    payment.UserID,
-			Email:     payment.User.Email,
-			FirstName: payment.User.FirstName,
+			Email:     fullOrder.User.Email,
+			FirstName: fullOrder.User.FirstName,
 			OrderID:   payment.OrderID,
 			Amount:    int64(payment.Amount),
 			Reference: payment.Reference,
+			Items:     itemsOrdered,
 		})
 
-		err = tx.Create(&models.OutboxEvent{
+		return s.paymentRepo.CreateOutboxEvent(ctx, tx, &models.OutboxEvent{
 			EventType: events.ChannelOrderConfirmation,
 			Payload:   string(orderConfirmation),
 			Status:    "pending",
-			CreatedAt: time.Now(),
-		}).Error
-		if err != nil {
-			return err
-		}
-
-		return nil
+		})
 	})
 	if err != nil {
 		return err
 	}
 
-	// start goRoutine to publsh message
-	// paystack doesnt timeout
-	// if publsh fails, background outbox workers will retry
+	// The list of orders is in transactions
+	// Fetch the orders lits for go routine to use in publishing
+	orderForEmail, err := s.paymentRepo.GetOrderByID(ctx, nil, payment.OrderID)
+	if err != nil {
+		log.Printf("failed to fetch order for email: %v", err)
+	}
+
 	go func() {
+		// Build the order items
+		var itemsOrdered []events.OrderItemPayload
+		if orderForEmail != nil {
+			for _, item := range orderForEmail.OrderItems {
+				itemsOrdered = append(itemsOrdered, events.OrderItemPayload{
+					Name:     item.Menu.Name,
+					Quantity: item.Quantity,
+					Price:    item.Price,
+				})
+			}
+		}
 		err := s.eventPublisher.PublishMessage(
 			events.ChannelOrderConfirmation,
 			&events.OrderConfirmationPayload{
-				Email:     payment.User.Email,
-				FirstName: payment.User.FirstName,
 				OrderID:   payment.OrderID,
 				UserID:    payment.UserID,
 				Amount:    int64(payment.Amount),
@@ -419,77 +442,60 @@ func (s *PaymentService) HandlePaystackWebhook(body []byte, signature string) er
 		if err != nil {
 			return
 		}
-
-		s.db.Model(&models.OutboxEvent{}).
-			Where("status = ? AND event_type = ?", "pending", events.ChannelOrderConfirmation).
-			Updates(map[string]interface{}{
-				"status":      "published",
-				"processedAt": time.Now(),
-			})
+		s.paymentRepo.MarkOutboxPublished(ctx, events.ChannelOrderConfirmation)
 	}()
 
 	return nil
 }
 
-func (s *PaymentService) ProcessTakoutRefund(orderID uint, req *dto.ProcessRefundRequest) error {
-	var order models.Order
-
-	err := s.db.Preload("Payment").Where("id = ?", orderID).First(&order).Error
+func (s *PaymentService) ProcessTakeoutRefund(ctx context.Context, orderID uint, notes string) error {
+	order, err := s.paymentRepo.GetOrderByID(ctx, nil, orderID)
 	if err != nil {
 		return domain.ErrOrderNotFound
 	}
 
-	if order.Payment.ID == 0 {
+	payment, err := s.paymentRepo.GetPaymentByOrderID(ctx, orderID)
+	if err != nil {
 		return domain.ErrPaymentNotFound
 	}
 
-	if order.Payment.Status != models.PaymentStatusPaid {
+	if payment.Status != models.PaymentStatusPaid {
 		return domain.ErrOrderNotPaid
 	}
 
-	// Idempotency check
-	err = s.db.Model(&models.Refund{}).
-		Where("order_id = ?", orderID).
-		First(&models.Refund{}).Error
+	// idempotency check
+	_, err = s.paymentRepo.GetRefundByOrderID(ctx, orderID)
 	if err == nil {
 		return domain.ErrRefundAlreadyProcessed
 	}
 
-	response, err := s.callPaystackRefund(
-		order.Payment.Reference,
-		int64(order.TotalAmount*100),
-	)
+	response, err := s.callPaystackRefund(payment.Reference, int64(order.TotalAmount*100))
 	if err != nil {
 		return err
 	}
 
 	err = s.db.Transaction(func(tx *gorm.DB) error {
 		now := time.Now()
-		refunds := models.Refund{
+		refund := &models.Refund{
 			OrderID:        orderID,
-			PaymentID:      order.Payment.ID,
+			PaymentID:      payment.ID,
 			Amount:         order.TotalAmount,
-			Reason:         req.Notes,
-			Reference:      order.Payment.Reference,
+			Reason:         notes,
+			Reference:      payment.Reference,
 			Currency:       "NGN",
 			IdempotencyKey: uuid.New().String(),
 			Status:         response.Data.Status,
 			ProcessedAt:    &now,
-			CreatedAt:      now,
 		}
 
-		err = tx.Create(&refunds).Error
-		if err != nil {
+		if err := s.paymentRepo.CreateRefund(ctx, tx, refund); err != nil {
 			return err
 		}
 
-		err = tx.Model(&models.Order{}).
-			Where("id = ?", orderID).
-			Updates(map[string]string{
-				"status":         string(models.OrderStatusCancelled),
-				"payment_status": string(models.PaymentStatusRefunded),
-			}).Error
-		if err != nil {
+		if err := s.paymentRepo.UpdateOrderStatus(ctx, tx, orderID, map[string]interface{}{
+			"status":         models.OrderStatusCancelled,
+			"payment_status": models.PaymentStatusRefunded,
+		}); err != nil {
 			return err
 		}
 
@@ -498,21 +504,16 @@ func (s *PaymentService) ProcessTakoutRefund(orderID uint, req *dto.ProcessRefun
 			Email:     order.User.Email,
 			FirstName: order.User.FirstName,
 			OrderID:   orderID,
-			Amount:    int64(order.Payment.Amount),
-			Reference: order.Payment.Reference,
+			Amount:    int64(payment.Amount),
+			Reference: payment.Reference,
+			Reason:    notes,
 		})
 
-		err = tx.Create(&models.OutboxEvent{
-			EventType: events.ChannelOrderConfirmation,
+		return s.paymentRepo.CreateOutboxEvent(ctx, tx, &models.OutboxEvent{
+			EventType: events.ChannelOrderRefunded,
 			Payload:   string(orderRefund),
 			Status:    "pending",
-			CreatedAt: time.Now(),
-		}).Error
-		if err != nil {
-			return err
-		}
-
-		return nil
+		})
 	})
 	if err != nil {
 		return err
@@ -523,42 +524,56 @@ func (s *PaymentService) ProcessTakoutRefund(orderID uint, req *dto.ProcessRefun
 			events.ChannelOrderRefunded,
 			&events.OrderRefundedPayload{
 				UserID:    order.User.ID,
-				Email:     order.User.Email,
-				FirstName: order.User.FirstName,
 				OrderID:   orderID,
-				Amount:    int64(order.Payment.Amount),
-				Reference: order.Payment.Reference,
+				FirstName: order.User.FirstName,
+				Amount:    int64(payment.Amount),
+				Reference: payment.Reference,
+				Reason:    notes,
 			},
 			map[string]string{"Priority": "Important Mail"},
 		)
 		if err != nil {
 			return
 		}
-
-		s.db.Model(&models.OutboxEvent{}).
-			Where("status = ? AND event_type = ?", "pending", events.ChannelOrderRefunded).
-			Updates(map[string]interface{}{
-				"status":      "published",
-				"processedAt": time.Now(),
-			})
+		s.paymentRepo.MarkOutboxPublished(ctx, events.ChannelOrderRefunded)
 	}()
 
 	return nil
-
 }
 
-func (s *PaymentService) GetPaymentByReference(reference string) (*dto.PaymentResponse, error) {
-	var payment models.Payment
-
-	err := s.db.Preload("User").Where("reference = ?", reference).First(&payment).Error
+func (s *PaymentService) GetPaymentByReference(ctx context.Context, reference string) (*dto.PaymentResponse, error) {
+	payment, err := s.paymentRepo.GetPaymentByReference(ctx, reference)
 	if err != nil {
 		return nil, domain.ErrPaymentNotFound
 	}
-
-	return mapper.PaymentResponse(&payment), nil
+	return mapper.PaymentResponse(payment), nil
 }
 
-func (s *PaymentService) GetAllPaymentHistory(userID uint, page, pageSize int) ([]*dto.PaymentResponse, *utils.PaginatedMeta, error) {
+func (s *PaymentService) GetPaymentDetails(ctx context.Context, paymentID uint) (*dto.PaymentResponse, error) {
+	payment, err := s.paymentRepo.GetPaymentByID(ctx, paymentID)
+	if err != nil {
+		return nil, domain.ErrPaymentNotFound
+	}
+	return mapper.PaymentResponse(payment), nil
+}
+
+func (s *PaymentService) GetRefundDetails(ctx context.Context, refundID uint) (*dto.RefundResponse, error) {
+	refund, err := s.paymentRepo.GetRefundByID(ctx, refundID)
+	if err != nil {
+		return nil, domain.ErrRefundNotFound
+	}
+	return &dto.RefundResponse{
+		ID:        refund.ID,
+		OrderID:   refund.OrderID,
+		Amount:    refund.Amount,
+		Reason:    refund.Reason,
+		Reference: refund.Reference,
+		Status:    refund.Status,
+		Currency:  refund.Currency,
+	}, nil
+}
+
+func (s *PaymentService) GetAllPaymentHistory(ctx context.Context, userID uint, page, pageSize int) ([]*dto.PaymentResponse, *utils.PaginatedMeta, error) {
 	cacheKey := fmt.Sprintf("user:payments:%d:p:%d:s:%d", userID, page, pageSize)
 
 	cached, err := s.redisStore.Get(ctx, cacheKey)
@@ -571,79 +586,26 @@ func (s *PaymentService) GetAllPaymentHistory(userID uint, page, pageSize int) (
 			return cachedResponse.Data, cachedResponse.Meta, nil
 		}
 	}
-	var payments []models.Payment
-	var total int64
-	offset := utils.Pagination(page, pageSize)
 
-	s.db.Model(models.Payment{}).Count(&total)
-
-	err = s.db.Preload("Orders").
-		Preload("User").
-		Where("user_id = ?", userID).
-		Order("created_at DESC").
-		Offset(offset).Limit(pageSize).
-		Find(&payments).Error
+	payments, total, err := s.paymentRepo.GetAllByUserID(ctx, userID, page, pageSize)
 	if err != nil {
 		return nil, nil, domain.ErrPaymentNotFound
 	}
 
 	response := make([]*dto.PaymentResponse, 0, len(payments))
-
 	for _, payment := range payments {
 		response = append(response, mapper.PaymentResponse(&payment))
 	}
 
 	totalPages := int((total + int64(pageSize) - 1) / int64(pageSize))
-
-	meta := &utils.PaginatedMeta{
-		Page:       page,
-		Limit:      pageSize,
-		Total:      total,
-		TotalPages: totalPages,
-	}
+	meta := &utils.PaginatedMeta{Page: page, Limit: pageSize, Total: total, TotalPages: totalPages}
 
 	cacheData := struct {
 		Data []*dto.PaymentResponse `json:"data"`
 		Meta *utils.PaginatedMeta   `json:"meta"`
 	}{Data: response, Meta: meta}
-
-	// store in cache
-	data, err := json.Marshal(&cacheData)
-	if err != nil {
-		return nil, nil, fmt.Errorf("Failed to set data: %d", err)
-	}
+	data, _ := json.Marshal(&cacheData)
 	s.redisStore.Set(ctx, cacheKey, string(data), 1*time.Hour)
 
 	return response, meta, nil
-}
-
-func (s *PaymentService) GetPaymentDetails(paymentID uint) (*dto.PaymentResponse, error) {
-	var payment models.Payment
-	err := s.db.Preload("Order").Where("id = ?", paymentID).First(&payment).Error
-	if err != nil {
-		return nil, domain.ErrPaymentNotFound
-	}
-
-	return mapper.PaymentResponse(&payment), nil
-}
-
-func (s *PaymentService) GetRefundDetails(refundID uint) (*dto.RefundResponse, error) {
-	var refund models.Refund
-
-	err := s.db.Preload("Order").
-		Preload("Payment").
-		Where("id = ? ", refundID).First(&refund).Error
-	if err != nil {
-		return nil, domain.ErrRefundNotFound
-	}
-
-	return &dto.RefundResponse{
-		ID:        refund.ID,
-		OrderID:   refund.OrderID,
-		Amount:    refund.Amount,
-		Reason:    refund.Reason,
-		Reference: refund.Reference,
-		Status:    refund.Status,
-		Currency:  refund.Currency,
-	}, nil
 }

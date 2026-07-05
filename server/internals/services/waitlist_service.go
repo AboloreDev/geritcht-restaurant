@@ -1,77 +1,63 @@
 package services
 
 import (
+	"context"
 	"time"
 
 	"github.com/AboloreDev/geritcht-restaurant/internals/domain"
 	"github.com/AboloreDev/geritcht-restaurant/internals/dto"
 	"github.com/AboloreDev/geritcht-restaurant/internals/models"
+	"github.com/AboloreDev/geritcht-restaurant/internals/repositories"
 	"github.com/AboloreDev/geritcht-restaurant/internals/utils"
-	"gorm.io/gorm"
 )
 
 type WaitlistService struct {
-	db *gorm.DB
+	waitlistRepo repositories.WaitlistRepositoryInterface
 }
 
-func NewWaitlistService(db *gorm.DB) *WaitlistService {
-	return &WaitlistService{db: db}
+func NewWaitlistService(waitlistRepo repositories.WaitlistRepositoryInterface) *WaitlistService {
+	return &WaitlistService{waitlistRepo: waitlistRepo}
 }
 
-func (s *WaitlistService) JoinWaitlist(userID uint, req *dto.JoinWaitlistRequest) (*dto.WaitlistResponse, error) {
-	var count int64
-
-	parsedDate, err := time.Parse("2006-01-02", req.Date)
-	if err != nil {
-		return nil, err
-	}
-
-	parsedTimeSlot, err := utils.ParseToDataTypesTime(req.TimeSlot)
-	if err != nil {
-		return nil, err
-	}
-
-	if req.PartySize <= 0 {
-		return nil, domain.ErrInvalidTableCapacity
-	}
-
+func (s *WaitlistService) JoinWaitlist(ctx context.Context, userID uint, req *dto.JoinWaitlistRequest) (*dto.WaitlistResponse, error) {
+	// validate first
 	if req.Date == "" {
 		return nil, domain.ErrInvalidDate
 	}
-
+	if req.PartySize <= 0 {
+		return nil, domain.ErrInvalidTableCapacity
+	}
 	if !utils.IsValidTimeSlots(req.TimeSlot) {
 		return nil, domain.ErrInvalidTimeSlot
 	}
 
-	err = s.db.Model(&models.Table{}).
-		Where("capacity >= ?", req.PartySize).
-		Where("status = ?", models.TableStatusAvailable).
-		Where("id NOT IN (?)",
-			s.db.Model(&models.Reservation{}).
-				Select("table_id").
-				Where("date = ? AND time_slot = ?", req.Date, req.TimeSlot).
-				Where("status NOT IN ?", []string{
-					"cancelled",
-					"no_show",
-				}),
-		).
-		Count(&count).Error
-
-	if err == nil {
-		return nil, domain.ErrAlreadyOnWaitlist
+	// then parse
+	parsedDate, err := time.Parse("2006-01-02", req.Date)
+	if err != nil {
+		return nil, domain.ErrInvalidDate
 	}
 
+	parsedTimeSlot, err := utils.ParseToDataTypesTime(req.TimeSlot)
+	if err != nil {
+		return nil, domain.ErrInvalidTimeSlot
+	}
+
+	// check if table is available, no need for waitlist
+	count, err := s.waitlistRepo.CountAvailableTables(ctx, req.Date, req.TimeSlot, req.PartySize)
+	if err != nil {
+		return nil, err
+	}
 	if count > 0 {
 		return nil, domain.ErrTableAvailable
 	}
 
-	err = s.db.Where("user_id = ? AND date = ? AND time_slot = ?", userID, req.Date, req.TimeSlot).
-		First(&models.Waitlist{}).Error
-
-	if err != nil {
-		return nil, err
+	// check if already on waitlist
+	_, err = s.waitlistRepo.GetByUserDateSlot(ctx, userID, req.Date, req.TimeSlot)
+	if err == nil {
+		return nil, domain.ErrAlreadyOnWaitlist
 	}
 
+	// join waitlist
 	waitlist := models.Waitlist{
 		UserID:    userID,
 		TimeSlot:  parsedTimeSlot,
@@ -81,15 +67,14 @@ func (s *WaitlistService) JoinWaitlist(userID uint, req *dto.JoinWaitlistRequest
 		CreatedAt: time.Now(),
 	}
 
-	err = s.db.Create(&waitlist).Error
-	if err != nil {
+	if err := s.waitlistRepo.Create(ctx, &waitlist); err != nil {
 		return nil, err
 	}
 
 	return &dto.WaitlistResponse{
 		ID:         waitlist.ID,
 		UserID:     waitlist.UserID,
-		Date:       waitlist.Date.Format("2000-05-08"),
+		Date:       waitlist.Date.Format("2006-01-02"),
 		TimeSlot:   utils.FormatDataTypesTime(waitlist.TimeSlot),
 		PartySize:  waitlist.PartySize,
 		Status:     string(models.WaitlistStatusWaiting),
@@ -98,30 +83,25 @@ func (s *WaitlistService) JoinWaitlist(userID uint, req *dto.JoinWaitlistRequest
 	}, nil
 }
 
-func (s *WaitlistService) GetWaitlistPosition(userID uint, date, timeSlot string) (int, error) {
-	var waitlist models.Waitlist
-
+func (s *WaitlistService) GetWaitlistPosition(ctx context.Context, userID uint, date, timeSlot string) (int, error) {
 	if date == "" {
 		date = time.Now().Format("2006-01-02")
 	}
 
 	parsedTimeSlot, err := utils.ParseToDataTypesTime(timeSlot)
 	if err != nil {
-		return 0, err
+		return 0, domain.ErrInvalidTimeSlot
 	}
 
-	err = s.db.Where("user_id = ? AND date = ? AND time_slot = ? AND status = ?",
-		userID, date, parsedTimeSlot, models.WaitlistStatusWaiting).
-		First(&waitlist).Error
+	waitlist, err := s.waitlistRepo.GetByUserDateSlot(ctx, userID, date, timeSlot)
 	if err != nil {
 		return 0, domain.ErrNotFound
 	}
 
-	var position int64
-	s.db.Model(&models.Waitlist{}).
-		Where("date = ? AND time_slot = ? AND status = ? AND created_at < ?",
-			date, timeSlot, models.WaitlistStatusWaiting, waitlist.CreatedAt).
-		Count(&position)
+	position, err := s.waitlistRepo.GetPosition(ctx, date, parsedTimeSlot, waitlist.CreatedAt)
+	if err != nil {
+		return 0, err
+	}
 
 	return int(position) + 1, nil
 }

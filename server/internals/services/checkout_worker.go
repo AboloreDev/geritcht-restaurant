@@ -7,20 +7,23 @@ import (
 
 	"github.com/AboloreDev/geritcht-restaurant/internals/interfaces"
 	"github.com/AboloreDev/geritcht-restaurant/internals/models"
+	"github.com/AboloreDev/geritcht-restaurant/internals/repositories"
 	"github.com/rs/zerolog"
 	"gorm.io/datatypes"
-	"gorm.io/gorm"
 )
 
 type CheckoutWorker struct {
-	db         *gorm.DB
-	redisStore interfaces.Cacher
+	redisStore   interfaces.Cacher
+	checkoutRepo repositories.ReservationCheckoutInterface
 }
 
-func NewCheckoutWorker(db *gorm.DB, redisStore interfaces.Cacher) *CheckoutWorker {
+func NewCheckoutWorker(
+
+	redisStore interfaces.Cacher,
+	checkoutRepo repositories.ReservationCheckoutInterface) *CheckoutWorker {
 	return &CheckoutWorker{
-		db:         db,
-		redisStore: redisStore,
+		redisStore:   redisStore,
+		checkoutRepo: checkoutRepo,
 	}
 }
 
@@ -33,7 +36,7 @@ func (w *CheckoutWorker) Start(appCtx context.Context, log zerolog.Logger) {
 	for {
 		select {
 		case <-ticker.C:
-			w.processCheckOut(log)
+			w.processCheckOut(ctx, log)
 			log.Info().Msg("Running checkout worker")
 		case <-ctx.Done():
 			log.Info().Msg("Shutting down checkout worker")
@@ -49,15 +52,9 @@ func DataTypesTimeToHourMinute(t datatypes.Time) (int, int) {
 	return hours, minutes
 }
 
-func (w *CheckoutWorker) processCheckOut(log zerolog.Logger) {
+func (w *CheckoutWorker) processCheckOut(ctx context.Context, log zerolog.Logger) {
 	now := time.Now()
-	var reservations []models.Reservation
-	today := now.Format("2006-01-02")
-
-	err := w.db.Preload("Table").
-		Where("date = ? AND status = ?", today, models.ReservationStatusCheckedIn).
-		Find(&reservations).Error
-
+	reservations, err := w.checkoutRepo.GetAllRservations(ctx, now)
 	if err != nil {
 		log.Error().Err(err).Msg("Error fetching checked-in reservations")
 	}
@@ -78,26 +75,14 @@ func (w *CheckoutWorker) processCheckOut(log zerolog.Logger) {
 		endTime := slotTime.Add(reservationDuration)
 
 		if now.After(endTime) {
-			w.checkout(reservation, log)
+			w.checkoutHandler(ctx, reservation, log)
 		}
 	}
 }
 
-func (w *CheckoutWorker) checkout(reservation models.Reservation, log zerolog.Logger) {
-	err := w.db.Transaction(func(tx *gorm.DB) error {
-		if err := tx.Model(&reservation).
-			Update("status", models.ReservationStatusCompleted).Error; err != nil {
-			return err
-		}
-
-		if err := tx.Model(&models.Table{}).
-			Where("id = ?", reservation.TableID).
-			Update("status", models.TableStatusAvailable).Error; err != nil {
-			return err
-		}
-
-		return nil
-	})
+func (w *CheckoutWorker) checkoutHandler(ctx context.Context, reservation models.Reservation, log zerolog.Logger) {
+	// Cheeckout
+	err := w.checkoutRepo.Checkout(ctx, reservation)
 	if err != nil {
 		log.Error().Err(err).
 			Uint("reservation_id", reservation.ID).
@@ -105,12 +90,18 @@ func (w *CheckoutWorker) checkout(reservation models.Reservation, log zerolog.Lo
 		return
 	}
 
-	w.redisStore.Delete(ctx,
-		fmt.Sprintf("table:item:%d", reservation.TableID),
-	)
+	// Delete cache
+	w.deleteCache(ctx, reservation)
 
 	log.Info().
 		Uint("reservation_id", reservation.ID).
 		Uint("table_id", reservation.TableID).
 		Msg("reservation checked out automatically")
+}
+
+// Delete cache function
+func (w *CheckoutWorker) deleteCache(ctx context.Context, reservation models.Reservation) {
+	w.redisStore.Delete(ctx,
+		fmt.Sprintf("table:item:%d", reservation.TableID),
+	)
 }

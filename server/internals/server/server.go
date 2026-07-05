@@ -2,6 +2,7 @@ package server
 
 import (
 	"net/http"
+	"time"
 
 	"github.com/AboloreDev/geritcht-restaurant/internals/config"
 	"github.com/AboloreDev/geritcht-restaurant/internals/interfaces"
@@ -30,7 +31,10 @@ type Server struct {
 	paymentService      *services.PaymentService
 	orderService        *services.OrderService
 	cartServices        *services.CartService
-	hub *websockets.Hub
+	hub                 *websockets.Hub
+	ingredientService   *services.IngredientService
+	recipesService      *services.MenuItemIngredientService
+	inventoryService    *services.InventoryService
 }
 
 func NewServer(
@@ -51,7 +55,10 @@ func NewServer(
 	paymentService *services.PaymentService,
 	orderService *services.OrderService,
 	cartServices *services.CartService,
-	hub *websockets.Hub) *Server {
+	hub *websockets.Hub,
+	ingredientService *services.IngredientService,
+	recipesService *services.MenuItemIngredientService,
+	inventoryService *services.InventoryService) *Server {
 	return &Server{
 		cfg:                 cfg,
 		log:                 log,
@@ -70,7 +77,10 @@ func NewServer(
 		paymentService:      paymentService,
 		orderService:        orderService,
 		cartServices:        cartServices,
-		hub: hub,
+		hub:                 hub,
+		ingredientService:   ingredientService,
+		recipesService:      recipesService,
+		inventoryService:    inventoryService,
 	}
 }
 
@@ -91,13 +101,13 @@ func (s *Server) SetUpRoutes() *gin.Engine {
 		auth := api.Group("/auth")
 		{
 			// Auth Routes
-			auth.POST("/register", s.RegisterUserHandler)
-			auth.POST("/login", s.LoginUserHandler)
+			auth.POST("/register", s.RateLimiter(10, time.Minute), s.RegisterUserHandler)
+			auth.POST("/login", s.RateLimiter(5, time.Minute), s.LoginUserHandler)
 			auth.POST("/logout", s.LogoutHandler)
 			auth.POST("/refresh", s.RefreshTokenHandler)
-			auth.POST("/forgot", s.ForgotPasswordHandler)
-			auth.POST("/reset-password", s.ResetPasswordHandler)
-			auth.POST("/verify", s.VerifyEmailHandler)
+			auth.POST("/forgot", s.RateLimiter(3, time.Minute), s.ForgotPasswordHandler)
+			auth.POST("/reset-password", s.RateLimiter(5, time.Minute), s.ResetPasswordHandler)
+			auth.POST("/verify", s.RateLimiter(5, time.Minute), s.VerifyEmailHandler)
 			auth.POST("/verify-reset-otp", s.VerifyResetOTPHandler)
 
 		}
@@ -179,13 +189,13 @@ func (s *Server) SetUpRoutes() *gin.Engine {
 			reservation := protected.Group("/reservations")
 			{
 				// Reservation Protected Routes
-				reservation.POST("/", s.CreateReservationHandler)
+				reservation.POST("/", s.RateLimiter(20, time.Minute), s.CreateReservationHandler)
 				reservation.GET("/", s.RoleMiddleware("admin", "staff"), s.GetAllReservationsHandler)
 				reservation.GET("/:id/user", s.GetUserReservationHandler)
 				reservation.GET("/user", s.GetAllUserReservationsHandler)
 				reservation.GET("/today", s.GetTodayReservationHandler)
 				reservation.POST("/:id", s.CheckInReservationHandler)
-				reservation.POST("/:id/cancel", s.RoleMiddleware("admin", "staff"), s.CancelReservationHandler)
+				reservation.PATCH("/:id/cancel", s.RateLimiter(10, time.Minute), s.RoleMiddleware("admin", "staff"), s.CancelReservationHandler)
 				reservation.GET("/availability", s.CheckAvailabilityHandler)
 			}
 
@@ -202,17 +212,17 @@ func (s *Server) SetUpRoutes() *gin.Engine {
 			order := protected.Group("/orders")
 			{
 				// Order Protected Routes
-				order.POST("/takeout", s.CreateTakeoutOrderHandler)
+				order.POST("/takeout", s.RateLimiter(20, time.Minute), s.CreateTakeoutOrderHandler)
 				order.GET("/takeout/:id", s.GetTakeoutOrderHandler)
 				order.GET("/takeout/all", s.GetAllTakeoutOrdersHandler)
+				order.PATCH("/takeout/:id/cancel", s.RateLimiter(10, time.Minute), s.CancelReservationHandler)
 			}
 
 			payment := protected.Group("/payments")
 			{
 				// Payment Protected Routes
-				payment.POST("/initialize", s.InitilaisePaymentHandler)
-				payment.POST("/verify", s.VerifyPaymentHandler)
-				payment.POST("/refund/:id", s.ProcessTakeoutRefundHandler)
+				payment.POST("/initialize", s.RateLimiter(10, time.Minute), s.InitilaisePaymentHandler)
+				payment.GET("/verify/:ref", s.RateLimiter(20, time.Minute), s.VerifyPaymentHandler)
 				payment.GET("/history", s.GetAllPaymentHistory)
 				payment.GET("/payment/:id", s.GetPaymentDetailsHandler)
 				payment.GET("/refund/:id", s.GetRefundDetailsHandler)
@@ -221,21 +231,40 @@ func (s *Server) SetUpRoutes() *gin.Engine {
 			}
 			websocket := protected.Group("/")
 			{
+				// Websocket
 				websocket.GET("/ws/orders/:id", s.AuthMiddleware(), s.WebSocketHandler)
+			}
+			ingredient := protected.Group("/ingredients")
+			{
+				// Ingredient Protected Routes
+				ingredient.POST("/", s.AdminMiddleware(), s.CreateIngredientHandler)
+				ingredient.GET("/", s.AdminMiddleware(), s.GetAllIngredientHandler)
+				ingredient.GET("/:id", s.AdminMiddleware(), s.GetIngredientHandler)
+				ingredient.PATCH("/:id", s.AdminMiddleware(), s.UpdateIngredientHandler)
+				ingredient.DELETE("/:id", s.AdminMiddleware(), s.DeleteIngredientHandler)
+				ingredient.GET("/low-stock", s.AdminMiddleware(), s.GetLowStockIngredientsHandler)
+				ingredient.POST("/linit", s.AdminMiddleware(), s.SetThresholdLimitHandler)
+			}
+			recipes := protected.Group("/recipes")
+			{
+				// Recipes Protected Routes
+				recipes.POST("/", s.AdminMiddleware(), s.AddRecipeHandler)
+				recipes.GET("/:id", s.AdminMiddleware(), s.GetRecipesHandler)
+				recipes.PATCH("/:id", s.AdminMiddleware(), s.UpdateRecipeHandler)
+				recipes.DELETE("/:id", s.AdminMiddleware(), s.DeleteRecipeHandler)
 			}
 		}
 
 		// Public routes
-		api.GET("/categories", s.GetCategoriesHandler)
-		api.GET("/categories/:id", s.GetCategory)
-		api.GET("/menu", s.GetAllMenuHandler)
-		api.GET("/menu/:id", s.GetMenuHandler)
-		api.GET("/table", s.GetAllTablesHandler)
+		api.GET("/categories", s.RateLimiter(100, time.Minute), s.GetCategoriesHandler)
+		api.GET("/categories/:id", s.RateLimiter(100, time.Minute), s.GetCategory)
+		api.GET("/menu", s.RateLimiter(100, time.Minute), s.GetAllMenuHandler)
+		api.GET("/menu/:id", s.RateLimiter(100, time.Minute), s.GetMenuHandler)
+		api.GET("/table", s.RateLimiter(100, time.Minute), s.GetAllTablesHandler)
 		api.GET("/table/:id", s.GetTableHandler)
-		api.GET("/availability", s.CheckAvailabilityHandler)
+		api.GET("/availability", s.RateLimiter(60, time.Minute), s.CheckAvailabilityHandler)
 		api.POST("/payments/webhook", s.WebhookHandler)
 	}
-
 	return router
 }
 

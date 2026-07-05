@@ -15,4 +15,6 @@ type Cacher interface {
 	Flush(ctx context.Context) error
 	FlushByPattern(ctx context.Context, pattern string) error
 	Hold(ctx context.Context, keys string, value interface{}, args redis.SetArgs) error
+	Increment(ctx context.Context, key string) (int64, error)
+	Expire(ctx context.Context, key string, ttl time.Duration) error
 }

@@ -19,7 +19,7 @@ func (s *Server) CreateTakeoutOrderHandler(ctx *gin.Context) {
 		return
 	}
 
-	response, err := s.orderService.CreateTakeoutOrder(userID, &req)
+	response, err := s.orderService.CreateTakeoutOrder(ctx.Request.Context(), userID, &req)
 	if err != nil {
 		switch err {
 		case domain.ErrCartIsEmpty:
@@ -45,7 +45,23 @@ func (s *Server) GetAllTakeoutOrdersHandler(ctx *gin.Context) {
 	page, _ := strconv.Atoi(pageStr)
 	pageSize, _ := strconv.Atoi(pageSizeStr)
 
-	response, meta, err := s.orderService.GetAllTakeoutOrders(userID, page, pageSize)
+	response, meta, err := s.orderService.GetAllTakeoutOrders(ctx.Request.Context(), userID, page, pageSize)
+	if err != nil {
+		utils.InternalServerError(ctx, "Failed to fetch orders", err)
+		return
+	}
+
+	utils.PaginatedSuccessResponse(ctx, "Orders fetched successfully", response, *meta)
+}
+
+func (s *Server) GetAllOrdersHandler(ctx *gin.Context) {
+	pageStr := ctx.DefaultQuery("page", "1")
+	pageSizeStr := ctx.DefaultQuery("pageSize", "10")
+
+	page, _ := strconv.Atoi(pageStr)
+	pageSize, _ := strconv.Atoi(pageSizeStr)
+
+	response, meta, err := s.orderService.GetAllOrders(ctx.Request.Context(), page, pageSize)
 	if err != nil {
 		utils.InternalServerError(ctx, "Failed to fetch orders", err)
 		return
@@ -64,7 +80,7 @@ func (s *Server) GetTakeoutOrderHandler(ctx *gin.Context) {
 	}
 	orderID := uint(id)
 
-	response, err := s.orderService.GetTakeoutOrder(userID, orderID)
+	response, err := s.orderService.GetTakeoutOrder(ctx.Request.Context(), userID, orderID)
 	if err != nil {
 		switch err {
 		case domain.ErrOrderNotFound:
@@ -75,4 +91,46 @@ func (s *Server) GetTakeoutOrderHandler(ctx *gin.Context) {
 	}
 
 	utils.SuccessResponse(ctx, "Order fetched successfully", response)
+}
+
+func (s *Server) CancelTakeoutOrderHandler(ctx *gin.Context) {
+	userID := ctx.GetUint("user_id")
+	idStr := ctx.Param("id")
+	id, err := strconv.ParseUint(idStr, 10, 32)
+	if err != nil {
+		utils.BadRequest(ctx, "Invalid id", err)
+		return
+	}
+	orderID := uint(id)
+
+	err = s.orderService.CancelTakeoutOrder(ctx.Request.Context(), userID, orderID)
+	if err != nil {
+		switch err {
+		case domain.ErrOrderNotFound:
+			utils.NotFound(ctx, "Order not found", err)
+		case domain.ErrAlreadyCancelled:
+			utils.BadRequest(ctx, "Order already cancelled", err)
+		case domain.ErrCannotCancel:
+			utils.BadRequest(ctx, "Order cannot be cancelled at this stage", err)
+		case domain.ErrRefundIsProcessing:
+			refundErr := s.paymentService.ProcessTakeoutRefund(ctx.Request.Context(), orderID, "Customer requested cancellation")
+			if refundErr != nil {
+				switch refundErr {
+				case domain.ErrAlreadyRefunded:
+					utils.BadRequest(ctx, "Refund already processed", refundErr)
+				case domain.ErrOrderNotPaid:
+					utils.BadRequest(ctx, "Order has not been paid", refundErr)
+				default:
+					utils.InternalServerError(ctx, "Failed to process refund", refundErr)
+				}
+				return
+			}
+			utils.SuccessResponse(ctx, "Order cancelled and refund initiated", nil)
+		default:
+			utils.InternalServerError(ctx, "Failed to cancel order", err)
+		}
+		return
+	}
+
+	utils.SuccessResponse(ctx, "Order cancelled successfully", nil)
 }

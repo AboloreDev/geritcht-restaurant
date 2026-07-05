@@ -12,7 +12,7 @@ import (
 )
 
 var upgrader = websocket.Upgrader{
-	ReadBufferSize: 1024,
+	ReadBufferSize:  1024,
 	WriteBufferSize: 1024,
 
 	CheckOrigin: func(r *http.Request) bool {
@@ -33,7 +33,7 @@ func (s *Server) WebSocketHandler(ctx *gin.Context) {
 
 	var order models.Order
 
-	err = s.orderService.VerifyUserOrder(userID, orderID)
+	err = s.orderService.VerifyUserOrder(ctx.Request.Context(), userID, orderID)
 	if err != nil {
 		utils.BadRequest(ctx, "Order not found", err)
 		return
@@ -47,9 +47,9 @@ func (s *Server) WebSocketHandler(ctx *gin.Context) {
 
 	client := &websockets.Client{
 		OrderID: orderID,
-		Hub: s.hub,
-		Conn: conn,
-		Send: make(chan []byte, 256),
+		Hub:     s.hub,
+		Conn:    conn,
+		Send:    make(chan []byte, 256),
 	}
 
 	s.hub.Register <- client

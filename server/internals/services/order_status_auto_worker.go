@@ -11,19 +11,19 @@ import (
 )
 
 var nextStatus = map[models.OrderStatus]models.OrderStatus{
-    models.OrderStatusConfirmed: models.OrderStatusPreparing,
-    models.OrderStatusPreparing: models.OrderStatusReady,
-    models.OrderStatusReady:     models.OrderStatusCompleted,
+	models.OrderStatusConfirmed: models.OrderStatusPreparing,
+	models.OrderStatusPreparing: models.OrderStatusReady,
+	models.OrderStatusReady:     models.OrderStatusCompleted,
 }
 
 type OrderAutoWorker struct {
-	db *gorm.DB
+	db  *gorm.DB
 	hub *websockets.Hub
 }
 
 func NewOrderAutoWorker(db *gorm.DB, hub *websockets.Hub) *OrderAutoWorker {
 	return &OrderAutoWorker{
-		db: db,
+		db:  db,
 		hub: hub,
 	}
 }
@@ -44,32 +44,31 @@ func (s *OrderAutoWorker) StartOrderUpdateWorker(ctx context.Context, log zerolo
 }
 
 func (s *OrderAutoWorker) ProcessOrderStatus(log zerolog.Logger) {
-    var orders []models.Order
+	var orders []models.Order
 
-    s.db.Where("status IN ? AND type = ? AND updated_at < ?",
-        []string{"confirmed", "preparing", "ready"},
-        models.OrderTypeTakeout,
-        time.Now().Add(-5*time.Minute),
-    ).Find(&orders)
+	s.db.Where("status IN ? AND type = ? AND updated_at < ?",
+		[]string{"confirmed", "preparing", "ready"},
+		models.OrderTypeTakeout,
+		time.Now().Add(-5*time.Minute),
+	).Find(&orders)
 
-    for _, order := range orders {
-        next, exists := nextStatus[order.Status]
-        if !exists {
-            continue
-        }
+	for _, order := range orders {
+		next, exists := nextStatus[order.Status]
+		if !exists {
+			continue
+		}
 
-        if err := s.db.Model(&order).Update("status", next).Error; err != nil {
-            log.Error().Err(err).
-                Uint("order_id", order.ID).
-                Msg("failed to update order status")
-            continue
-        }
-        msg := websockets.BuildMessageWithStatus(order.ID, string(next))
-        s.hub.Broadcast(order.ID, msg)
+		if err := s.db.Model(&order).Update("status", next).Error; err != nil {
+			log.Error().Err(err).
+				Uint("order_id", order.ID).
+				Msg("failed to update order status")
+			continue
+		}
+		msg := websockets.BuildMessageWithStatus(order.ID, string(next))
+		s.hub.Broadcast(order.ID, msg)
 
-        log.Info().
-            Uint("order_id", order.ID).
-            Str("status", string(next))
-    }
+		log.Info().
+			Uint("order_id", order.ID).
+			Str("status", string(next))
+	}
 }
-

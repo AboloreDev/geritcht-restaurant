@@ -61,3 +61,10 @@ type InventoryAlertResponse struct {
 	TotalLowStock       int                  `json:"total_low_stock"`
 	TotalOutOfStock     int                  `json:"total_out_of_stock"`
 }
+
+type ThresholdRequest struct {
+	Threshold float64 `json:"min_threshold" binding:"required"`
+}
+type UpdateLinkItemRequest struct {
+	Quantity float64 `json:"quantity" binding:"required,gt=0"`
+}

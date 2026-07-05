@@ -17,6 +17,7 @@ import (
 	"github.com/AboloreDev/geritcht-restaurant/internals/providers"
 	"github.com/AboloreDev/geritcht-restaurant/internals/publisher"
 	redisImport "github.com/AboloreDev/geritcht-restaurant/internals/redis"
+	"github.com/AboloreDev/geritcht-restaurant/internals/repositories"
 	"github.com/AboloreDev/geritcht-restaurant/internals/server"
 	"github.com/AboloreDev/geritcht-restaurant/internals/services"
 	websockets "github.com/AboloreDev/geritcht-restaurant/internals/web-sockets"
@@ -106,32 +107,55 @@ func main() {
 	}
 	defer eventPublisher.CloseMessage()
 
+	// repositories
+	authRepo := repositories.NewAuthRepository(db)
+	userRepo := repositories.NewUserRepository(db)
+	cartRepo := repositories.NewCartRepository(db)
+	categoryRepo := repositories.NewCategoryRepository(db)
+	tagRepo := repositories.NewDietaryTagRepository(db)
+	allergenRepo := repositories.NewAllergenRepository(db)
+	menuRepo := repositories.NewMenuRepository(db)
+	orderRepo := repositories.NewOrderRepository(db)
+	paymentRepo := repositories.NewPaymentRepository(db)
+	tableRepo := repositories.NewTableRepository(db)
+	reservationRepo := repositories.NewReservationRepository(db)
+	waitlistRepo := repositories.NewWaitlistRepository(db)
+	inventoryRepo := repositories.NewInventoryRepository(db)
+	ingredientRepo := repositories.NewIngredientRepository(db)
+	outboxRepo := repositories.NewOutboxRepository(db)
+	noShowWorkerRepo := repositories.NewReservationNoShowRepository(db)
+	reminderRepo := repositories.NewReservationReminderRepository(db)
+
 	// Services
-	authServices := services.NewAuthService(db, cfg, eventPublisher)
+	authServices := services.NewAuthService(cfg, eventPublisher, userRepo, authRepo, cartRepo)
 	uploadServices := services.NewUploadServices(uploadProvider)
-	categoryServices := services.NewCategoryService(db, redisStore)
-	menuServices := services.NewMenuService(db, redisStore)
-	allegenServices := services.NewAllergenService(db, redisStore)
-	dietaryTagsService := services.NewDietaryTagsService(db, redisStore)
-	userServices := services.NewUserService(db)
-	reservationServices := services.NewReservationService(db, redisStore, eventPublisher)
-	waitlistServices := services.NewWaitlistService(db)
-	tableServices := services.NewTableService(db, redisStore)
+	categoryServices := services.NewCategoryService(redisStore, categoryRepo)
+	menuServices := services.NewMenuService(menuRepo, redisStore)
+	allegenServices := services.NewAllergenService(allergenRepo, redisStore)
+	dietaryTagsService := services.NewDietaryTagsService(tagRepo, redisStore)
+	userServices := services.NewUserService(userRepo)
+	reservationServices := services.NewReservationService(db, reservationRepo, redisStore, eventPublisher)
+	waitlistServices := services.NewWaitlistService(waitlistRepo)
+	tableServices := services.NewTableService(tableRepo, redisStore)
+	inventoryService := services.NewInventoryService(db, eventPublisher, redisStore, inventoryRepo)
 	paymentService := services.NewPaymentService(db, redisStore, eventPublisher, &config.Config{
 		Paystack: config.PaystackConfig{
 			PaystackSecretKey: cfg.Paystack.PaystackSecretKey,
 			PaystackPublicKey: cfg.Paystack.PaystackPublicKey,
 		},
-	})
-	orderService := services.NewOrderService(db, redisStore)
-	cartService := services.NewCartService(db)
+	}, inventoryRepo, &http.Client{Timeout: 10 * time.Second}, paymentRepo, *inventoryService)
+	orderService := services.NewOrderService(db, orderRepo, paymentRepo, cartRepo, redisStore)
+	cartService := services.NewCartService(cartRepo, menuRepo)
+	ingredientService := services.NewIngredientService(redisStore, eventPublisher, ingredientRepo, userRepo, paymentRepo)
+	recipesService := services.NewMenuItemIngredientService(db)
+
 	// websockts hub for order
 	hub := websockets.NewHub()
 
 	// DB Workers
-	noShowWorker := services.NewNoShowWorker(db, eventPublisher, redisStore)
-	reminderWorker := services.NewReminderWorker(db, redisStore, eventPublisher)
-	outboxWorker := services.NewOutboxWorker(db, eventPublisher)
+	noShowWorker := services.NewNoShowWorker(eventPublisher, redisStore, noShowWorkerRepo)
+	reminderWorker := services.NewReminderWorker(reminderRepo, redisStore, eventPublisher)
+	outboxWorker := services.NewOutboxWorker(outboxRepo, eventPublisher)
 	orderStatusAutoWorker := services.NewOrderAutoWorker(db, hub)
 
 	// Go routines for worker
@@ -140,7 +164,6 @@ func main() {
 	go outboxWorker.StartOutboxWorker(workerCtx, log)
 	go orderStatusAutoWorker.StartOrderUpdateWorker(workerCtx, log)
 
-	
 	// Initialise Server
 	srv := server.NewServer(
 		cfg, db, log,
@@ -159,6 +182,9 @@ func main() {
 		orderService,
 		cartService,
 		hub,
+		ingredientService,
+		recipesService,
+		inventoryService,
 	)
 
 	router := srv.SetUpRoutes()

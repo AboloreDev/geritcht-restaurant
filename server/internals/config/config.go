@@ -58,10 +58,9 @@ type JWTConfig struct {
 }
 
 type PaystackConfig struct {
-	PaystackSecretKey     string
-	PaystackPublicKey     string
-	PaystakcinitialiseURL string
-	PaystackVerifyURL     string
+	PaystackSecretKey string
+	PaystackPublicKey string
+	PaystackURL       string
 }
 
 type RedisConfig struct {
@@ -121,10 +120,9 @@ func LoadEnv() (*Config, error) {
 		},
 
 		Paystack: PaystackConfig{
-			PaystackSecretKey:     GetEnv("PAYSTACK_SECRET_KEY", "test"),
-			PaystackPublicKey:     GetEnv("PAYSTACK_PUBLIC_KEY", "test"),
-			PaystakcinitialiseURL: GetEnv("PAYSTACK_INITIALISE_URL", "https://api.paystack.co/transaction/initialize/"),
-			PaystackVerifyURL:     GetEnv("PAYSTACK_VERIFY_URL", "https://api.paystack.co/transaction/verify/"),
+			PaystackSecretKey: GetEnv("PAYSTACK_SECRET_KEY", "test"),
+			PaystackPublicKey: GetEnv("PAYSTACK_PUBLIC_KEY", "test"),
+			PaystackURL:       GetEnv("PAYSTACK_URL", "https://api.paystack.co"),
 		},
 	}, nil
 }

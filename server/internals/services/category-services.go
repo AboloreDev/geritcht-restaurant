@@ -10,21 +10,23 @@ import (
 	"github.com/AboloreDev/geritcht-restaurant/internals/dto"
 	"github.com/AboloreDev/geritcht-restaurant/internals/interfaces"
 	"github.com/AboloreDev/geritcht-restaurant/internals/models"
+	"github.com/AboloreDev/geritcht-restaurant/internals/repositories"
 	"github.com/AboloreDev/geritcht-restaurant/internals/utils"
-	"gorm.io/gorm"
 )
 
 var ctx = context.Background()
 
 type CategoryService struct {
-	db         *gorm.DB
-	redisStore interfaces.Cacher
+	redisStore   interfaces.Cacher
+	categoryRepo repositories.CategoryRepositoryInterface
 }
 
-func NewCategoryService(db *gorm.DB, redisStore interfaces.Cacher) *CategoryService {
+func NewCategoryService(
+	redisStore interfaces.Cacher,
+	categoryRepo repositories.CategoryRepositoryInterface) *CategoryService {
 	return &CategoryService{
-		db:         db,
-		redisStore: redisStore,
+		redisStore:   redisStore,
+		categoryRepo: categoryRepo,
 	}
 }
 
@@ -55,10 +57,9 @@ func (s *CategoryService) ConvertCategoryResponse(category *models.MenuCategory)
 	}
 }
 
-func (s *CategoryService) CreateCategoryService(req *dto.CreateCategoryRequest, imageURL string) (*dto.MenuCategoryResponse, error) {
-	var existingCategory models.MenuCategory
+func (s *CategoryService) CreateCategoryService(ctx context.Context, req *dto.CreateCategoryRequest, imageURL string) (*dto.MenuCategoryResponse, error) {
 
-	err := s.db.Where("name = ?", req.Name).First(&existingCategory).Error
+	_, err := s.categoryRepo.GetByName(ctx, req.Name)
 	if err == nil {
 		return nil, domain.ErrNameConflict
 	}
@@ -72,7 +73,7 @@ func (s *CategoryService) CreateCategoryService(req *dto.CreateCategoryRequest, 
 		DisplayOrder: req.DisplayOrder,
 	}
 
-	err = s.db.Create(&category).Error
+	err = s.categoryRepo.Create(ctx, &category)
 	if err != nil {
 		return nil, err
 	}
@@ -82,10 +83,9 @@ func (s *CategoryService) CreateCategoryService(req *dto.CreateCategoryRequest, 
 	return s.ConvertCategoryResponse(&category), nil
 }
 
-func (s *CategoryService) UpdateCategoryService(categoryID uint, req *dto.UpdateCategoryRequest) (*dto.MenuCategoryResponse, error) {
-	var category models.MenuCategory
+func (s *CategoryService) UpdateCategoryService(ctx context.Context, categoryID uint, req *dto.UpdateCategoryRequest) (*dto.MenuCategoryResponse, error) {
 
-	err := s.db.Where("id = ? ", categoryID).First(&category).Error
+	category, err := s.categoryRepo.GetByID(ctx, categoryID)
 	if err != nil {
 		return nil, domain.ErrNotFound
 	}
@@ -103,7 +103,7 @@ func (s *CategoryService) UpdateCategoryService(categoryID uint, req *dto.Update
 		category.IsActive = *req.IsActive
 	}
 
-	err = s.db.Save(&category).Error
+	err = s.categoryRepo.Update(ctx, category)
 	if err != nil {
 		return nil, err
 	}
@@ -114,25 +114,22 @@ func (s *CategoryService) UpdateCategoryService(categoryID uint, req *dto.Update
 
 	s.redisStore.FlushByPattern(ctx, "menu:categories:*")
 
-	return s.ConvertCategoryResponse(&category), nil
+	return s.ConvertCategoryResponse(category), nil
 
 }
 
-func (s *CategoryService) DeleteCategoryService(categoryID uint) error {
-	var category models.MenuCategory
-	var count int64
+func (s *CategoryService) DeleteCategoryService(ctx context.Context, categoryID uint) error {
 
-	s.db.Model(models.Menu{}).Where("category_id = ?", categoryID).Count(&count)
+	count, err := s.categoryRepo.CountMenuItems(ctx, categoryID)
+	if err != nil {
+		return err
+	}
 	if count > 0 {
-		return fmt.Errorf("cannot delete category with %d menu", count)
+		return fmt.Errorf("cannot delete category with %d menu items", count)
 	}
 
-	result := s.db.Where("id = ?", categoryID).Delete(&category)
-	if result.Error != nil {
-		return result.Error
-	}
-	if result.RowsAffected == 0 {
-		return domain.ErrNotFound
+	if err := s.categoryRepo.Delete(ctx, categoryID); err != nil {
+		return err
 	}
 
 	s.redisStore.Delete(ctx, fmt.Sprintf("menu:category:%d", categoryID))
@@ -141,7 +138,7 @@ func (s *CategoryService) DeleteCategoryService(categoryID uint) error {
 	return nil
 }
 
-func (s *CategoryService) GetCategoriesService(page, pageSize int) ([]*dto.MenuCategoryResponse, *utils.PaginatedMeta, error) {
+func (s *CategoryService) GetCategoriesService(ctx context.Context, page, pageSize int) ([]*dto.MenuCategoryResponse, *utils.PaginatedMeta, error) {
 	cacheKey := fmt.Sprintf("menu:categories:p%d:s%d", page, pageSize)
 
 	cached, err := s.redisStore.Get(ctx, cacheKey)
@@ -154,14 +151,8 @@ func (s *CategoryService) GetCategoriesService(page, pageSize int) ([]*dto.MenuC
 			return cachedResponse.Data, cachedResponse.Meta, nil
 		}
 	}
-	var categories []models.MenuCategory
-	var count int64
 
-	offset := utils.Pagination(page, pageSize)
-
-	s.db.Model(models.MenuCategory{}).Count(&count)
-
-	err = s.db.Order("display_order ASC").Offset(offset).Limit(pageSize).Find(&categories).Error
+	categories, count, err := s.categoryRepo.GetAll(ctx, page, pageSize)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -196,7 +187,7 @@ func (s *CategoryService) GetCategoriesService(page, pageSize int) ([]*dto.MenuC
 	return response, meta, nil
 }
 
-func (s *CategoryService) GetCategoryService(categoryID uint) (*dto.MenuCategoryResponse, error) {
+func (s *CategoryService) GetCategoryService(ctx context.Context, categoryID uint) (*dto.MenuCategoryResponse, error) {
 	cachedKey := fmt.Sprintf("menu:category:%d", categoryID)
 
 	exists, _ := s.redisStore.Exists(ctx, cachedKey)
@@ -212,8 +203,7 @@ func (s *CategoryService) GetCategoryService(categoryID uint) (*dto.MenuCategory
 		}
 	}
 
-	var category models.MenuCategory
-	err := s.db.Where("id = ? AND is_active = ?", categoryID, true).First(&category).Error
+	category, err := s.categoryRepo.GetByID(ctx, categoryID)
 	if err != nil {
 		return nil, domain.ErrNotFound
 	}
@@ -222,7 +212,8 @@ func (s *CategoryService) GetCategoryService(categoryID uint) (*dto.MenuCategory
 	if err != nil {
 		return nil, fmt.Errorf("Failed to set data: %d", err)
 	}
+
 	s.redisStore.Set(ctx, cachedKey, string(data), 1*time.Hour)
 
-	return s.ConvertCategoryResponse(&category), nil
+	return s.ConvertCategoryResponse(category), nil
 }

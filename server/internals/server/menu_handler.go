@@ -18,7 +18,7 @@ func (s *Server) CreateMenuHandler(ctx *gin.Context) {
 		return
 	}
 
-	response, err := s.menuServices.CreateMenuService(&req)
+	response, err := s.menuServices.CreateMenuService(ctx.Request.Context(), &req)
 	if err != nil {
 		switch err {
 		case domain.ErrNotFound:
@@ -49,7 +49,7 @@ func (s *Server) UpdateMenuHandler(ctx *gin.Context) {
 		return
 	}
 
-	response, err := s.menuServices.UpdateMenuService(menuID, &req)
+	response, err := s.menuServices.UpdateMenuService(ctx.Request.Context(), menuID, &req)
 	if err != nil {
 		switch err {
 		case domain.ErrNotFound:
@@ -72,7 +72,7 @@ func (s *Server) DeleteMenuHandler(ctx *gin.Context) {
 	}
 	menuID := uint(id)
 
-	err = s.menuServices.DeleteMenu(menuID)
+	err = s.menuServices.DeleteMenu(ctx.Request.Context(), menuID)
 	if err != nil {
 		switch err {
 		case domain.ErrNotFound:
@@ -95,7 +95,7 @@ func (s *Server) GetMenuHandler(ctx *gin.Context) {
 	}
 	menuID := uint(id)
 
-	response, err := s.menuServices.GetMenu(menuID)
+	response, err := s.menuServices.GetMenu(ctx.Request.Context(), menuID)
 	if err != nil {
 		switch err {
 		case domain.ErrNotFound:
@@ -117,7 +117,7 @@ func (s *Server) GetAllMenuHandler(ctx *gin.Context) {
 		return
 	}
 
-	response, meta, err := s.menuServices.GetAllMenuService(filter)
+	response, meta, err := s.menuServices.GetAllMenuService(ctx.Request.Context(), filter)
 	if err != nil {
 		utils.InternalServerError(ctx, "Something went wrong", err)
 		return
@@ -147,7 +147,7 @@ func (s *Server) UploadMenuImageHandler(ctx *gin.Context) {
 		return
 	}
 
-	err = s.menuServices.AddMenuImageService(menuID, url, file.Filename)
+	err = s.menuServices.AddMenuImageService(ctx.Request.Context(), menuID, url, file.Filename)
 	if err != nil {
 		utils.BadRequest(ctx, "Error Adding", err)
 		return
@@ -171,7 +171,7 @@ func (s *Server) DeleteMenuImageHandler(ctx *gin.Context) {
 		return
 	}
 
-	if err := s.menuServices.RemoveMenuImageService(menuID); err != nil {
+	if err := s.menuServices.RemoveMenuImageService(ctx.Request.Context(), menuID); err != nil {
 		utils.InternalServerError(ctx, "Failed to remove image record", err)
 		return
 	}
@@ -198,7 +198,7 @@ func (s *Server) ToggleMenuAvailabilityHandler(ctx *gin.Context) {
 	}
 	menuID := uint(id)
 
-	err = s.menuServices.ToggleMenuAvailabilityService(menuID, req.IsAvailable)
+	err = s.menuServices.ToggleMenuAvailabilityService(ctx.Request.Context(), menuID, req.IsAvailable)
 	if err != nil {
 		switch err {
 		case domain.ErrNotFound:

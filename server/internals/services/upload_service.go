@@ -51,7 +51,7 @@ func (s *UploadService) UploadCategoryImage(file *multipart.FileHeader) (string,
 }
 
 func (s *UploadService) DeleteFile(menuID uint) error {
-	path := fmt.Sprintf("menu/%d/%s", menuID)
+	path := fmt.Sprintf("menu/%d", menuID)
 
 	err := s.uploader.DeleteFile(path)
 	if err != nil {

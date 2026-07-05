@@ -1,6 +1,7 @@
 package services
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"time"
@@ -11,31 +12,35 @@ import (
 	"github.com/AboloreDev/geritcht-restaurant/internals/events"
 	"github.com/AboloreDev/geritcht-restaurant/internals/interfaces"
 	"github.com/AboloreDev/geritcht-restaurant/internals/models"
+	"github.com/AboloreDev/geritcht-restaurant/internals/repositories"
 	"github.com/AboloreDev/geritcht-restaurant/internals/utils"
-	"gorm.io/gorm"
 )
 
 type AuthService struct {
-	db        *gorm.DB
 	cfg       *config.Config
 	publisher interfaces.Publisher
+	userRepo  repositories.UserRepositoryInterface
+	authRepo  repositories.AuthRepositoryInterface
+	cartRepo  repositories.CartRepositoryInterface
 }
 
 func NewAuthService(
-	db *gorm.DB,
 	cfg *config.Config,
-	publisher interfaces.Publisher) *AuthService {
+	publisher interfaces.Publisher,
+	userRepo repositories.UserRepositoryInterface,
+	authRepo repositories.AuthRepositoryInterface,
+	cartRepo repositories.CartRepositoryInterface) *AuthService {
 	return &AuthService{
-		db:        db,
 		cfg:       cfg,
 		publisher: publisher,
+		userRepo:  userRepo,
+		authRepo:  authRepo,
+		cartRepo:  cartRepo,
 	}
 }
 
-func (s *AuthService) RegisterUserService(req *dto.RegisterRequest) (*dto.AuthResponse, error) {
-	var existingUser models.User
-
-	err := s.db.Where("email = ? ", req.Email).First(&existingUser).Error
+func (s *AuthService) RegisterUserService(ctx context.Context, req *dto.RegisterRequest) (*dto.AuthResponse, error) {
+	_, err := s.userRepo.GetByEmail(ctx, req.Email)
 	if err == nil {
 		return nil, domain.ErrConflict
 	}
@@ -52,7 +57,7 @@ func (s *AuthService) RegisterUserService(req *dto.RegisterRequest) (*dto.AuthRe
 		EmailVerified: false,
 	}
 
-	err = s.db.Create(&user).Error
+	err = s.userRepo.Create(ctx, &user)
 	if err != nil {
 		return nil, err
 	}
@@ -61,7 +66,7 @@ func (s *AuthService) RegisterUserService(req *dto.RegisterRequest) (*dto.AuthRe
 		UserID: user.ID,
 	}
 
-	err = s.db.Create(&cart).Error
+	err = s.cartRepo.CreateCart(ctx, &cart)
 	if err != nil {
 		return nil, err
 	}
@@ -77,7 +82,7 @@ func (s *AuthService) RegisterUserService(req *dto.RegisterRequest) (*dto.AuthRe
 		ExpiresAt: time.Now().Add(24 * time.Hour),
 	}
 
-	err = s.db.Create(&token).Error
+	err = s.authRepo.CreateEmailToken(&token)
 	if err != nil {
 		return nil, err
 	}
@@ -112,19 +117,16 @@ func (s *AuthService) RegisterUserService(req *dto.RegisterRequest) (*dto.AuthRe
 }
 
 func (s *AuthService) VerifyEmailService(req *dto.VerifyEmailRequest) (bool, error) {
-	var token models.Token
 
 	hashedToken := utils.HashToken(req.Token)
 
-	err := s.db.
-		Where("token_hash = ? AND expires_at > ?", hashedToken, time.Now()).
-		First(&token).Error
+	token, err := s.authRepo.GetValidEmailToken(hashedToken)
 	if err != nil {
 		return false, domain.ErrTokeNotFoundOrExpired
 	}
 
-	var user models.User
-	if err := s.db.First(&user, token.UserID).Error; err != nil {
+	user, err := s.userRepo.GetByID(context.Background(), token.UserID)
+	if err != nil {
 		return false, domain.ErrUserNotFound
 	}
 
@@ -132,19 +134,7 @@ func (s *AuthService) VerifyEmailService(req *dto.VerifyEmailRequest) (bool, err
 		return false, domain.ErrAlreadyVerified
 	}
 
-	err = s.db.Transaction(func(tx *gorm.DB) error {
-		if err := tx.Model(&user).
-			Update("email_verified", true).Error; err != nil {
-			return err
-		}
-
-		if err := tx.Delete(&token).Error; err != nil {
-			return err
-		}
-
-		return nil
-	})
-
+	err = s.authRepo.VerifyUserEmail(user, token)
 	if err != nil {
 		return false, err
 	}
@@ -152,10 +142,9 @@ func (s *AuthService) VerifyEmailService(req *dto.VerifyEmailRequest) (bool, err
 	return true, nil
 }
 
-func (s *AuthService) LoginUserService(req *dto.LoginRequest) (*dto.AuthResponse, error) {
-	var user models.User
+func (s *AuthService) LoginUserService(ctx context.Context, req *dto.LoginRequest) (*dto.AuthResponse, error) {
 
-	err := s.db.Where("email = ?", req.Email).First(&user).Error
+	user, err := s.userRepo.GetByEmail(ctx, req.Email)
 	if err != nil {
 		return nil, domain.ErrInvalidCredentials
 	}
@@ -173,50 +162,53 @@ func (s *AuthService) LoginUserService(req *dto.LoginRequest) (*dto.AuthResponse
 		return nil, domain.ErrInvalidCredentials
 	}
 
-	return s.GenerateAuthResponse(&user)
+	return s.GenerateAuthResponse(user)
 }
 
-func (s *AuthService) GenerateRefreshTokenService(refresh string) (*dto.AuthResponse, error) {
+func (s *AuthService) GenerateRefreshTokenService(ctx context.Context, refresh string) (*dto.AuthResponse, error) {
+
 	claims, err := utils.ValidateToken(refresh, s.cfg.JWT.JWTSecret)
 	if err != nil {
 		return nil, domain.ErrInvalidRefreshToken
 	}
 
-	var refreshToken models.RefreshToken
-	err = s.db.Where("token_hash = ? AND expires_at > ?", refresh, time.Now()).First(&refreshToken).Error
+	refreshToken, err := s.authRepo.GetValidRefreshToken(ctx, refresh)
 	if err != nil {
 		return nil, domain.ErrTokeNotFoundOrExpired
 	}
 
-	var user models.User
-	err = s.db.First(&user, claims.UserID).Error
+	user, err := s.userRepo.GetByID(ctx, claims.UserID)
 	if err != nil {
 		return nil, domain.ErrNotFound
 	}
 
-	if err := s.db.Delete(&refreshToken).Error; err != nil {
-		return nil, fmt.Errorf("failed to delete refresh token: %w", err)
+	err = s.authRepo.DeleteRefreshToken(refreshToken)
+	if err != nil {
+		return nil, fmt.Errorf(
+			"failed to delete refresh token: %w",
+			err,
+		)
 	}
 
-	return s.GenerateAuthResponse(&user)
+	return s.GenerateAuthResponse(user)
 }
 
-func (s *AuthService) LogoutService(refresh string) error {
-	var refreshToken models.RefreshToken
-
-	err := s.db.Where("token_hash = ?", refresh).Delete(&refreshToken).Error
+func (s *AuthService) LogoutService(ctx context.Context, refresh string) error {
+	refreshToken, err := s.authRepo.GetValidRefreshToken(ctx, refresh)
 	if err != nil {
-		return nil
+		return err
+	}
+	err = s.authRepo.DeleteRefreshToken(refreshToken)
+
+	if err != nil {
+		return err
 	}
 
 	return nil
 }
 
-func (s *AuthService) ForgotPasswordService(req *dto.ForgotPasswordRequest) error {
-	var user models.User
-	var token models.Token
-
-	err := s.db.Where("email = ? ", req.Email).First(&user).Error
+func (s *AuthService) ForgotPasswordService(ctx context.Context, req *dto.ForgotPasswordRequest) error {
+	user, err := s.userRepo.GetByEmail(ctx, req.Email)
 	if err != nil {
 		return nil
 	}
@@ -225,16 +217,16 @@ func (s *AuthService) ForgotPasswordService(req *dto.ForgotPasswordRequest) erro
 
 	hashedToken := utils.HashToken(passwordResetToken)
 
-	token = models.Token{
+	token := models.Token{
 		UserID:    user.ID,
 		TokenHash: hashedToken,
 		Type:      models.TokenTypePasswordReset,
 		ExpiresAt: time.Now().Add(15 * time.Minute),
 	}
 
-	err = s.db.Create(&token).Error
+	err = s.authRepo.CreateEmailToken(&token)
 	if err != nil {
-		return nil
+		return err
 	}
 
 	// Publish message to queue
@@ -257,14 +249,10 @@ func (s *AuthService) ForgotPasswordService(req *dto.ForgotPasswordRequest) erro
 }
 
 func (s *AuthService) VerifyResetOTP(req *dto.VerifyResetToken) error {
-	var token models.Token
 
 	hashedToken := utils.HashToken(req.Token)
 
-	err := s.db.
-		Where("token_hash = ? AND expires_at > ?", hashedToken, time.Now()).
-		First(&token).Error
-
+	_, err := s.authRepo.GetValidEmailToken(hashedToken)
 	if err != nil {
 		return domain.ErrTokeNotFoundOrExpired
 	}
@@ -273,24 +261,17 @@ func (s *AuthService) VerifyResetOTP(req *dto.VerifyResetToken) error {
 }
 
 func (s *AuthService) ResetPasswordService(req *dto.ResetPasswordRequest) error {
-	var token models.Token
-	var user models.User
 
 	hashedToken := utils.HashToken(req.Token)
 
-	err := s.db.
-		Where("token_hash = ? AND expires_at > ?", hashedToken, time.Now()).
-		First(&token).Error
+	token, err := s.authRepo.GetValidEmailToken(hashedToken)
 	if err != nil {
 		return domain.ErrTokeNotFoundOrExpired
 	}
 
-	if err := s.db.First(&user, token.UserID).Error; err != nil {
+	user, err := s.userRepo.GetByID(context.Background(), token.UserID)
+	if err != nil {
 		return domain.ErrUserNotFound
-	}
-
-	if len(req.NewPassword) < 8 {
-		return domain.ErrWeakPassword
 	}
 
 	newHashedPassword, err := utils.HashPassword(req.NewPassword)
@@ -298,23 +279,7 @@ func (s *AuthService) ResetPasswordService(req *dto.ResetPasswordRequest) error 
 		return err
 	}
 
-	err = s.db.Transaction(func(tx *gorm.DB) error {
-		if err := tx.Model(&user).
-			Update("password", newHashedPassword).Error; err != nil {
-			return err
-		}
-
-		if err := tx.Delete(&token).Error; err != nil {
-			return err
-		}
-
-		if err := tx.Where("user_id = ?", user.ID).
-			Delete(&models.RefreshToken{}).Error; err != nil {
-			return err
-		}
-
-		return nil
-	})
+	err = s.authRepo.ResetPassword(user, token, newHashedPassword)
 
 	if err != nil {
 		return err
@@ -337,18 +302,20 @@ func (s *AuthService) ResetPasswordService(req *dto.ResetPasswordRequest) error 
 	return nil
 }
 
-func (s *AuthService) ChangePasswordService(userID uint, req *dto.ChangePasswordRequest) error {
-	var user models.User
-	var refreshToken models.RefreshToken
+func (s *AuthService) ChangePasswordService(ctx context.Context, userID uint, req *dto.ChangePasswordRequest) error {
 
-	err := s.db.Where("user_id = ?", userID).First(&user).Error
+	user, err := s.userRepo.GetByID(ctx, userID)
 	if err != nil {
 		return err
 	}
 
 	ok := utils.CheckPassword(user.Password, req.CurrentPassword)
 	if !ok {
-		return fmt.Errorf("Invalid credentials")
+		return domain.ErrInvalidCredentials
+	}
+
+	if len(req.NewPassword) < 8 {
+		return domain.ErrWeakPassword
 	}
 
 	newHashedPassword, err := utils.HashPassword(req.NewPassword)
@@ -356,21 +323,12 @@ func (s *AuthService) ChangePasswordService(userID uint, req *dto.ChangePassword
 		return err
 	}
 
-	return s.db.Transaction(func(tx *gorm.DB) error {
-		err = tx.Model(&user).Update("password", newHashedPassword).Error
-		if err != nil {
-			return err
-		}
+	err = s.authRepo.ChangePassword(user, newHashedPassword)
+	if err != nil {
+		return err
+	}
 
-		if err := tx.Where("user_id = ?", user.ID).
-			Delete(&refreshToken).Error; err != nil {
-			return err
-		}
-
-		return nil
-
-	})
-
+	return nil
 }
 
 func (s *AuthService) GenerateAuthResponse(user *models.User) (*dto.AuthResponse, error) {
@@ -379,13 +337,10 @@ func (s *AuthService) GenerateAuthResponse(user *models.User) (*dto.AuthResponse
 		return nil, err
 	}
 
-	refreshTokenModel := models.RefreshToken{
-		UserID:    user.ID,
-		TokenHash: refreshToken,
-		ExpiresAt: time.Now().Add(s.cfg.JWT.JWTRefreshTokenExpiration),
+	err = s.authRepo.CreateRefreshToken(user.ID, refreshToken)
+	if err != nil {
+		return nil, err
 	}
-
-	s.db.Create(&refreshTokenModel)
 
 	return &dto.AuthResponse{
 		User: dto.UserResponse{

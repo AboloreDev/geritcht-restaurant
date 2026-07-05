@@ -6,7 +6,16 @@ import (
 	"encoding/hex"
 	"fmt"
 	"math/big"
+	"strings"
 )
+
+var validExtensions = map[string]bool{
+	".jpg":  true,
+	".jpeg": true,
+	".png":  true,
+	".gif":  true,
+	".webp": true,
+}
 
 func GenerateVerificationToken() (string, error) {
 	max := big.NewInt(900000)
@@ -36,15 +45,7 @@ func GenerateOTP() (string, error) {
 }
 
 func IsValidExtensions(ext string) bool {
-	validExtensions := []string{".jpg", ".jpeg", ".png", ".gif", ".webp"}
-
-	for _, validExt := range validExtensions {
-		if validExt == ext {
-			return true
-		}
-	}
-
-	return false
+	return validExtensions[strings.ToLower(ext)]
 }
 
 func GeneratePaymentReference() string {

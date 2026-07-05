@@ -8,25 +8,25 @@ import (
 	"github.com/AboloreDev/geritcht-restaurant/internals/events"
 	"github.com/AboloreDev/geritcht-restaurant/internals/interfaces"
 	"github.com/AboloreDev/geritcht-restaurant/internals/models"
+	"github.com/AboloreDev/geritcht-restaurant/internals/repositories"
 	"github.com/AboloreDev/geritcht-restaurant/internals/utils"
 	"github.com/rs/zerolog"
-	"gorm.io/gorm"
 )
 
 type NoShowWorker struct {
-	db         *gorm.DB
-	publisher  interfaces.Publisher
-	redisStore interfaces.Cacher
+	publisher        interfaces.Publisher
+	redisStore       interfaces.Cacher
+	noShowWorkerRepo repositories.ReservationNoShowInterface
 }
 
 func NewNoShowWorker(
-	db *gorm.DB,
 	publisher interfaces.Publisher,
-	redisStore interfaces.Cacher) *NoShowWorker {
+	redisStore interfaces.Cacher,
+	noShowWorkerRepo repositories.ReservationNoShowInterface) *NoShowWorker {
 	return &NoShowWorker{
-		db:         db,
-		publisher:  publisher,
-		redisStore: redisStore,
+		publisher:        publisher,
+		redisStore:       redisStore,
+		noShowWorkerRepo: noShowWorkerRepo,
 	}
 }
 
@@ -42,7 +42,7 @@ func (w *NoShowWorker) StartMarkNoShowWorker(ctx context.Context, log zerolog.Lo
 			log.Info().Msg("Shutting down MarkNoShow worker")
 			return
 		case <-ticker.C:
-			w.processNoShow()
+			w.processNoShow(ctx)
 			log.Info().Msg("MarkNoShow worker executed")
 		case <-heartbeat.C:
 			log.Info().Msg("MarkNoShow worker is alive")
@@ -50,55 +50,32 @@ func (w *NoShowWorker) StartMarkNoShowWorker(ctx context.Context, log zerolog.Lo
 	}
 }
 
-func (w *NoShowWorker) processNoShow() {
-	var reservations []models.Reservation
-
-	w.db.Preload("Table").Where("date = ? AND time_slot = ? AND status = ?",
-		time.Now().Format("2006-01-02"),
-		time.Now().Add(-45*time.Minute).Format("15:04"),
-		models.ReservationStatusConfirmed,
-	).Find(&reservations)
+func (w *NoShowWorker) processNoShow(ctx context.Context) {
+	reservations, err := w.noShowWorkerRepo.GetAllReservations(ctx)
+	if err != nil {
+		return
+	}
 
 	for _, reservation := range reservations {
-		w.markNoShow(reservation)
+		w.handleReservation(ctx, reservation)
 	}
 }
 
-func (w *NoShowWorker) markNoShow(reservation models.Reservation) {
-	var waitlist models.Waitlist
-	var table models.Table
+func (w *NoShowWorker) handleReservation(ctx context.Context, reservation models.Reservation) {
+	// Business logic (transaction)
+	if err := w.noShowWorkerRepo.MarkReservationNoShow(ctx, &reservation); err != nil {
+		return
+	}
+	// Publish Mail
+	w.publishNoShowEmail(reservation)
 
-	w.db.Transaction(func(tx *gorm.DB) error {
-		tx.Model(&reservation).Update("status", models.ReservationStatusNoShow)
+	// Redis
+	w.invalidateAvailabilityCache(ctx, reservation)
+}
 
-		tx.Model(&table).Where("id = ?", reservation.TableID).
-			Update("status", models.TableStatusAvailable)
-
-		err := tx.Preload("User").
-			Where("date = ? AND time_slot = ? AND party_size = ? AND status = ?",
-				reservation.Date, reservation.TimeSlot, reservation.PartySize, models.WaitlistStatusWaiting).
-			Order("created_at ASC").
-			First(&waitlist).Error
-
-		if err != nil {
-			return nil
-		}
-
-		err = tx.Model(&waitlist).
-			Updates(map[string]interface{}{
-				"status":      models.WaitlistStatusNotified,
-				"notified_at": time.Now(),
-				"expires_at":  time.Now().Add(10 * time.Minute),
-			}).Error
-
-		if err != nil {
-			return nil
-		}
-
-		return nil
-	})
-
-	w.publisher.PublishMessage(
+// Publish Email
+func (w *NoShowWorker) publishNoShowEmail(reservation models.Reservation) {
+	_ = w.publisher.PublishMessage(
 		events.ChannelEmailReservationNoShow,
 		events.ReservationNoShowPayload{
 			FirstName: reservation.User.FirstName,
@@ -107,10 +84,20 @@ func (w *NoShowWorker) markNoShow(reservation models.Reservation) {
 			TimeSlot:  utils.FormatDataTypesTime(reservation.TimeSlot),
 			TableName: reservation.Table.Name,
 		},
-		map[string]string{"Priority": "Important Mail"},
+		map[string]string{
+			"Priority": "Important Mail",
+		},
 	)
+}
 
-	w.redisStore.FlushByPattern(ctx,
-		fmt.Sprintf("availability:%s:%s:*", reservation.Date, reservation.TimeSlot),
+// Redis Func
+func (w *NoShowWorker) invalidateAvailabilityCache(ctx context.Context, reservation models.Reservation) {
+	_ = w.redisStore.FlushByPattern(
+		ctx,
+		fmt.Sprintf(
+			"availability:%s:%s:*",
+			reservation.Date,
+			reservation.TimeSlot,
+		),
 	)
 }

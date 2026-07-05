@@ -7,22 +7,25 @@ import (
 	"github.com/AboloreDev/geritcht-restaurant/internals/events"
 	"github.com/AboloreDev/geritcht-restaurant/internals/interfaces"
 	"github.com/AboloreDev/geritcht-restaurant/internals/models"
+	"github.com/AboloreDev/geritcht-restaurant/internals/repositories"
 	"github.com/AboloreDev/geritcht-restaurant/internals/utils"
 	"github.com/rs/zerolog"
-	"gorm.io/gorm"
 )
 
 type ReminderWorker struct {
-	db         *gorm.DB
-	redisStore interfaces.Cacher
-	publisher  interfaces.Publisher
+	reminderRepo repositories.ReservationReminderInterface
+	redisStore   interfaces.Cacher
+	publisher    interfaces.Publisher
 }
 
-func NewReminderWorker(db *gorm.DB, redisStore interfaces.Cacher, publisher interfaces.Publisher) *ReminderWorker {
+func NewReminderWorker(
+	reminderRepo repositories.ReservationReminderInterface,
+	redisStore interfaces.Cacher,
+	publisher interfaces.Publisher) *ReminderWorker {
 	return &ReminderWorker{
-		db:         db,
-		redisStore: redisStore,
-		publisher:  publisher,
+		reminderRepo: reminderRepo,
+		redisStore:   redisStore,
+		publisher:    publisher,
 	}
 }
 
@@ -38,15 +41,14 @@ func (w *ReminderWorker) StartReminderWorker(ctx context.Context, log zerolog.Lo
 			log.Info().Msg("reminder worker stopped")
 			return
 		case <-ticker.C:
-			w.processReminder(log)
+			w.processReminder(ctx, log)
 		case <-heartbeat.C:
 			log.Info().Msg("reminder worker is alive")
 		}
 	}
 }
 
-func (w *ReminderWorker) processReminder(log zerolog.Logger) {
-	var reservations []models.Reservation
+func (w *ReminderWorker) processReminder(ctx context.Context, log zerolog.Logger) {
 	now := time.Now()
 
 	// target = 30 minutes from now
@@ -61,26 +63,11 @@ func (w *ReminderWorker) processReminder(log zerolog.Logger) {
 		return
 	}
 
-	w.db.Preload("Table").Preload("User").
-		Where("date = ? AND status = ? AND time_slot = ? AND reminder_sent = ?",
-			now.Format("2006-01-02"),
-			models.ReservationStatusConfirmed,
-			targetSlot,
-			false,
-		).Find(&reservations)
+	reservations, err := w.reminderRepo.GetAllUpcomingReservations(ctx, now, targetSlot)
 
 	for _, reservation := range reservations {
-		err := w.publisher.PublishMessage(
-			events.ChannelEmailReservationReminder,
-			events.ReservationReminderPayload{
-				FirstName: reservation.User.FirstName,
-				TableName: reservation.Table.Name,
-				Date:      reservation.Date.Format("2006-01-02"),
-				TimeSlot:  utils.FormatDataTypesTime(reservation.TimeSlot),
-				Email:     reservation.User.Email,
-			},
-			map[string]string{"Priority": "Important Mail"},
-		)
+		// Publish message
+		err := w.publish(reservation)
 		if err != nil {
 			log.Error().Err(err).
 				Uint("reservation_id", reservation.ID).
@@ -88,11 +75,28 @@ func (w *ReminderWorker) processReminder(log zerolog.Logger) {
 			continue
 		}
 
-		if err := w.db.Model(&reservation).
-			Update("reminder_sent", true).Error; err != nil {
+		// Send reminder
+		err = w.reminderRepo.UpdateReminderValue(ctx, &reservation)
+		if err != nil {
 			log.Error().Err(err).
 				Uint("reservation_id", reservation.ID).
 				Msg("failed to mark reminder as sent")
 		}
 	}
+}
+
+func (w *ReminderWorker) publish(reservation models.Reservation) error {
+	w.publisher.PublishMessage(
+		events.ChannelEmailReservationReminder,
+		events.ReservationReminderPayload{
+			FirstName: reservation.User.FirstName,
+			TableName: reservation.Table.Name,
+			Date:      reservation.Date.Format("2006-01-02"),
+			TimeSlot:  utils.FormatDataTypesTime(reservation.TimeSlot),
+			Email:     reservation.User.Email,
+		},
+		map[string]string{"Priority": "Important Mail"},
+	)
+
+	return nil
 }

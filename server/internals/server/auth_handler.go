@@ -16,7 +16,7 @@ func (s *Server) RegisterUserHandler(ctx *gin.Context) {
 		return
 	}
 
-	response, err := s.authServices.RegisterUserService(&req)
+	response, err := s.authServices.RegisterUserService(ctx.Request.Context(), &req)
 	if err != nil {
 		switch err {
 		case domain.ErrConflict:
@@ -39,7 +39,7 @@ func (s *Server) LoginUserHandler(ctx *gin.Context) {
 		return
 	}
 
-	response, err := s.authServices.LoginUserService(&req)
+	response, err := s.authServices.LoginUserService(ctx.Request.Context(), &req)
 	if err != nil {
 		switch err {
 		case domain.ErrInvalidCredentials:
@@ -76,7 +76,7 @@ func (s *Server) RefreshTokenHandler(ctx *gin.Context) {
 		return
 	}
 
-	response, err := s.authServices.GenerateRefreshTokenService(token)
+	response, err := s.authServices.GenerateRefreshTokenService(ctx.Request.Context(), token)
 	if err != nil {
 		switch err {
 		case domain.ErrInvalidRefreshToken, domain.ErrTokeNotFoundOrExpired:
@@ -114,7 +114,7 @@ func (s *Server) LogoutHandler(ctx *gin.Context) {
 		return
 	}
 
-	err = s.authServices.LogoutService(token)
+	err = s.authServices.LogoutService(ctx.Request.Context(), token)
 	if err != nil {
 		utils.BadRequest(ctx, "Something went wrong", err)
 		return
@@ -161,7 +161,7 @@ func (s *Server) ForgotPasswordHandler(ctx *gin.Context) {
 		return
 	}
 
-	err = s.authServices.ForgotPasswordService(&req)
+	err = s.authServices.ForgotPasswordService(ctx.Request.Context(), &req)
 	if err != nil {
 		utils.BadRequest(ctx, "Something went wrong", err)
 		return
@@ -232,7 +232,7 @@ func (s *Server) ChangePasswordHandler(ctx *gin.Context) {
 		return
 	}
 
-	err = s.authServices.ChangePasswordService(userID, &req)
+	err = s.authServices.ChangePasswordService(ctx.Request.Context(), userID, &req)
 	if err != nil {
 		switch err {
 		case domain.ErrInvalidCredentials:

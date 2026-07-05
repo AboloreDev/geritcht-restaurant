@@ -12,7 +12,7 @@ import (
 func (s *Server) GetUserProfileHandler(ctx *gin.Context) {
 	userID := ctx.GetUint("user_id")
 
-	response, err := s.userServices.GetUserProfileService(userID)
+	response, err := s.userServices.GetUserProfileService(ctx.Request.Context(), userID)
 	if err != nil {
 		switch err {
 		case domain.ErrNotFound:
@@ -29,7 +29,7 @@ func (s *Server) GetUserProfileHandler(ctx *gin.Context) {
 func (s *Server) GetStaffProfileHandler(ctx *gin.Context) {
 	userID := ctx.GetUint("user_id")
 
-	response, err := s.userServices.GetStaffProfileService(userID)
+	response, err := s.userServices.GetStaffProfileService(ctx.Request.Context(), userID)
 	if err != nil {
 		switch err {
 		case domain.ErrNotFound:
@@ -50,7 +50,7 @@ func (s *Server) GetAllUserHandler(ctx *gin.Context) {
 	page, _ := strconv.Atoi(pageStr)
 	pageSize, _ := strconv.Atoi(pageSizeStr)
 
-	response, meta, err := s.userServices.GetAllUsersService(page, pageSize)
+	response, meta, err := s.userServices.GetAllUsersService(ctx.Request.Context(), page, pageSize)
 	if err != nil {
 		utils.InternalServerError(ctx, "Failed to fetch users", err)
 		return
@@ -66,7 +66,7 @@ func (s *Server) GetAllStaffsHandler(ctx *gin.Context) {
 	page, _ := strconv.Atoi(pageStr)
 	pageSize, _ := strconv.Atoi(pageSizeStr)
 
-	response, meta, err := s.userServices.GetAllStaffService(page, pageSize)
+	response, meta, err := s.userServices.GetAllStaffService(ctx.Request.Context(), page, pageSize)
 	if err != nil {
 		utils.InternalServerError(ctx, "Failed to fetch users", err)
 		return
@@ -80,7 +80,7 @@ func (s *Server) DeactivateUserHandler(ctx *gin.Context) {
 	id, err := strconv.ParseUint(idStr, 10, 32)
 	userID := uint(id)
 
-	err = s.userServices.DeactivateUserService(userID)
+	err = s.userServices.DeactivateUserService(ctx.Request.Context(), userID)
 	if err != nil {
 		utils.InternalServerError(ctx, "Failed to deactivate users", err)
 		return
@@ -94,7 +94,7 @@ func (s *Server) DeactivateStaffHandler(ctx *gin.Context) {
 	id, err := strconv.ParseUint(idStr, 10, 32)
 	userID := uint(id)
 
-	err = s.userServices.DeactivateStaffService(userID)
+	err = s.userServices.DeactivateStaffService(ctx.Request.Context(), userID)
 	if err != nil {
 		utils.InternalServerError(ctx, "Failed to deactivate staff", err)
 		return
@@ -108,7 +108,7 @@ func (s *Server) ActivateStaffHandler(ctx *gin.Context) {
 	id, err := strconv.ParseUint(idStr, 10, 32)
 	userID := uint(id)
 
-	err = s.userServices.ActivateUserService(userID)
+	err = s.userServices.ActivateUserService(ctx.Request.Context(), userID)
 	if err != nil {
 		utils.InternalServerError(ctx, "Failed to activate staff", err)
 		return
@@ -122,7 +122,7 @@ func (s *Server) ActivateUserHandler(ctx *gin.Context) {
 	id, err := strconv.ParseUint(idStr, 10, 32)
 	userID := uint(id)
 
-	err = s.userServices.ActivateStaffService(userID)
+	err = s.userServices.ActivateStaffService(ctx.Request.Context(), userID)
 	if err != nil {
 		utils.InternalServerError(ctx, "Failed to activate users", err)
 		return
@@ -141,7 +141,7 @@ func (s *Server) UpdateUserProfileHandler(ctx *gin.Context) {
 		return
 	}
 
-	response, err := s.userServices.UpdateProfileService(userID, &req)
+	response, err := s.userServices.UpdateProfileService(ctx.Request.Context(), userID, &req)
 	if err != nil {
 		switch err {
 		case domain.ErrNotFound:
@@ -165,7 +165,7 @@ func (s *Server) UpdateStaffProfileHandler(ctx *gin.Context) {
 		return
 	}
 
-	response, err := s.userServices.UpdateProfileService(userID, &req)
+	response, err := s.userServices.UpdateProfileService(ctx.Request.Context(), userID, &req)
 	if err != nil {
 		switch err {
 		case domain.ErrNotFound:

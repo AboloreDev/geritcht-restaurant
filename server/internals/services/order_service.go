@@ -1,6 +1,7 @@
 package services
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"time"
@@ -10,42 +11,49 @@ import (
 	"github.com/AboloreDev/geritcht-restaurant/internals/interfaces"
 	"github.com/AboloreDev/geritcht-restaurant/internals/mapper"
 	"github.com/AboloreDev/geritcht-restaurant/internals/models"
+	"github.com/AboloreDev/geritcht-restaurant/internals/repositories"
 	"github.com/AboloreDev/geritcht-restaurant/internals/utils"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
 
 type OrderService struct {
-	db         *gorm.DB
-	redisStore interfaces.Cacher
+	db          *gorm.DB // still needed for transaction control
+	orderRepo   repositories.OrderRepositoryInterface
+	paymentRepo repositories.PaymentRepositoryInterface
+	cartRepo    repositories.CartRepositoryInterface
+	redisStore  interfaces.Cacher
 }
 
-func NewOrderService(db *gorm.DB, redisStore interfaces.Cacher) *OrderService {
+func NewOrderService(
+	db *gorm.DB,
+	orderRepo repositories.OrderRepositoryInterface,
+	paymentRepo repositories.PaymentRepositoryInterface,
+	cartRepo repositories.CartRepositoryInterface,
+	redisStore interfaces.Cacher,
+) *OrderService {
 	return &OrderService{
-		db:         db,
-		redisStore: redisStore,
+		db:          db,
+		orderRepo:   orderRepo,
+		paymentRepo: paymentRepo,
+		cartRepo:    cartRepo,
+		redisStore:  redisStore,
 	}
 }
 
-func (s *OrderService) GetOrderResponse(tx *gorm.DB, orderID uint) (*dto.OrderResponse, error) {
-	var order models.Order
-
-	err := tx.Preload("OrderItems.Menu.MenuCategory").
-		Preload("User").Preload("Payment").Where("id = ? ", orderID).
-		First(&order).Error
+func (s *OrderService) GetOrderResponse(ctx context.Context, tx *gorm.DB, orderID uint) (*dto.OrderResponse, error) {
+	order, err := s.orderRepo.GetByID(ctx, tx, orderID)
 	if err != nil {
 		return nil, err
 	}
-
-	return mapper.OrderResponse(&order), nil
+	return mapper.OrderResponse(order), nil
 }
 
-func (s *OrderService) CreateTakeoutOrder(userID uint, req *dto.CreateTakeoutOrderRequest) (*dto.OrderResponse, error) {
+func (s *OrderService) CreateTakeoutOrder(ctx context.Context, userID uint, req *dto.CreateTakeoutOrderRequest) (*dto.OrderResponse, error) {
 	var orderResponse *dto.OrderResponse
 
 	err := s.db.Transaction(func(tx *gorm.DB) error {
-		var cart models.Cart
-		err := tx.Preload("CartItems.Menu").Where("user_id = ?", userID).First(&cart).Error
+		cart, err := s.cartRepo.GetCartByUserIDForTx(ctx, tx, userID)
 		if err != nil {
 			return domain.ErrCartNotFound
 		}
@@ -65,7 +73,7 @@ func (s *OrderService) CreateTakeoutOrder(userID uint, req *dto.CreateTakeoutOrd
 			}
 
 			itemTotal := cartItem.Menu.Price * float64(cartItem.Quantity)
-			totalAmount = totalAmount + itemTotal
+			totalAmount += itemTotal
 
 			orderItems = append(orderItems, models.OrderItem{
 				MenuID:              cartItem.MenuID,
@@ -82,12 +90,10 @@ func (s *OrderService) CreateTakeoutOrder(userID uint, req *dto.CreateTakeoutOrd
 			Type:          models.OrderTypeTakeout,
 			Status:        models.OrderStatusPending,
 			Notes:         req.Notes,
-			CreatedAt:     time.Now(),
 			PaymentStatus: models.PaymentStatusUnpaid,
 		}
 
-		err = tx.Create(&order).Error
-		if err != nil {
+		if err := s.orderRepo.Create(ctx, tx, &order); err != nil {
 			return err
 		}
 
@@ -102,17 +108,16 @@ func (s *OrderService) CreateTakeoutOrder(userID uint, req *dto.CreateTakeoutOrd
 			Provider:       "paystack",
 		}
 
-		if err := tx.Create(&payment).Error; err != nil {
+		if err := s.paymentRepo.Create(ctx, tx, &payment); err != nil {
 			return err
 		}
 
-		response, err := s.GetOrderResponse(tx, order.ID)
+		response, err := s.GetOrderResponse(ctx, tx, order.ID)
 		if err != nil {
 			return err
 		}
 
 		orderResponse = response
-
 		return nil
 	})
 	if err != nil {
@@ -122,7 +127,7 @@ func (s *OrderService) CreateTakeoutOrder(userID uint, req *dto.CreateTakeoutOrd
 	return orderResponse, nil
 }
 
-func (s *OrderService) GetAllTakeoutOrders(userID uint, page, pageSize int) ([]*dto.OrderResponse, *utils.PaginatedMeta, error) {
+func (s *OrderService) GetAllTakeoutOrders(ctx context.Context, userID uint, page, pageSize int) ([]*dto.OrderResponse, *utils.PaginatedMeta, error) {
 	cacheKey := fmt.Sprintf("user:orders:%d:p:%d:s:%d", userID, page, pageSize)
 
 	cached, err := s.redisStore.Get(ctx, cacheKey)
@@ -135,77 +140,106 @@ func (s *OrderService) GetAllTakeoutOrders(userID uint, page, pageSize int) ([]*
 			return cachedResponse.Data, cachedResponse.Meta, nil
 		}
 	}
-	var orders []models.Order
-	var total int64
-	offset := utils.Pagination(page, pageSize)
 
-	s.db.Model(models.Order{}).Count(&total)
-
-	err = s.db.Preload("OrderItems.Menu").
-		Preload("User").
-		Preload("Payment").
-		Where("user_id = ? AND type = ?", userID, models.OrderTypeTakeout).
-		Order("created_at DESC").
-		Offset(offset).Limit(pageSize).
-		Find(&orders).Error
+	orders, total, err := s.orderRepo.GetAllByUser(ctx, userID, page, pageSize)
 	if err != nil {
 		return nil, nil, domain.ErrOrderNotFound
 	}
 
 	response := make([]*dto.OrderResponse, 0, len(orders))
-
 	for _, order := range orders {
 		response = append(response, mapper.OrderResponse(&order))
 	}
 
 	totalPages := int((total + int64(pageSize) - 1) / int64(pageSize))
-
-	meta := &utils.PaginatedMeta{
-		Page:       page,
-		Limit:      pageSize,
-		Total:      total,
-		TotalPages: totalPages,
-	}
+	meta := &utils.PaginatedMeta{Page: page, Limit: pageSize, Total: total, TotalPages: totalPages}
 
 	cacheData := struct {
 		Data []*dto.OrderResponse `json:"data"`
 		Meta *utils.PaginatedMeta `json:"meta"`
 	}{Data: response, Meta: meta}
-
-	// store in cache
-	data, err := json.Marshal(&cacheData)
-	if err != nil {
-		return nil, nil, fmt.Errorf("Failed to set data: %d", err)
-	}
+	data, _ := json.Marshal(&cacheData)
 	s.redisStore.Set(ctx, cacheKey, string(data), 1*time.Hour)
 
 	return response, meta, nil
 }
 
-func (s *OrderService) GetTakeoutOrder(userID, orderID uint) (*dto.OrderResponse, error) {
-	var order models.Order
-
-	err := s.db.Preload("OrderItems.Menu").
-		Preload("User").
-		Preload("Payment").
-		Where("id = ? AND user_id = ? AND type = ?", orderID, userID, models.OrderTypeTakeout).
-		First(&order).Error
+func (s *OrderService) GetTakeoutOrder(ctx context.Context, userID, orderID uint) (*dto.OrderResponse, error) {
+	order, err := s.orderRepo.GetByIDAndUser(ctx, orderID, userID)
 	if err != nil {
 		return nil, domain.ErrOrderNotFound
 	}
-
-	return mapper.OrderResponse(&order), nil
+	return mapper.OrderResponse(order), nil
 }
 
-func (s *OrderService) VerifyUserOrder(userID, orderID uint) error {
-	var count int64
-
-	err := s.db.Model(&models.Order{}).
-				Where("id = ? AND user_id = ?", orderID, userID).
-				Count(&count).Error
+func (s *OrderService) CancelTakeoutOrder(ctx context.Context, userID, orderID uint) error {
+	order, err := s.orderRepo.GetByIDAndUser(ctx, orderID, userID)
 	if err != nil {
 		return domain.ErrOrderNotFound
 	}
 
+	if order.UserID != nil && *order.UserID != userID {
+		return domain.ErrForbidden
+	}
+
+	switch {
+	case order.Status == models.OrderStatusCancelled:
+		return domain.ErrAlreadyCancelled
+	case order.Status == models.OrderStatusPreparing ||
+		order.Status == models.OrderStatusReady ||
+		order.Status == models.OrderStatusCompleted:
+		return domain.ErrCannotCancel
+	case order.Status == models.OrderStatusConfirmed:
+		return domain.ErrRefundIsProcessing
+	default:
+		return s.orderRepo.UpdateStatus(ctx, orderID, models.OrderStatusCancelled)
+	}
+}
+
+func (s *OrderService) VerifyUserOrder(ctx context.Context, userID, orderID uint) error {
+	count, err := s.orderRepo.CountByUserAndID(ctx, orderID, userID)
+	if err != nil {
+		return domain.ErrOrderNotFound
+	}
+	if count == 0 {
+		return domain.ErrOrderNotFound
+	}
 	return nil
+}
+
+func (s *OrderService) GetAllOrders(ctx context.Context, page, pageSize int) ([]*dto.OrderResponse, *utils.PaginatedMeta, error) {
+	cacheKey := fmt.Sprintf("staff:orders:p:%d:s:%d", page, pageSize)
+
+	cached, err := s.redisStore.Get(ctx, cacheKey)
+	if err == nil && cached != "" {
+		var cachedResponse struct {
+			Data []*dto.OrderResponse `json:"data"`
+			Meta *utils.PaginatedMeta `json:"meta"`
+		}
+		if err := json.Unmarshal([]byte(cached), &cachedResponse); err == nil {
+			return cachedResponse.Data, cachedResponse.Meta, nil
+		}
+	}
+
+	orders, total, err := s.orderRepo.GetAll(ctx, page, pageSize)
+	if err != nil {
+		return nil, nil, domain.ErrOrderNotFound
+	}
+
+	response := make([]*dto.OrderResponse, 0, len(orders))
+	for _, order := range orders {
+		response = append(response, mapper.OrderResponse(&order))
+	}
+
+	totalPages := int((total + int64(pageSize) - 1) / int64(pageSize))
+	meta := &utils.PaginatedMeta{Page: page, Limit: pageSize, Total: total, TotalPages: totalPages}
+
+	cacheData := struct {
+		Data []*dto.OrderResponse `json:"data"`
+		Meta *utils.PaginatedMeta `json:"meta"`
+	}{Data: response, Meta: meta}
+	data, _ := json.Marshal(&cacheData)
+	s.redisStore.Set(ctx, cacheKey, string(data), 30*time.Second)
+
+	return response, meta, nil
 }

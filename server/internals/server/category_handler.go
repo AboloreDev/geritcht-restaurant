@@ -10,6 +10,8 @@ import (
 )
 
 func (s *Server) CreateCategoryHandler(ctx *gin.Context) {
+	c := ctx.Request.Context()
+
 	var req dto.CreateCategoryRequest
 	image, err := ctx.FormFile("image")
 	if err != nil {
@@ -29,7 +31,7 @@ func (s *Server) CreateCategoryHandler(ctx *gin.Context) {
 		return
 	}
 
-	response, err := s.categoryServices.CreateCategoryService(&req, imageUrl)
+	response, err := s.categoryServices.CreateCategoryService(c, &req, imageUrl)
 	if err != nil {
 		switch err {
 		case domain.ErrNameConflict:
@@ -44,6 +46,8 @@ func (s *Server) CreateCategoryHandler(ctx *gin.Context) {
 }
 
 func (s *Server) UpdateCategoryHandler(ctx *gin.Context) {
+	c := ctx.Request.Context()
+
 	idStr := ctx.Param("id")
 	id, err := strconv.ParseUint(idStr, 10, 32)
 	categoryID := uint(id)
@@ -59,7 +63,7 @@ func (s *Server) UpdateCategoryHandler(ctx *gin.Context) {
 		return
 	}
 
-	response, err := s.categoryServices.UpdateCategoryService(categoryID, &req)
+	response, err := s.categoryServices.UpdateCategoryService(c, categoryID, &req)
 	if err != nil {
 		switch err {
 		case domain.ErrNotFound:
@@ -76,6 +80,8 @@ func (s *Server) UpdateCategoryHandler(ctx *gin.Context) {
 }
 
 func (s *Server) GetCategory(ctx *gin.Context) {
+	c := ctx.Request.Context()
+
 	idStr := ctx.Param("id")
 	id, err := strconv.ParseUint(idStr, 10, 32)
 	categoryID := uint(id)
@@ -84,7 +90,7 @@ func (s *Server) GetCategory(ctx *gin.Context) {
 		return
 	}
 
-	response, err := s.categoryServices.GetCategoryService(categoryID)
+	response, err := s.categoryServices.GetCategoryService(c, categoryID)
 	if err != nil {
 		switch err {
 		case domain.ErrNotFound:
@@ -99,6 +105,8 @@ func (s *Server) GetCategory(ctx *gin.Context) {
 }
 
 func (s *Server) DeleteCategory(ctx *gin.Context) {
+	c := ctx.Request.Context()
+
 	idStr := ctx.Param("id")
 	id, err := strconv.ParseUint(idStr, 10, 32)
 	categoryID := uint(id)
@@ -107,7 +115,7 @@ func (s *Server) DeleteCategory(ctx *gin.Context) {
 		return
 	}
 
-	err = s.categoryServices.DeleteCategoryService(categoryID)
+	err = s.categoryServices.DeleteCategoryService(c, categoryID)
 	if err != nil {
 		switch err {
 		case domain.ErrNotFound:
@@ -122,13 +130,15 @@ func (s *Server) DeleteCategory(ctx *gin.Context) {
 }
 
 func (s *Server) GetCategoriesHandler(ctx *gin.Context) {
+	c := ctx.Request.Context()
+
 	pageStr := ctx.DefaultQuery("page", "1")
 	pageSizeStr := ctx.DefaultQuery("pageSize", "10")
 
 	page, _ := strconv.Atoi(pageStr)
 	pageSize, _ := strconv.Atoi(pageSizeStr)
 
-	response, meta, err := s.categoryServices.GetCategoriesService(page, pageSize)
+	response, meta, err := s.categoryServices.GetCategoriesService(c, page, pageSize)
 	if err != nil {
 		utils.InternalServerError(ctx, "Failed to fetch categories", err)
 		return

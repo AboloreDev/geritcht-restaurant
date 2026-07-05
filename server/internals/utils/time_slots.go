@@ -8,14 +8,14 @@ import (
 )
 
 var timeSlots = []string{
-	"16:00",
-	"17:00",
-	"18:00",
-	"20:00",
-	"21:00",
-	"22:00",
-	"23:00",
-	"00:00",
+	"16:00:00",
+	"17:00:00",
+	"18:00:00",
+	"20:00:00",
+	"21:00:00",
+	"22:00:00",
+	"23:00:00",
+	"00:00:00",
 }
 
 func IsValidTimeSlots(slot string) bool {
@@ -28,7 +28,7 @@ func IsValidTimeSlots(slot string) bool {
 }
 
 func ParseToDataTypesTime(slot string) (datatypes.Time, error) {
-	t, err := time.Parse("15:04", slot)
+	t, err := time.Parse("15:04:00", slot)
 	if err != nil {
 		return 0, err
 	}
@@ -38,7 +38,10 @@ func ParseToDataTypesTime(slot string) (datatypes.Time, error) {
 
 func FormatDataTypesTime(t datatypes.Time) string {
 	totalSeconds := int64(t) / 1e9
+
 	hours := totalSeconds / 3600
 	minutes := (totalSeconds % 3600) / 60
-	return fmt.Sprintf("%02d:%02d", hours, minutes)
+	seconds := totalSeconds % 60
+
+	return fmt.Sprintf("%02d:%02d:%02d", hours, minutes, seconds)
 }

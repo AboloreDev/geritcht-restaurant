@@ -21,7 +21,7 @@ func (s *Server) InitilaisePaymentHandler(ctx *gin.Context) {
 		return
 	}
 
-	response, err := s.paymentService.InitialisePayment(userID, &req)
+	response, err := s.paymentService.InitialisePayment(ctx.Request.Context(), userID, &req)
 	if err != nil {
 		switch err {
 		case domain.ErrOrderNotFound:
@@ -49,7 +49,7 @@ func (s *Server) VerifyPaymentHandler(ctx *gin.Context) {
 		return
 	}
 
-	response, err := s.paymentService.VerifyPayment(&req)
+	response, err := s.paymentService.VerifyPayment(ctx.Request.Context(), &req)
 	if err != nil {
 		switch err {
 		case domain.ErrPaymentNotFound:
@@ -76,7 +76,7 @@ func (s *Server) WebhookHandler(ctx *gin.Context) {
 		return
 	}
 
-	err = s.paymentService.HandlePaystackWebhook(body, signature)
+	err = s.paymentService.HandlePaystackWebhook(ctx.Request.Context(), body, signature)
 	if err != nil {
 		switch err {
 		case domain.ErrInvalidSignature:
@@ -94,45 +94,6 @@ func (s *Server) WebhookHandler(ctx *gin.Context) {
 	utils.SuccessResponse(ctx, "success", nil)
 }
 
-func (s *Server) ProcessTakeoutRefundHandler(ctx *gin.Context) {
-	idStr := ctx.Param("id")
-	id, err := strconv.ParseUint(idStr, 10, 32)
-	if err != nil {
-		utils.BadRequest(ctx, "Invalid id", err)
-		return
-	}
-	orderID := uint(id)
-
-	var req dto.ProcessRefundRequest
-
-	err = ctx.ShouldBindJSON(&req)
-	if err != nil {
-		utils.BadRequest(ctx, "Invalid request data", err)
-		return
-	}
-
-	err = s.paymentService.ProcessTakoutRefund(orderID, &req)
-	if err != nil {
-		switch err {
-		case domain.ErrOrderNotFound:
-			utils.NotFound(ctx, "Order not found", err)
-		case domain.ErrInvalidOrderStatus:
-			utils.BadRequest(ctx, "Invalid order status", err)
-		case domain.ErrPaymentNotFound:
-			utils.NotFound(ctx, "Payment not found", err)
-		case domain.ErrOrderNotPaid:
-			utils.BadRequest(ctx, "Order not paid", err)
-		case domain.ErrRefundAlreadyProcessed:
-			utils.BadRequest(ctx, "Refund has already been processed", err)
-		default:
-			utils.InternalServerError(ctx, "Failed to process refund", err)
-			return
-		}
-	}
-
-	utils.SuccessResponse(ctx, "success", nil)
-}
-
 func (s *Server) GetAllPaymentHistory(ctx *gin.Context) {
 	userID := ctx.GetUint("user_id")
 	pageStr := ctx.DefaultQuery("page", "1")
@@ -141,7 +102,7 @@ func (s *Server) GetAllPaymentHistory(ctx *gin.Context) {
 	page, _ := strconv.Atoi(pageStr)
 	pageSize, _ := strconv.Atoi(pageSizeStr)
 
-	response, meta, err := s.paymentService.GetAllPaymentHistory(userID, page, pageSize)
+	response, meta, err := s.paymentService.GetAllPaymentHistory(ctx.Request.Context(), userID, page, pageSize)
 	if err != nil {
 		utils.InternalServerError(ctx, "Failed to fetch payment history", err)
 		return
@@ -153,7 +114,7 @@ func (s *Server) GetAllPaymentHistory(ctx *gin.Context) {
 func (s *Server) GetPaymentByReferenceHandler(ctx *gin.Context) {
 	reference := ctx.Param("reference")
 
-	response, err := s.paymentService.GetPaymentByReference(reference)
+	response, err := s.paymentService.GetPaymentByReference(ctx.Request.Context(), reference)
 	if err != nil {
 		switch err {
 		case domain.ErrPaymentNotFound:
@@ -175,7 +136,7 @@ func (s *Server) GetPaymentDetailsHandler(ctx *gin.Context) {
 	}
 	paymentID := uint(id)
 
-	response, err := s.paymentService.GetPaymentDetails(paymentID)
+	response, err := s.paymentService.GetPaymentDetails(ctx.Request.Context(), paymentID)
 	if err != nil {
 		switch err {
 		case domain.ErrPaymentNotFound:
@@ -197,7 +158,7 @@ func (s *Server) GetRefundDetailsHandler(ctx *gin.Context) {
 	}
 	refundID := uint(id)
 
-	response, err := s.paymentService.GetRefundDetails(refundID)
+	response, err := s.paymentService.GetRefundDetails(ctx.Request.Context(), refundID)
 	if err != nil {
 		switch err {
 		case domain.ErrRefundNotFound:

@@ -88,6 +88,10 @@ func (s *EventSubscriber) handleMessage(msg *message.Message, emailClient *email
 		return s.HandleReservationCheckInMail(msg, emailClient)
 	case events.ChannelEmailReservationNoShow:
 		return s.HandleReservationNoShowMail(msg, emailClient)
+	case events.ChannelOrderConfirmation:
+		return s.HandleOrderConfirmationMail(msg, emailClient)
+	case events.ChannelOrderRefunded:
+		return s.HandleOrderRefundPayload(msg, emailClient)
 	default:
 		log.Printf("Unknown event type %s", eventType)
 		return nil

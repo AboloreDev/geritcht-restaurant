@@ -40,3 +40,11 @@ func (c *NopCache) FlushByPattern(ctx context.Context, pattern string) error {
 func (c *NopCache) Hold(ctx context.Context, keys string, value interface{}, args redis.SetArgs) error {
 	return nil
 }
+
+func (c *NopCache) Expire(ctx context.Context, key string, ttl time.Duration) error {
+	return nil
+}
+
+func (c *NopCache) Increment(ctx context.Context, key string) (int64, error) {
+	return 0, nil
+}

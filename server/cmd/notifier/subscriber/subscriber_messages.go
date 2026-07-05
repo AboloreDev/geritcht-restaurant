@@ -144,3 +144,35 @@ func (s *EventSubscriber) HandleReservationNoShowMail(msg *message.Message, emai
 
 	return nil
 }
+func (s *EventSubscriber) HandleOrderConfirmationMail(msg *message.Message, emailClient *email.ResendEmailClient) error {
+	var data events.OrderConfirmationPayload
+
+	err := json.Unmarshal(msg.Payload, &data)
+	if err != nil {
+		return err
+	}
+
+	log.Printf("Sending notification to %s", data.Email)
+
+	emailClient.SendOrderConfirmationMail(data)
+
+	log.Println("Email successfully sent")
+
+	return nil
+}
+func (s *EventSubscriber) HandleOrderRefundPayload(msg *message.Message, emailClient *email.ResendEmailClient) error {
+	var data events.OrderRefundedPayload
+
+	err := json.Unmarshal(msg.Payload, &data)
+	if err != nil {
+		return err
+	}
+
+	log.Printf("Sending notification to %s", data.Email)
+
+	emailClient.SendOrderRefundMail(data)
+
+	log.Println("Email successfully sent")
+
+	return nil
+}

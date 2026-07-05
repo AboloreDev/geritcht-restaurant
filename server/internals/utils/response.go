@@ -88,3 +88,7 @@ func PaginatedSuccessResponse(ctx *gin.Context, message string, data interface{}
 		Meta: meta,
 	})
 }
+
+func TooManyRequests(ctx *gin.Context, message string, err error) {
+	ErrorResponse(ctx, http.StatusTooManyRequests, message, err)
+}

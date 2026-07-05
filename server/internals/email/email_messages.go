@@ -117,7 +117,41 @@ func (c *ResendEmailClient) SendReservationNoShowMail(data events.ReservationNoS
 			data.PartySize,
 		),
 		To:      data.Email,
-		Subject: "Rservation No-Show Mail",
+		Subject: "Reservation No-Show Mail",
+	}
+
+	return c.SendEmail(ctx, email)
+}
+
+func (c *ResendEmailClient) SendOrderConfirmationMail(data events.OrderConfirmationPayload) error {
+	ctx := context.Background()
+	email := &EmailRequest{
+		Body: templates.OrderConfirmationTemplate(
+			data.FirstName,
+			data.OrderID,
+			data.Amount,
+			data.Reference,
+			data.Items,
+		),
+		To:      data.Email,
+		Subject: "Order Confirmation Mail",
+	}
+
+	return c.SendEmail(ctx, email)
+}
+
+func (c *ResendEmailClient) SendOrderRefundMail(data events.OrderRefundedPayload) error {
+	ctx := context.Background()
+	email := &EmailRequest{
+		Body: templates.OrderRefundTemplate(
+			data.FirstName,
+			data.OrderID,
+			data.Reference,
+			data.Amount,
+			data.Reason,
+		),
+		To:      data.Email,
+		Subject: "Order Refund Mail",
 	}
 
 	return c.SendEmail(ctx, email)

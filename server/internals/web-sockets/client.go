@@ -8,23 +8,23 @@ import (
 )
 
 const (
-	pongWait = 60 * time.Second
+	pongWait       = 60 * time.Second
 	maxMessageSize = 512
-	pingPeriod = pongWait * 9 / 10
-	writeWait = 10 * time.Second
+	pingPeriod     = pongWait * 9 / 10
+	writeWait      = 10 * time.Second
 )
 
 type Client struct {
 	OrderID uint
-	Hub *Hub
-	Conn *websocket.Conn
-	Send chan []byte
+	Hub     *Hub
+	Conn    *websocket.Conn
+	Send    chan []byte
 }
 
 func (c *Client) WritePump() {
 	ticker := time.NewTicker(pingPeriod)
 
-	defer func ()  {
+	defer func() {
 		c.Conn.Close()
 		ticker.Stop()
 	}()
@@ -56,7 +56,7 @@ func (c *Client) WritePump() {
 				log.Println(err)
 				return
 			}
-		case <- ticker.C:
+		case <-ticker.C:
 			err := c.Conn.SetWriteDeadline(time.Now().Add(writeWait))
 			if err != nil {
 				log.Println(err)
@@ -67,7 +67,7 @@ func (c *Client) WritePump() {
 }
 
 func (c *Client) ReadPump() {
-	defer func ()  {
+	defer func() {
 		c.Conn.Close()
 		c.Hub.Unregister <- c
 	}()

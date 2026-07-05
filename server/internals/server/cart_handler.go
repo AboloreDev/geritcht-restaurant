@@ -19,7 +19,7 @@ func (s *Server) AddToCartHandler(ctx *gin.Context) {
 		return
 	}
 
-	cartResponse, err := s.cartServices.AddItemToCart(userID, &req)
+	cartResponse, err := s.cartServices.AddItemToCart(ctx.Request.Context(), userID, &req)
 	if err != nil {
 		utils.InternalServerError(ctx, "Failed to add item to cart", err)
 		return
@@ -47,7 +47,7 @@ func (s *Server) UpdateCartItemHandler(ctx *gin.Context) {
 		return
 	}
 
-	cartResponse, err := s.cartServices.UpdateCartItem(userID, itemID, &req)
+	cartResponse, err := s.cartServices.UpdateCartItem(ctx.Request.Context(), userID, itemID, &req)
 	if err != nil {
 		switch err {
 		case domain.ErrCartItemNotFound:
@@ -74,7 +74,7 @@ func (s *Server) RemoveCartItemHandler(ctx *gin.Context) {
 	}
 	itemID := uint(id)
 
-	err = s.cartServices.RemoveCartItem(userID, itemID)
+	err = s.cartServices.RemoveCartItem(ctx.Request.Context(), userID, itemID)
 	if err != nil {
 		switch err {
 		case domain.ErrCartItemNotFound:
@@ -91,7 +91,7 @@ func (s *Server) RemoveCartItemHandler(ctx *gin.Context) {
 func (s *Server) ClearCartHandler(ctx *gin.Context) {
 	userID := ctx.GetUint("user_id")
 
-	err := s.cartServices.ClearCart(userID)
+	err := s.cartServices.ClearCart(ctx.Request.Context(), userID)
 	if err != nil {
 		switch err {
 		case domain.ErrCartNotFound:
@@ -108,7 +108,7 @@ func (s *Server) ClearCartHandler(ctx *gin.Context) {
 func (s *Server) GetUserCart(ctx *gin.Context) {
 	userID := ctx.GetUint("user_id")
 
-	response, err := s.cartServices.GetUserCart(userID)
+	response, err := s.cartServices.GetUserCart(ctx.Request.Context(), userID)
 	if err != nil {
 		utils.BadRequest(ctx, "Failed to get cart", err)
 		return

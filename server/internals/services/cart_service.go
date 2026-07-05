@@ -1,126 +1,101 @@
 package services
 
 import (
+	"context"
+
 	"github.com/AboloreDev/geritcht-restaurant/internals/domain"
 	"github.com/AboloreDev/geritcht-restaurant/internals/dto"
 	"github.com/AboloreDev/geritcht-restaurant/internals/mapper"
 	"github.com/AboloreDev/geritcht-restaurant/internals/models"
-	"gorm.io/gorm"
+	"github.com/AboloreDev/geritcht-restaurant/internals/repositories"
 )
 
 type CartService struct {
-	db *gorm.DB
+	cartRepo repositories.CartRepositoryInterface
+	menuRepo repositories.MenuRepositoryInterface
 }
 
-func NewCartService(db *gorm.DB) *CartService {
-	return &CartService{db: db}
+func NewCartService(
+	cartRepo repositories.CartRepositoryInterface,
+	menuRepo repositories.MenuRepositoryInterface,
+) *CartService {
+	return &CartService{cartRepo: cartRepo, menuRepo: menuRepo}
 }
 
-func (s *CartService) GetUserCart(userID uint) (*dto.CartResponse, error) {
-	var cart models.Cart
-	err := s.db.Preload("CartItems.Menu").
-		Where("user_id = ?", userID).First(&cart).Error
+func (s *CartService) GetUserCart(ctx context.Context, userID uint) (*dto.CartResponse, error) {
+	cart, err := s.cartRepo.GetCartByUserID(ctx, userID)
 	if err != nil {
 		return nil, err
 	}
-
-	return mapper.ConvertToCartResponse(&cart), nil
+	return mapper.ConvertToCartResponse(cart), nil
 }
 
-func (s *CartService) AddItemToCart(userID uint, req *dto.AddToCartRequest) (*dto.CartResponse, error) {
-	var menu models.Menu
-	var cart models.Cart
-	var item models.CartItem
-	err := s.db.Where("id = ?", req.MenuItemID).First(&menu).Error
+func (s *CartService) AddItemToCart(ctx context.Context, userID uint, req *dto.AddToCartRequest) (*dto.CartResponse, error) {
+	// verify menu item exists
+	_, err := s.menuRepo.GetByID(ctx, req.MenuItemID)
 	if err != nil {
-		return nil, err
+		return nil, domain.ErrMenuNotFound
 	}
 
-	err = s.db.Where("user_id = ?", userID).First(&cart).Error
+	// get cart — must already exist (created on registration)
+	cart, err := s.cartRepo.GetCartByUserID(ctx, userID)
 	if err != nil {
-		err = s.db.Create(&cart).Error
-		if err != nil {
-			return nil, err
-		}
+		return nil, domain.ErrCartNotFound
 	}
 
-	err = s.db.Where("cart_id = ? AND menu_item_id = ?", cart.ID, req.MenuItemID).First(&item).Error
+	// check if item already in cart
+	existingItem, err := s.cartRepo.GetCartItemByMenuAndCartID(ctx, req.MenuItemID, cart.ID)
 	if err == nil {
-		item.Quantity += req.Quantity
-		err = s.db.Save(&item).Error
-		if err != nil {
+		// item exists → increment quantity
+		existingItem.Quantity += req.Quantity
+		if err := s.cartRepo.UpdateCartItem(ctx, existingItem); err != nil {
 			return nil, err
 		}
 	} else {
-		newItem := models.CartItem{
+		// item doesn't exist → add new
+		newItem := &models.CartItem{
 			CartID:              cart.ID,
 			MenuID:              req.MenuItemID,
 			Quantity:            req.Quantity,
 			SpecialInstructions: req.SpecialInstructions,
 		}
-		err = s.db.Create(&newItem).Error
-		if err != nil {
+		if err := s.cartRepo.AddCartItem(ctx, newItem); err != nil {
 			return nil, err
 		}
 	}
 
-	return mapper.ConvertToCartResponse(&cart), nil
+	return s.GetUserCart(ctx, userID)
 }
 
-func (s *CartService) UpdateCartItem(userID uint, itemID uint, req *dto.UpdateCartItemRequest) (*dto.CartResponse, error) {
-	var cartItem models.CartItem
-	err := s.db.Joins("JOIN carts ON cart_items.cart_id = carts.id ").
-		Where("cart_items.id = ? AND carts.user_id = ? ", itemID, userID).
-		First(&cartItem).Error
+func (s *CartService) UpdateCartItem(ctx context.Context, userID uint, itemID uint, req *dto.UpdateCartItemRequest) (*dto.CartResponse, error) {
+	cartItem, err := s.cartRepo.GetCartItemByIDAndUser(ctx, itemID, userID)
 	if err != nil {
 		return nil, domain.ErrCartItemNotFound
 	}
 
-	var menu models.Menu
-	err = s.db.First(&menu, cartItem.MenuID).Error
+	_, err = s.menuRepo.GetByID(ctx, cartItem.MenuID)
 	if err != nil {
 		return nil, domain.ErrMenuNotFound
 	}
 
 	cartItem.Quantity = req.Quantity
 	cartItem.SpecialInstructions = req.SpecialInstructions
-	err = s.db.Save(&cartItem).Error
-	if err != nil {
+
+	if err := s.cartRepo.UpdateCartItem(ctx, cartItem); err != nil {
 		return nil, err
 	}
 
-	return s.GetUserCart(userID)
+	return s.GetUserCart(ctx, userID)
 }
 
-func (s *CartService) RemoveCartItem(userID uint, itemID uint) error {
-	var cartItem models.CartItem
-	result := s.db.Where("id = ? AND cart_id IN (?)", itemID,
-		s.db.Select("id").Table("carts").
-			Where("user_id = ?", userID)).
-		Delete(&cartItem)
-
-	if result.Error != nil {
-		return result.Error
-	}
-
-	if result.RowsAffected == 0 {
-		return domain.ErrCartItemNotFound
-	}
-
-	return nil
+func (s *CartService) RemoveCartItem(ctx context.Context, userID uint, itemID uint) error {
+	return s.cartRepo.DeleteCartItem(ctx, itemID, userID)
 }
 
-func (s *CartService) ClearCart(userID uint) error {
-	var cart models.Cart
-	err := s.db.Where("user_id = ?", userID).First(&cart).Error
+func (s *CartService) ClearCart(ctx context.Context, userID uint) error {
+	cart, err := s.cartRepo.GetCartByUserID(ctx, userID)
 	if err != nil {
 		return domain.ErrCartNotFound
 	}
-
-	err = s.db.Where("cart_id = ?", cart.ID).Delete(&models.CartItem{}).Error
-	if err != nil {
-		return err
-	}
-
-	return nil
+	return s.cartRepo.ClearCart(ctx, cart.ID)
 }

@@ -19,7 +19,7 @@ func (s *Server) CreateReservationHandler(ctx *gin.Context) {
 		return
 	}
 
-	response, err := s.reservationServices.CreateReservation(reservation, userID)
+	response, err := s.reservationServices.CreateReservation(ctx.Request.Context(), reservation, userID)
 	if err != nil {
 		switch err {
 		case domain.ErrInvalidTimeSlot:
@@ -50,7 +50,7 @@ func (s *Server) CheckAvailabilityHandler(ctx *gin.Context) {
 		return
 	}
 
-	response, err := s.reservationServices.CheckTableAvailability(&availability)
+	response, err := s.reservationServices.CheckTableAvailability(ctx.Request.Context(), &availability)
 	if err != nil {
 		switch err {
 		case domain.ErrInvalidTimeSlot:
@@ -74,7 +74,7 @@ func (s *Server) GetAllUserReservationsHandler(ctx *gin.Context) {
 		return
 	}
 
-	response, err := s.reservationServices.GetAllUserReservations(userID, &reservationFiler)
+	response, err := s.reservationServices.GetAllUserReservations(ctx.Request.Context(), userID, &reservationFiler)
 	if err != nil {
 		switch err {
 		case domain.ErrInvalidDate:
@@ -98,7 +98,7 @@ func (s *Server) GetUserReservationHandler(ctx *gin.Context) {
 	}
 	reservationID := uint(id)
 
-	response, err := s.reservationServices.GetUserReservation(userID, reservationID)
+	response, err := s.reservationServices.GetUserReservation(ctx.Request.Context(), userID, reservationID)
 	if err != nil {
 		switch err {
 		case domain.ErrNotFound:
@@ -125,7 +125,7 @@ func (s *Server) GetAllReservationsHandler(ctx *gin.Context) {
 		return
 	}
 
-	response, err := s.reservationServices.GetAllReservations(&reservationFiler)
+	response, err := s.reservationServices.GetAllReservations(ctx.Request.Context(), &reservationFiler)
 	if err != nil {
 		switch err {
 		case domain.ErrInvalidDate:
@@ -148,7 +148,7 @@ func (s *Server) GetTodayReservationHandler(ctx *gin.Context) {
 		return
 	}
 
-	response, err := s.reservationServices.GetTodayReservations(&reservationFiler)
+	response, err := s.reservationServices.GetTodayReservations(ctx.Request.Context(), &reservationFiler)
 	if err != nil {
 		switch err {
 		case domain.ErrInvalidDate:
@@ -172,7 +172,7 @@ func (s *Server) CheckInReservationHandler(ctx *gin.Context) {
 	}
 	reservationID := uint(id)
 
-	response, err := s.reservationServices.CheckInReservation(reservationID, userID)
+	response, err := s.reservationServices.CheckInReservation(ctx.Request.Context(), reservationID, userID)
 	if err != nil {
 		switch err {
 		case domain.ErrNotFound:
@@ -200,7 +200,7 @@ func (s *Server) CancelReservationHandler(ctx *gin.Context) {
 	}
 	reservationID := uint(id)
 
-	response, err := s.reservationServices.CancelRservation(userID, reservationID)
+	response, err := s.reservationServices.CancelReservation(ctx.Request.Context(), userID, reservationID)
 	if err != nil {
 		switch err {
 		case domain.ErrNotFound:

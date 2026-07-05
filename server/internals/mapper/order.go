@@ -6,6 +6,10 @@ import (
 )
 
 func OrderResponse(order *models.Order) *dto.OrderResponse {
+	if order == nil {
+		return nil
+	}
+
 	orderItems := make([]dto.OrderItemResponse, len(order.OrderItems))
 
 	for i := range order.OrderItems {
@@ -21,11 +25,23 @@ func OrderResponse(order *models.Order) *dto.OrderResponse {
 		}
 	}
 
+	// guard Payment — it's a pointer (*Payment)
+	var paymentResponse *dto.PaymentResponse
+	if order.Payment != nil {
+		paymentResponse = PaymentResponse(order.Payment)
+	}
+
+	// guard UserID — it's *uint
+	var userID uint
+	if order.UserID != nil {
+		userID = *order.UserID
+	}
+
 	return &dto.OrderResponse{
 		ID:     order.ID,
-		UserID: order.UserID,
+		UserID: &userID,
 		User: &dto.UserResponse{
-			ID: order.User.ID,
+			ID:          order.User.ID,
 			FirstName:   order.User.FirstName,
 			Email:       order.User.Email,
 			PhoneNumber: order.User.PhoneNumber,
@@ -34,13 +50,8 @@ func OrderResponse(order *models.Order) *dto.OrderResponse {
 		TotalAmount:   order.TotalAmount,
 		OrderItems:    orderItems,
 		PaymentStatus: string(order.PaymentStatus),
-		Payment: &dto.PaymentResponse{
-			ID:     order.Payment.ID,
-			OrderID: order.Payment.OrderID,
-			Amount: order.Payment.Amount,
-			Status: string(order.Payment.Status),
-		},
-		CreatedAt: order.CreatedAt,
-		Notes:     order.Notes,
+		Payment:       paymentResponse,
+		CreatedAt:     order.CreatedAt,
+		Notes:         order.Notes,
 	}
 }
