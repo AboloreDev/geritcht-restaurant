@@ -10,6 +10,7 @@ CREATE TABLE reservations (
     status           reservation_status NOT NULL DEFAULT 'pending',
     special_requests TEXT,
     checked_in_at    TIMESTAMPTZ,
+    reminder_sent   BOOLEAN NOT NULL DEFAULT FALSE,
     created_at       TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at       TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     deleted_at       TIMESTAMPTZ

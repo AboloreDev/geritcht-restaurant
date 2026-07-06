@@ -27,7 +27,7 @@ func (r *ReservationNoShowRepository) GetAllReservations(ctx context.Context) ([
 		WithContext(ctx).
 		Where("date = ? AND time_slot = ? AND status = ?",
 			time.Now().Format("2006-01-02"),
-			time.Now().Add(-45*time.Minute).Format("15:04"),
+			time.Now().Add(-5*time.Minute).Format("15:04"),
 			models.ReservationStatusConfirmed).
 		Find(&reservations).Error
 	if err != nil {

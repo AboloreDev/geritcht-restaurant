@@ -33,9 +33,7 @@ func NewNoShowWorker(
 
 func (w *NoShowWorker) StartMarkNoShowWorker(ctx context.Context, log zerolog.Logger) {
 	ticker := time.NewTicker(5 * time.Minute)
-	heartbeat := time.NewTicker(1 * time.Minute)
 	defer ticker.Stop()
-	defer heartbeat.Stop()
 
 	for {
 		select {
@@ -45,8 +43,7 @@ func (w *NoShowWorker) StartMarkNoShowWorker(ctx context.Context, log zerolog.Lo
 		case <-ticker.C:
 			w.processNoShow(ctx)
 			log.Info().Msg("MarkNoShow worker executed")
-		case <-heartbeat.C:
-			log.Info().Msg("MarkNoShow worker is alive")
+	
 		}
 	}
 }

@@ -181,6 +181,8 @@ func (s *Server) CheckInReservationHandler(ctx *gin.Context) {
 			utils.Forbidden(ctx, "Forbidden", err)
 		case domain.ErrAlreadyCheckedIn:
 			utils.BadRequest(ctx, "You are already checked in", err)
+		case domain.ErrCannotCheckIn:
+			utils.BadRequest(ctx, "You cannot checkin a reservation within 15minutes of the reserved time", err)
 		default:
 			utils.InternalServerError(ctx, "Internal server error", err)
 		}

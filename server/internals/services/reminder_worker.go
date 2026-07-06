@@ -13,7 +13,7 @@ import (
 )
 
 const (
-	reminderLeadTime = 30 * time.Minute // 30 minutes before the reservation time
+	reminderLeadTime = 20 * time.Minute // 30 minutes before the reservation time
 	reminderInterval = 5 * time.Minute
 	windowPadding    = 2 * time.Minute // 2 minutes window padding
 )

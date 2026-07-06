@@ -16,6 +16,7 @@ import (
 	"github.com/AboloreDev/geritcht-restaurant/internals/repositories"
 	"github.com/AboloreDev/geritcht-restaurant/internals/utils"
 	"github.com/redis/go-redis/v9"
+	"gorm.io/datatypes"
 	"gorm.io/gorm"
 )
 
@@ -275,6 +276,13 @@ func (s *ReservationService) CheckInReservation(ctx context.Context, reservation
 		return nil, domain.ErrAlreadyCheckedIn
 	}
 
+	// Prevent illegal checkin
+	// only allow check in 5 min before the time
+	if canCheckIn(reservation.Date, reservation.TimeSlot) != nil {
+		return nil, domain.ErrCannotCheckIn
+	}
+
+
 	err = s.db.Transaction(func(tx *gorm.DB) error {
 		if err := s.reservationRepo.UpdateStatus(ctx, tx, reservationID, map[string]interface{}{
 			"status":        models.ReservationStatusCheckedIn,
@@ -428,4 +436,25 @@ func (s *ReservationService) buildReservationListResponse(
 		PageSize:     req.PageSize,
 		TotalPages:   totalPages,
 	}
+}
+
+
+func canCheckIn(reservationDate time.Time, timeSlot datatypes.Time) error {
+	now := time.Now()
+
+	// Reservation must be for today — no early check-in on a future date
+	if now.Format("2006-01-02") != reservationDate.Format("2006-01-02") {
+		return fmt.Errorf("check-in is only available on the day of your reservation")
+	}
+
+	nowAsTime := utils.TimeToDataTypesTime(now)
+
+	const checkInWindow = int64(2 * time.Minute) // in nanoseconds
+	earliestAllowed := int64(timeSlot) - checkInWindow
+
+	if int64(nowAsTime) < earliestAllowed {
+		return fmt.Errorf("check-in opens 2 minutes before your reservation time")
+	}
+
+	return nil
 }

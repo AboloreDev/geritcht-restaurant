@@ -19,7 +19,7 @@ func NewReservationReminderRepository(db *gorm.DB) *ReservationReminderRepositor
 func (r *ReservationReminderRepository) GetAllUpcomingReservations(ctx context.Context, now time.Time, windowStart, windowEnd string) ([]models.Reservation, error) {
 	var reservations []models.Reservation
 	err := r.db.Preload("Table").Preload("User").WithContext(ctx).
-		Where("date = ? AND status = ? AND time_slot BBETWEEN ?::time AND ?::time AND reminder_sent = ?",
+		Where("date = ? AND status = ? AND time_slot BETWEEN ?::time AND ?::time AND reminder_sent = ?",
 			now.Format("2006-01-02"),
 			models.ReservationStatusConfirmed,
 			windowStart,

@@ -55,4 +55,5 @@ var (
 	ErrInvalidQuantity          = errors.New("Quantity cannot be negative")
 	ErrInsufficientStock        = errors.New("Insufficient Stock")
 	ErrInternalServerError      = errors.New("Internal Server Error")
+	ErrCannotCheckIn = errors.New("Cannot check in yet. Please wait until your reservation time")
 )

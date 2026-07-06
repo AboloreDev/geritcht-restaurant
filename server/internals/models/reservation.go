@@ -17,6 +17,7 @@ type Reservation struct {
 	Status          ReservationStatus `json:"status" gorm:"default:pending"`
 	SpecialRequests string            `json:"special_requests"`
 	CheckedInAt     *time.Time        `json:"checked_in_at"`
+	ReminderSent    bool              `json:"reminder_sent" gorm:"not null;default:false"`
 	CreatedAt       time.Time         `json:"created_at"`
 	UpdatedAt       time.Time         `json:"updated_at"`
 	DeletedAt       gorm.DeletedAt    `json:"-" gorm:"index"`

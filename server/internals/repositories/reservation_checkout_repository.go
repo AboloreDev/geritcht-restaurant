@@ -22,12 +22,12 @@ func (r *ReservationCheckoutRepository) GetAllRservations(ctx context.Context, n
 	var reservations []models.Reservation
 	today := now.Format("2006-01-02")
 
-	r.db.Preload("Table").
+	err := r.db.Preload("Table").
 		WithContext(ctx).
 		Where("date = ? AND status = ?", today, models.ReservationStatusCheckedIn).
-		Find(&reservations)
+		Find(&reservations).Error
 
-	return reservations, nil
+	return reservations, err
 }
 
 func (r *ReservationCheckoutRepository) UpdateReservationStatus(ctx context.Context, tx *gorm.DB, reservation *models.Reservation, status models.ReservationStatus) error {

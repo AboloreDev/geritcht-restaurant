@@ -18,7 +18,6 @@ type CheckoutWorker struct {
 }
 
 func NewCheckoutWorker(
-
 	redisStore interfaces.Cacher,
 	checkoutRepo repositories.ReservationCheckoutInterface) *CheckoutWorker {
 	return &CheckoutWorker{
@@ -27,8 +26,9 @@ func NewCheckoutWorker(
 	}
 }
 
-// 70 min
-var reservationDuration = 5 * time.Minute
+// reservationDuration is how long a reservation occupies a table before
+// it's eligible for automatic checkout.
+var reservationDuration = 5 * time.Minute // TODO: bump back to 70 * time.Minute after testing
 
 func (w *CheckoutWorker) Start(appCtx context.Context, log zerolog.Logger) {
 	ticker := time.NewTicker(5 * time.Minute)
@@ -37,40 +37,40 @@ func (w *CheckoutWorker) Start(appCtx context.Context, log zerolog.Logger) {
 	for {
 		select {
 		case <-ticker.C:
-			w.processCheckOut(ctx, log)
-			log.Info().Msg("Running checkout worker")
-		case <-ctx.Done():
-			log.Info().Msg("Shutting down checkout worker")
+			w.processCheckOut(appCtx, log)
+			log.Info().Msg("running checkout worker")
+		case <-appCtx.Done():
+			log.Info().Msg("shutting down checkout worker")
 			return
 		}
 	}
 }
 
-func DataTypesTimeToHourMinute(t datatypes.Time) (int, int) {
+// DataTypesTimeToHourMinuteSecond converts a datatypes.Time (nanoseconds
+// since midnight) into hour, minute, and second components.
+func DataTypesTimeToHourMinuteSecond(t datatypes.Time) (int, int, int) {
 	totalSeconds := int64(t) / 1e9
 	hours := int(totalSeconds / 3600)
 	minutes := int((totalSeconds % 3600) / 60)
-	return hours, minutes
+	seconds := int(totalSeconds % 60)
+	return hours, minutes, seconds
 }
 
 func (w *CheckoutWorker) processCheckOut(ctx context.Context, log zerolog.Logger) {
 	now := time.Now()
+
 	reservations, err := w.checkoutRepo.GetAllRservations(ctx, now)
 	if err != nil {
-		log.Error().Err(err).Msg("Error fetching checked-in reservations")
+		log.Error().Err(err).Msg("error fetching checked-in reservations")
+		return
 	}
 
 	for _, reservation := range reservations {
-		hours, minutes := DataTypesTimeToHourMinute(reservation.TimeSlot)
-
-		if err != nil {
-			log.Error().Err(err).Msg("Error parsing time slot")
-			continue
-		}
+		hours, minutes, seconds := DataTypesTimeToHourMinuteSecond(reservation.TimeSlot)
 
 		slotTime := time.Date(
 			now.Year(), now.Month(), now.Day(),
-			hours, minutes, 0, 0, now.Location(),
+			hours, minutes, seconds, 0, now.Location(),
 		)
 
 		endTime := slotTime.Add(reservationDuration)
@@ -82,9 +82,8 @@ func (w *CheckoutWorker) processCheckOut(ctx context.Context, log zerolog.Logger
 }
 
 func (w *CheckoutWorker) checkoutHandler(ctx context.Context, reservation models.Reservation, log zerolog.Logger) {
-	// Cheeckout
-	err := w.checkoutRepo.Checkout(ctx, reservation)
-	if err != nil {
+	// Checkout
+	if err := w.checkoutRepo.Checkout(ctx, reservation); err != nil {
 		log.Error().Err(err).
 			Uint("reservation_id", reservation.ID).
 			Msg("failed to checkout reservation")
@@ -100,7 +99,7 @@ func (w *CheckoutWorker) checkoutHandler(ctx context.Context, reservation models
 		Msg("reservation checked out automatically")
 }
 
-// Delete cache function
+// deleteCache invalidates the cached table state after checkout.
 func (w *CheckoutWorker) deleteCache(ctx context.Context, reservation models.Reservation) {
 	w.redisStore.Delete(ctx,
 		fmt.Sprintf("table:item:%d", reservation.TableID),
