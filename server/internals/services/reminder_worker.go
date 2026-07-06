@@ -12,6 +12,12 @@ import (
 	"github.com/rs/zerolog"
 )
 
+const (
+	reminderLeadTime = 30 * time.Minute // 30 minutes before the reservation time
+	reminderInterval = 5 * time.Minute
+	windowPadding    = 2 * time.Minute // 2 minutes window padding
+)
+
 type ReminderWorker struct {
 	reminderRepo repositories.ReservationReminderInterface
 	redisStore   interfaces.Cacher
@@ -30,18 +36,29 @@ func NewReminderWorker(
 }
 
 func (w *ReminderWorker) StartReminderWorker(ctx context.Context, log zerolog.Logger) {
-	ticker := time.NewTicker(5 * time.Minute)
 	heartbeat := time.NewTicker(1 * time.Minute)
-	defer ticker.Stop()
 	defer heartbeat.Stop()
+
+	now := time.Now()
+	nextRun := now.Truncate(reminderInterval).Add(reminderInterval)
+	initialDelay := time.Until(nextRun)
+
+	log.Info().
+		Dur("initial_delay", initialDelay).
+		Time("first_run", nextRun).
+		Msg("reminder worker aligning to clock")
+
+	timer := time.NewTimer(initialDelay)
+	defer timer.Stop()
 
 	for {
 		select {
 		case <-ctx.Done():
 			log.Info().Msg("reminder worker stopped")
 			return
-		case <-ticker.C:
+		case <-timer.C:
 			w.processReminder(ctx, log)
+			timer.Reset(reminderInterval)
 		case <-heartbeat.C:
 			log.Info().Msg("reminder worker is alive")
 		}
@@ -52,18 +69,17 @@ func (w *ReminderWorker) processReminder(ctx context.Context, log zerolog.Logger
 	now := time.Now()
 
 	// target = 30 minutes from now
-	target := now.Add(30 * time.Minute)
+	target := now.Add(reminderLeadTime)
 
 	// convert to datatypes.Time for DB comparison
-	targetSlot, err := utils.ParseToDataTypesTime(
-		target.Format("15:04"),
-	)
+	windowStart := target.Add(-windowPadding).Format("15:04:05")
+	windowEnd := target.Add(windowPadding).Format("15:04:05")
+
+	reservations, err := w.reminderRepo.GetAllUpcomingReservations(ctx, now, windowStart, windowEnd)
 	if err != nil {
-		log.Error().Err(err).Msg("failed to parse target time slot")
+		log.Error().Err(err).Msg("failed to get upcoming reservations")
 		return
 	}
-
-	reservations, err := w.reminderRepo.GetAllUpcomingReservations(ctx, now, targetSlot)
 
 	for _, reservation := range reservations {
 		// Publish message
@@ -86,7 +102,7 @@ func (w *ReminderWorker) processReminder(ctx context.Context, log zerolog.Logger
 }
 
 func (w *ReminderWorker) publish(reservation models.Reservation) error {
-	w.publisher.PublishMessage(
+	err := w.publisher.PublishMessage(
 		events.ChannelEmailReservationReminder,
 		events.ReservationReminderPayload{
 			FirstName: reservation.User.FirstName,
@@ -98,5 +114,5 @@ func (w *ReminderWorker) publish(reservation models.Reservation) error {
 		map[string]string{"Priority": "Important Mail"},
 	)
 
-	return nil
+	return err
 }

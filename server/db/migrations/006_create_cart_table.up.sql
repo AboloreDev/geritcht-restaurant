@@ -7,4 +7,6 @@ CREATE TABLE carts (
 );
 
 CREATE INDEX idx_carts_user_id ON carts(user_id);
+CREATE INDEX idx_carts_created_at ON carts(created_at);
+CREATE INDEX idx_carts_id ON carts(id);
 CREATE INDEX idx_carts_deleted_at ON carts(deleted_at);

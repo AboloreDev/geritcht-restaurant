@@ -5,7 +5,6 @@ import (
 	"time"
 
 	"github.com/AboloreDev/geritcht-restaurant/internals/models"
-	"gorm.io/datatypes"
 	"gorm.io/gorm"
 )
 
@@ -17,17 +16,18 @@ func NewReservationReminderRepository(db *gorm.DB) *ReservationReminderRepositor
 	return &ReservationReminderRepository{db: db}
 }
 
-func (r *ReservationReminderRepository) GetAllUpcomingReservations(ctx context.Context, now time.Time, targetSlot datatypes.Time) ([]models.Reservation, error) {
+func (r *ReservationReminderRepository) GetAllUpcomingReservations(ctx context.Context, now time.Time, windowStart, windowEnd string) ([]models.Reservation, error) {
 	var reservations []models.Reservation
-	r.db.Preload("Table").Preload("User").WithContext(ctx).
-		Where("date = ? AND status = ? AND time_slot = ? AND reminder_sent = ?",
+	err := r.db.Preload("Table").Preload("User").WithContext(ctx).
+		Where("date = ? AND status = ? AND time_slot BBETWEEN ?::time AND ?::time AND reminder_sent = ?",
 			now.Format("2006-01-02"),
 			models.ReservationStatusConfirmed,
-			targetSlot,
+			windowStart,
+			windowEnd,
 			false,
-		).Find(&reservations)
+		).Find(&reservations).Error
 
-	return reservations, nil
+	return reservations, err
 }
 
 func (r *ReservationReminderRepository) UpdateReminderValue(ctx context.Context, reservation *models.Reservation) error {

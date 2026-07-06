@@ -12,3 +12,7 @@ CREATE TABLE menu_categories (
 
 CREATE INDEX idx_menu_categories_deleted_at ON menu_categories(deleted_at);
 CREATE INDEX idx_menu_categories_is_active ON menu_categories(is_active);
+CREATE INDEX idx_menu_categories_name ON menu_categories(name);
+CREATE INDEX idx_menu_categories_created_at ON menu_categories(created_at);
+CREATE INDEX idx_menu_categories_id ON menu_categories(id);
+CREATE INDEX idx_menu_categories_id_is_active ON menu_categories(id, is_active) WHERE deleted_at IS NULL;

@@ -77,7 +77,9 @@ func (s *EventSubscriber) HandleReservationConfirmationMail(msg *message.Message
 	log.Println("Email successfully sent")
 
 	return nil
+
 }
+
 func (s *EventSubscriber) HandleReservationReminderMail(msg *message.Message, emailClient *email.ResendEmailClient) error {
 	var data events.ReservationReminderPayload
 
@@ -128,6 +130,7 @@ func (s *EventSubscriber) HandleReservationCheckInMail(msg *message.Message, ema
 
 	return nil
 }
+
 func (s *EventSubscriber) HandleReservationNoShowMail(msg *message.Message, emailClient *email.ResendEmailClient) error {
 	var data events.ReservationNoShowPayload
 
@@ -144,6 +147,7 @@ func (s *EventSubscriber) HandleReservationNoShowMail(msg *message.Message, emai
 
 	return nil
 }
+
 func (s *EventSubscriber) HandleOrderConfirmationMail(msg *message.Message, emailClient *email.ResendEmailClient) error {
 	var data events.OrderConfirmationPayload
 
@@ -160,6 +164,7 @@ func (s *EventSubscriber) HandleOrderConfirmationMail(msg *message.Message, emai
 
 	return nil
 }
+
 func (s *EventSubscriber) HandleOrderRefundPayload(msg *message.Message, emailClient *email.ResendEmailClient) error {
 	var data events.OrderRefundedPayload
 
@@ -171,6 +176,40 @@ func (s *EventSubscriber) HandleOrderRefundPayload(msg *message.Message, emailCl
 	log.Printf("Sending notification to %s", data.Email)
 
 	emailClient.SendOrderRefundMail(data)
+
+	log.Println("Email successfully sent")
+
+	return nil
+}
+
+func (s *EventSubscriber) HandleLowStockAlert(msg *message.Message, emailClient *email.ResendEmailClient) error {
+	var data events.LowStockAlertPayload
+
+	err := json.Unmarshal(msg.Payload, &data)
+	if err != nil {
+		return err
+	}
+
+	log.Printf("Sending notification to %s", data.AdminEmail)
+
+	emailClient.SendLowStockAlertMail(data)
+
+	log.Println("Email successfully sent")
+
+	return nil
+}
+
+func (s *EventSubscriber) HandleWaitlistNotifier(msg *message.Message, emailClient *email.ResendEmailClient) error {
+	var data events.WaitlistNotificationPayload
+
+	err := json.Unmarshal(msg.Payload, &data)
+	if err != nil {
+		return err
+	}
+
+	log.Printf("Sending notification to %s", data.Email)
+
+	emailClient.SendWaitlistNotificationMail(data)
 
 	log.Println("Email successfully sent")
 

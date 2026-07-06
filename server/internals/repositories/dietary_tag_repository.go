@@ -77,8 +77,12 @@ func (r *DietaryTagRepository) Delete(ctx context.Context, tagID uint) error {
 
 func (r *DietaryTagRepository) CountMenuItemsUsingTag(ctx context.Context, tagID uint) (int64, error) {
 	var count int64
-	err := r.db.WithContext(ctx).Model(&models.Menu{}).
-		Where("dietary_tags = ?", tagID).
+
+	err := r.db.WithContext(ctx).
+		Table("menu_item_dietary").
+		Select("DISTINCT menu_id").
+		Where("dietary_tag_id = ?", tagID).
 		Count(&count).Error
+
 	return count, err
 }

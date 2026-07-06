@@ -285,7 +285,7 @@ func TestGetAllTakeoutOrders_Success(t *testing.T) {
 		total: 2,
 	})
 
-	response, meta, err := service.GetAllTakeoutOrders(testOrderCtx, userID, 1, 10)
+	response, meta, err := service.GetAllUserTakeoutOrders(testOrderCtx, userID, 1, 10)
 
 	assert.NoError(t, err)
 	assert.Len(t, response, 2)

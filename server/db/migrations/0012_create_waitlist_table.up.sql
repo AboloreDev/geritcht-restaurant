@@ -16,5 +16,12 @@ CREATE TABLE waitlists (
 
 CREATE INDEX idx_waitlists_user_id ON waitlists(user_id);
 CREATE INDEX idx_waitlists_date ON waitlists(date);
+CREATE INDEX idx_waitlists_id ON waitlists(id);
 CREATE INDEX idx_waitlists_status ON waitlists(status);
 CREATE INDEX idx_waitlists_deleted_at ON waitlists(deleted_at);
+CREATE INDEX idx_waitlists_expires_at ON waitlists(expires_at);
+CREATE INDEX idx_waitlists_notified_at ON waitlists(notified_at);
+CREATE INDEX idx_waitlists_created_at ON waitlists(created_at);
+CREATE INDEX idx_waitlists_lookup ON waitlists(date, time_slot, party_size, status);
+CREATE INDEX idx_waitlists_check ON waitlists(user_id, date, time_slot);
+CREATE INDEX idx_waitlists_position ON waitlists(date, time_slot, status, created_at);

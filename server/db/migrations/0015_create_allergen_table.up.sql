@@ -24,5 +24,11 @@ CREATE TABLE menu_item_dietary (
     PRIMARY KEY (menu_id, dietary_tag_id)
 );
 
+CREATE INDEX idx_menu_item_allergens_menu_id ON menu_item_allergens(menu_id);
+CREATE INDEX idx_menu_item_allergens_allergen_id ON menu_item_allergens(allergen_id);
+CREATE INDEX idx_menu_item_dietary_menu_id ON menu_item_dietary(menu_id);
+CREATE INDEX idx_menu_item_dietary_dietary_tag_id ON menu_item_dietary(dietary_tag_id);
+CREATE INDEX idx_allergens_id ON allergens(id);
+CREATE INDEX idx_dietary_tags_id ON dietary_tags(id);
 CREATE INDEX idx_allergens_deleted_at ON allergens(deleted_at);
 CREATE INDEX idx_dietary_tags_deleted_at ON dietary_tags(deleted_at);

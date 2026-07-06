@@ -92,6 +92,10 @@ func (s *EventSubscriber) handleMessage(msg *message.Message, emailClient *email
 		return s.HandleOrderConfirmationMail(msg, emailClient)
 	case events.ChannelOrderRefunded:
 		return s.HandleOrderRefundPayload(msg, emailClient)
+	case events.ChannelEmailLowStockAlert:
+		return s.HandleLowStockAlert(msg, emailClient)
+	case events.ChannelEmailWaitlistNotification:
+		return s.HandleWaitlistNotifier(msg, emailClient)
 	default:
 		log.Printf("Unknown event type %s", eventType)
 		return nil

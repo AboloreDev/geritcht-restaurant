@@ -127,7 +127,7 @@ func (s *OrderService) CreateTakeoutOrder(ctx context.Context, userID uint, req 
 	return orderResponse, nil
 }
 
-func (s *OrderService) GetAllTakeoutOrders(ctx context.Context, userID uint, page, pageSize int) ([]*dto.OrderResponse, *utils.PaginatedMeta, error) {
+func (s *OrderService) GetAllUserTakeoutOrders(ctx context.Context, userID uint, page, pageSize int) ([]*dto.OrderResponse, *utils.PaginatedMeta, error) {
 	cacheKey := fmt.Sprintf("user:orders:%d:p:%d:s:%d", userID, page, pageSize)
 
 	cached, err := s.redisStore.Get(ctx, cacheKey)

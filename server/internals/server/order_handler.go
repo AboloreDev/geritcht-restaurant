@@ -37,7 +37,7 @@ func (s *Server) CreateTakeoutOrderHandler(ctx *gin.Context) {
 	utils.CreatedResponse(ctx, "Order created successfully", response)
 }
 
-func (s *Server) GetAllTakeoutOrdersHandler(ctx *gin.Context) {
+func (s *Server) GetAllUserTakeoutOrdersHandler(ctx *gin.Context) {
 	userID := ctx.GetUint("user_id")
 	pageStr := ctx.DefaultQuery("page", "1")
 	pageSizeStr := ctx.DefaultQuery("pageSize", "10")
@@ -45,7 +45,7 @@ func (s *Server) GetAllTakeoutOrdersHandler(ctx *gin.Context) {
 	page, _ := strconv.Atoi(pageStr)
 	pageSize, _ := strconv.Atoi(pageSizeStr)
 
-	response, meta, err := s.orderService.GetAllTakeoutOrders(ctx.Request.Context(), userID, page, pageSize)
+	response, meta, err := s.orderService.GetAllUserTakeoutOrders(ctx.Request.Context(), userID, page, pageSize)
 	if err != nil {
 		utils.InternalServerError(ctx, "Failed to fetch orders", err)
 		return

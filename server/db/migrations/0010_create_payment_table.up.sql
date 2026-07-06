@@ -18,6 +18,11 @@ CREATE TABLE payments (
 
 CREATE INDEX idx_payments_order_id ON payments(order_id);
 CREATE INDEX idx_payments_user_id ON payments(user_id);
+CREATE INDEX idx_payments_idempotency_key ON payments(idempotency_key);
+CREATE INDEX idx_payments_provider_reference ON payments(provider_reference);
+CREATE INDEX idx_payments_created_at ON payments(created_at);
+CREATE INDEX idx_payments_id ON payments(id);
+CREATE INDEX idx_payments_id_user_id ON payments(id, user_id);
 CREATE INDEX idx_payments_reference ON payments(reference);
 CREATE INDEX idx_payments_status ON payments(status);
 CREATE INDEX idx_payments_deleted_at ON payments(deleted_at);

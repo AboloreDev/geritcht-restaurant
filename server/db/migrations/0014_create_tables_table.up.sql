@@ -23,3 +23,7 @@ ALTER TABLE reservations
 
 CREATE INDEX idx_tables_status ON tables(status);
 CREATE INDEX idx_tables_deleted_at ON tables(deleted_at);
+CREATE INDEX idx_tables_id ON tables(id);
+CREATE INDEX idx_tables_name ON tables(name);
+CREATE INDEX idx_tables_capacity ON tables(capacity);
+CREATE INDEX idx_tables_id_capacity ON tables(id, capacity);

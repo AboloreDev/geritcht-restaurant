@@ -16,4 +16,8 @@ CREATE TABLE users (
 );
 
 CREATE INDEX idx_users_email ON users(email);
+CREATE INDEX idx_users_role ON users(role);
+CREATE INDEX idx_users_id ON users(id);
 CREATE INDEX idx_users_deleted_at ON users(deleted_at);
+CREATE INDEX idx_users_id_is_active ON users(id, is_active) WHERE deleted_at IS NULL;
+CREATE INDEX idx_users_id_is_active_role ON users(id, is_active, role) WHERE deleted_at IS NULL;

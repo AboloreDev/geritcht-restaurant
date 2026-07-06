@@ -156,3 +156,25 @@ func (c *ResendEmailClient) SendOrderRefundMail(data events.OrderRefundedPayload
 
 	return c.SendEmail(ctx, email)
 }
+
+func (c *ResendEmailClient) SendLowStockAlertMail(data events.LowStockAlertPayload) error {
+	ctx := context.Background()
+	email := &EmailRequest{
+		Body:    templates.LowStockAlertTemplate(data.AdminName, data.Items),
+		To:      data.AdminEmail,
+		Subject: "Low Stock Alert",
+	}
+
+	return c.SendEmail(ctx, email)
+}
+
+func (c *ResendEmailClient) SendWaitlistNotificationMail(data events.WaitlistNotificationPayload) error {
+	ctx := context.Background()
+	email := &EmailRequest{
+		Body:    templates.WaitlistNotificationTemplate(data.FirstName, data.Date, data.TimeSlot, data.PartySize, data.TableName),
+		To:      data.Email,
+		Subject: "Table Available!",
+	}
+
+	return c.SendEmail(ctx, email)
+}

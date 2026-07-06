@@ -214,7 +214,8 @@ func (s *Server) SetUpRoutes() *gin.Engine {
 				// Order Protected Routes
 				order.POST("/takeout", s.RateLimiter(20, time.Minute), s.CreateTakeoutOrderHandler)
 				order.GET("/takeout/:id", s.GetTakeoutOrderHandler)
-				order.GET("/takeout/all", s.GetAllTakeoutOrdersHandler)
+				order.GET("/takeout/all", s.GetAllUserTakeoutOrdersHandler)
+				order.GET("/all", s.GetAllOrdersHandler)
 				order.PATCH("/takeout/:id/cancel", s.RateLimiter(10, time.Minute), s.CancelReservationHandler)
 			}
 

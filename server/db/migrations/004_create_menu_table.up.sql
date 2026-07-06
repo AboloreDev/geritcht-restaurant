@@ -16,3 +16,8 @@ CREATE TABLE menus (
 CREATE INDEX idx_menus_menu_category_id ON menus(menu_category_id);
 CREATE INDEX idx_menus_is_available ON menus(is_available);
 CREATE INDEX idx_menus_deleted_at ON menus(deleted_at);
+CREATE INDEX idx_menus_name_menu_category_id ON menus(name, menu_category_id);
+CREATE INDEX idx_menus_id ON menus(id);
+CREATE INDEX idx_menus_id_is_available ON menus(id, is_available) WHERE deleted_at IS NULL;
+CREATE INDEX idx_menus_id_deleted_at ON menus(id, deleted_at);
+CREATE INDEX idx_menus_name ON menus(name);

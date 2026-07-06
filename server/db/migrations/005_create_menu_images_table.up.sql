@@ -10,3 +10,7 @@ CREATE TABLE menu_images (
 
 CREATE INDEX idx_menu_images_menu_id ON menu_images(menu_id);
 CREATE INDEX idx_menu_images_deleted_at ON menu_images(deleted_at);
+CREATE INDEX idx_menu_images_created_at ON menu_images(created_at);
+CREATE INDEX idx_menu_images_is_primary ON menu_images(is_primary);
+CREATE INDEX idx_menu_images_menu_id_id ON menu_images(menu_id, id);
+CREATE INDEX idx_menu_images_id ON menu_images(id);

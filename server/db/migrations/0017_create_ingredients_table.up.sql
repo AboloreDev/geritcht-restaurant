@@ -10,3 +10,9 @@ CREATE TABLE ingredients (
 );
 
 CREATE INDEX idx_ingredients_deleted_at ON ingredients(deleted_at);
+CREATE INDEX idx_ingredients_name ON ingredients(name);
+CREATE INDEX idx_ingredients_current_stock_min_threshold ON ingredients(current_stock, min_threshold);
+CREATE INDEX idx_ingredients_id ON ingredients(id);
+CREATE INDEX idx_ingredients_created_at ON ingredients(created_at);
+CREATE INDEX idx_ingredients_current_stock ON ingredients(current_stock);
+CREATE INDEX idx_ingredients_min_threshold ON ingredients(min_threshold);

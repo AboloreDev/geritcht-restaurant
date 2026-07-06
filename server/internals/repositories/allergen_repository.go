@@ -74,11 +74,14 @@ func (r *AllergenRepository) Delete(ctx context.Context, allergenID uint) error 
 	}
 	return nil
 }
-
 func (r *AllergenRepository) CountMenuItemsUsingAllergen(ctx context.Context, allergenID uint) (int64, error) {
 	var count int64
-	err := r.db.WithContext(ctx).Model(&models.Menu{}).
-		Where("allergens = ?", allergenID).
+
+	err := r.db.WithContext(ctx).
+		Table("menu_item_allergens").
+		Select("DISTINCT menu_id").
+		Where("allergen_id = ?", allergenID).
 		Count(&count).Error
+
 	return count, err
 }

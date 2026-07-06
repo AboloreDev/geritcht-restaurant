@@ -25,6 +25,10 @@ ALTER TABLE order_items
 CREATE INDEX idx_orders_user_id ON orders(user_id);
 CREATE INDEX idx_orders_table_id ON orders(table_id);
 CREATE INDEX idx_orders_status ON orders(status);
+CREATE INDEX idx_orders_id ON orders(id);
 CREATE INDEX idx_orders_type ON orders(type);
 CREATE INDEX idx_orders_created_at ON orders(created_at);
 CREATE INDEX idx_orders_deleted_at ON orders(deleted_at);
+CREATE INDEX idx_orders_id_user_id_type ON orders(id, user_id, type);
+CREATE INDEX idx_orders_id_type ON orders(id, type);
+CREATE INDEX idx_orders_id_user_id ON orders(id, user_id);

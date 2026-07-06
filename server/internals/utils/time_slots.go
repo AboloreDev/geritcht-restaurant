@@ -15,7 +15,8 @@ var timeSlots = []string{
 	"21:00:00",
 	"22:00:00",
 	"23:00:00",
-	"00:00:00",
+	"01:00:00",
+	"07:00:00",
 }
 
 func IsValidTimeSlots(slot string) bool {
@@ -32,7 +33,11 @@ func ParseToDataTypesTime(slot string) (datatypes.Time, error) {
 	if err != nil {
 		return 0, err
 	}
-	nanos := int64(t.Hour())*3600*1e9 + int64(t.Minute())*60*1e9
+	nanos :=
+		int64(t.Hour())*3600*1e9 +
+			int64(t.Minute())*60*1e9 +
+			int64(t.Second())*1e9
+
 	return datatypes.Time(nanos), nil
 }
 
@@ -44,4 +49,14 @@ func FormatDataTypesTime(t datatypes.Time) string {
 	seconds := totalSeconds % 60
 
 	return fmt.Sprintf("%02d:%02d:%02d", hours, minutes, seconds)
+}
+
+// TimeToDataTypesTime converts a time.Time directly into datatypes.Time,
+// using only its wall-clock hour/minute/second. No string parsing involved,
+// so it can't fall victim to layout-mismatch bugs.
+func TimeToDataTypesTime(t time.Time) datatypes.Time {
+	nanos := int64(t.Hour())*3600*1e9 +
+		int64(t.Minute())*60*1e9 +
+		int64(t.Second())*1e9
+	return datatypes.Time(nanos)
 }

@@ -248,7 +248,7 @@ type ReservationNoShowInterface interface {
 
 // Reservation reminder interface
 type ReservationReminderInterface interface {
-	GetAllUpcomingReservations(ctx context.Context, now time.Time, targetSlot datatypes.Time) ([]models.Reservation, error)
+	GetAllUpcomingReservations(ctx context.Context, now time.Time, windowStart, windowEnd string) ([]models.Reservation, error)
 	UpdateReminderValue(ctx context.Context, reservation *models.Reservation) error
 }
 

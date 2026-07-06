@@ -11,6 +11,7 @@ import (
 	"github.com/AboloreDev/geritcht-restaurant/internals/repositories"
 	"github.com/AboloreDev/geritcht-restaurant/internals/utils"
 	"github.com/rs/zerolog"
+	"github.com/rs/zerolog/log"
 )
 
 type NoShowWorker struct {
@@ -67,15 +68,22 @@ func (w *NoShowWorker) handleReservation(ctx context.Context, reservation models
 		return
 	}
 	// Publish Mail
-	w.publishNoShowEmail(reservation)
+	err := w.publishNoShowEmail(reservation)
+
+	if err != nil {
+		log.Error().Err(err).
+			Uint("reservation_id", reservation.ID).
+			Msg("failed to publish no show email")
+		return
+	}
 
 	// Redis
 	w.invalidateAvailabilityCache(ctx, reservation)
 }
 
 // Publish Email
-func (w *NoShowWorker) publishNoShowEmail(reservation models.Reservation) {
-	_ = w.publisher.PublishMessage(
+func (w *NoShowWorker) publishNoShowEmail(reservation models.Reservation) error {
+	err := w.publisher.PublishMessage(
 		events.ChannelEmailReservationNoShow,
 		events.ReservationNoShowPayload{
 			FirstName: reservation.User.FirstName,
@@ -88,6 +96,7 @@ func (w *NoShowWorker) publishNoShowEmail(reservation models.Reservation) {
 			"Priority": "Important Mail",
 		},
 	)
+	return err
 }
 
 // Redis Func

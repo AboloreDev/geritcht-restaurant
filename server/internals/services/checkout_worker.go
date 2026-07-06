@@ -27,7 +27,8 @@ func NewCheckoutWorker(
 	}
 }
 
-var reservationDuration = 70 * time.Minute
+// 70 min
+var reservationDuration = 5 * time.Minute
 
 func (w *CheckoutWorker) Start(appCtx context.Context, log zerolog.Logger) {
 	ticker := time.NewTicker(5 * time.Minute)

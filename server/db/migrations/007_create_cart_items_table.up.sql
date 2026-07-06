@@ -11,4 +11,6 @@ CREATE TABLE cart_items (
 
 CREATE INDEX idx_cart_items_cart_id ON cart_items(cart_id);
 CREATE INDEX idx_cart_items_menu_id ON cart_items(menu_id);
+CREATE INDEX idx_cart_items_cart_id_menu_id ON cart_items(cart_id, menu_id);
+CREATE INDEX idx_cart_items_id_cart_id ON cart_items(id, cart_id);
 CREATE INDEX idx_cart_items_deleted_at ON cart_items(deleted_at);
