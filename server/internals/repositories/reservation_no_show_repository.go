@@ -22,12 +22,14 @@ func NewReservationNoShowRepository(db *gorm.DB) *ReservationNoShowRepository {
 
 func (r *ReservationNoShowRepository) GetAllReservations(ctx context.Context) ([]models.Reservation, error) {
 	var reservations []models.Reservation
+	threshold := time.Now().Add(-5*time.Minute).Format("15:04:00")
+	now :=	time.Now().Format("2006-01-02")
 
 	err := r.db.Preload("Table").
 		WithContext(ctx).
-		Where("date = ? AND time_slot = ? AND status = ?",
-			time.Now().Format("2006-01-02"),
-			time.Now().Add(-5*time.Minute).Format("15:04"),
+		Where("date = ? AND time_slot <= ? AND status = ?",
+		now,
+		threshold,
 			models.ReservationStatusConfirmed).
 		Find(&reservations).Error
 	if err != nil {
@@ -64,16 +66,11 @@ func (r *ReservationNoShowRepository) UpdateReservedTableStatus(ctx context.Cont
 
 func (r *ReservationNoShowRepository) GetUsersWaitlist(ctx context.Context, tx *gorm.DB, status models.WaitlistStatus, date interface{}, timeSlot datatypes.Time, partySize int) (*models.Waitlist, error) {
 	var waitlist models.Waitlist
-	var reservation models.Reservation
-
-	date = reservation.Date
-	timeSlot = reservation.TimeSlot
-	partySize = reservation.PartySize
 
 	err := tx.Preload("User").
 		WithContext(ctx).
 		Where("date = ? AND time_slot = ? AND party_size = ? AND status = ?",
-			reservation.Date, reservation.TimeSlot, reservation.PartySize, status).
+			date, timeSlot, partySize, status).
 		Order("created_at ASC").
 		First(&waitlist).Error
 
@@ -86,7 +83,6 @@ func (r *ReservationNoShowRepository) GetUsersWaitlist(ctx context.Context, tx *
 
 	return &waitlist, nil
 }
-
 func (r *ReservationNoShowRepository) UpdateWaitlistStatus(ctx context.Context, tx *gorm.DB, waitlist *models.Waitlist, status models.WaitlistStatus, notifiedAt, expiresAt time.Time) error {
 	tx.Model(waitlist).
 		WithContext(ctx).
@@ -124,10 +120,6 @@ func (r *ReservationNoShowRepository) MarkReservationNoShow(ctx context.Context,
 		)
 		if err != nil {
 			return err
-		}
-
-		if &waitlist == nil {
-			return nil
 		}
 
 		now := time.Now()

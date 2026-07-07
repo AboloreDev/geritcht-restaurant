@@ -34,6 +34,7 @@ func (s *Server) JoinWaitlistHandler(ctx *gin.Context) {
 		default:
 			utils.InternalServerError(ctx, "Error joining waitlist", err)
 		}
+		return
 	}
 
 	utils.CreatedResponse(ctx, "Joined waitlist success", response)
@@ -53,6 +54,7 @@ func (s *Server) GetWaitlistPositionHandler(ctx *gin.Context) {
 		default:
 			utils.InternalServerError(ctx, "Error joining waitlist", err)
 		}
+		return
 	}
 
 	utils.SuccessResponse(ctx, "success", response)

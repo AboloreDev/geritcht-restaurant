@@ -125,6 +125,7 @@ func main() {
 	outboxRepo := repositories.NewOutboxRepository(db)
 	noShowWorkerRepo := repositories.NewReservationNoShowRepository(db)
 	reminderRepo := repositories.NewReservationReminderRepository(db)
+	checkoutRepo := repositories.NewReservationCheckoutRepository(db)
 
 	// Services
 	authServices := services.NewAuthService(cfg, eventPublisher, userRepo, authRepo, cartRepo)
@@ -157,12 +158,14 @@ func main() {
 	reminderWorker := services.NewReminderWorker(reminderRepo, redisStore, eventPublisher)
 	outboxWorker := services.NewOutboxWorker(outboxRepo, eventPublisher)
 	orderStatusAutoWorker := services.NewOrderAutoWorker(db, hub)
+	checkoutWorker := services.NewCheckoutWorker(redisStore, checkoutRepo)
 
 	// Go routines for worker
 	go noShowWorker.StartMarkNoShowWorker(workerCtx, log)
 	go reminderWorker.StartReminderWorker(workerCtx, log)
 	go outboxWorker.StartOutboxWorker(workerCtx, log)
 	go orderStatusAutoWorker.StartOrderUpdateWorker(workerCtx, log)
+	go checkoutWorker.Start(workerCtx, log)
 
 	// Initialise Server
 	srv := server.NewServer(

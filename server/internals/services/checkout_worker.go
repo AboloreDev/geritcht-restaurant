@@ -31,7 +31,7 @@ func NewCheckoutWorker(
 var reservationDuration = 5 * time.Minute // TODO: bump back to 70 * time.Minute after testing
 
 func (w *CheckoutWorker) Start(appCtx context.Context, log zerolog.Logger) {
-	ticker := time.NewTicker(5 * time.Minute)
+	ticker := time.NewTicker(2 * time.Minute)
 	defer ticker.Stop()
 
 	for {
