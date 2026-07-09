@@ -322,7 +322,7 @@ func (s *MenuService) ToggleMenuAvailabilityService(ctx context.Context, menuID 
 }
 
 func (s *MenuService) GetAllMenuService(ctx context.Context, filter dto.MenuFilterRequest) ([]*dto.MenuResponse, *utils.PaginatedMeta, error) {
-	cacheKey := utils.BuildMenuCacheKey(filter)
+	cacheKey := fmt.Sprintf("menu:all:page:%d:size:%d", filter.Page, filter.PageSize)
 	cached, err := s.redisStore.Get(ctx, cacheKey)
 	if err == nil && cached != "" {
 		var cachedResponse struct {
@@ -358,7 +358,53 @@ func (s *MenuService) GetAllMenuService(ctx context.Context, filter dto.MenuFilt
 	}{Data: response, Meta: meta}
 
 	data, _ := json.Marshal(&cacheData)
-	s.redisStore.Set(ctx, cacheKey, string(data), utils.GetCacheTTL(filter))
+	s.redisStore.Set(ctx, cacheKey, string(data), 1*time.Hour)
+
+	return response, meta, nil
+}
+
+func (s *MenuService) SearchProduct(ctx context.Context, req *dto.MenuSearchRequest) ([]*dto.MenuSearchResponse, *utils.PaginatedMeta, error) {
+	cacheKey := utils.BuildMenuCacheKey(req)
+	cached, err := s.redisStore.Get(ctx, cacheKey)
+	if err == nil && cached != "" {
+		var cachedResponse struct {
+			Data []*dto.MenuSearchResponse  `json:"data"`
+			Meta *utils.PaginatedMeta `json:"meta"`
+		}
+		if err := json.Unmarshal([]byte(cached), &cachedResponse); err == nil {
+			return cachedResponse.Data, cachedResponse.Meta, nil
+		}
+	}
+
+	menus, count, err := s.menuRepo.TsvectorSearchMenuItems(ctx, req)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	response := make([]*dto.MenuSearchResponse, len(menus))
+
+	for i, menu := range menus {
+		response[i] = &dto.MenuSearchResponse{
+			MenuResponse: *s.ConvertToMenuResponse(&menu),
+			Rank:         0.0,
+		}
+	}
+
+	totalPages := int((count + int64(req.Limit) - 1) / int64(req.Limit))
+	meta := &utils.PaginatedMeta{
+		Page:       req.Page,
+		Limit:      req.Limit,
+		Total:      count,
+		TotalPages: totalPages,
+	}
+
+	cacheData := struct {
+		Data []*dto.MenuSearchResponse  `json:"data"`
+		Meta *utils.PaginatedMeta `json:"meta"`
+	}{Data: response, Meta: meta}
+
+	data, _ := json.Marshal(&cacheData)
+	s.redisStore.Set(ctx, cacheKey, string(data), utils.GetCacheTTL(req))
 
 	return response, meta, nil
 }

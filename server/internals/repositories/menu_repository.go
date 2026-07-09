@@ -99,12 +99,9 @@ func (r *MenuRepository) GetAll(ctx context.Context, filter dto.MenuFilterReques
 	offset := utils.Pagination(filter.Page, filter.PageSize)
 
 	query := r.db.WithContext(ctx).Model(&models.Menu{}).Where("is_available = ?", true)
-	query = utils.ApplyMenuFilters(query, filter)
 
 	var count int64
 	query.Count(&count)
-
-	query = utils.ApplyMenuSorting(query, filter)
 
 	var menus []models.Menu
 	err := query.
@@ -158,4 +155,57 @@ func (r *MenuRepository) GetNextPrimaryImage(ctx context.Context, menuID uint, e
 
 func (r *MenuRepository) SetImagePrimary(ctx context.Context, image *models.MenuImage) error {
 	return r.db.WithContext(ctx).Model(image).Update("is_primary", true).Error
+}
+
+
+// TSvector search 
+func (r *MenuRepository) TsvectorSearchMenuItems(ctx context.Context, req *dto.MenuSearchRequest) ([]models.Menu, int64 ,error) {
+	offset := utils.Pagination(req.Page, req.Limit)
+
+	// build query
+	query := r.db.Model(&models.Menu{}).
+		Select("menus.*, ts_rank(search_vector, plainto_tsquery('english', ?)) AS rank", req.Query).
+		Where("search_vector @@ plainto_tsquery('english', ?)", req.Query).
+		Where("is_active = ?", true).
+		Offset(offset).Limit(req.Limit)
+
+	if req.CategoryID != nil {
+		query.Where("menu_category_id = ?", *req.CategoryID)
+	}
+
+	if req.MinPrice != nil {
+		query.Where("price >= ?", *req.MinPrice)
+	}
+
+	if req.MaxPrice != nil {
+		query.Where("price <= ?", *req.MaxPrice)
+	}
+
+	if req.PrepTimeMinutes != nil {
+		query.Where("prep_time_minutes <= ?", *req.PrepTimeMinutes)
+	}
+
+	if req.SpiceLevel != nil {
+		query.Where("spice_level = ?", *req.SpiceLevel)
+	}
+
+	var count int64
+	query.Count(&count)
+
+	// Execute query with ranking
+	var menus []models.Menu
+	err := 
+		query.Order("rank DESC, created_at DESC").
+		Preload("Images").
+		Preload("MenuCategory").
+		Preload("DietaryTags").
+		Preload("Allergens").
+		Offset(offset).Limit(req.Limit).
+		Find(&menus).Error
+	
+	if err != nil {
+		return nil, 0, err
+	}
+
+	return menus, count, nil
 }

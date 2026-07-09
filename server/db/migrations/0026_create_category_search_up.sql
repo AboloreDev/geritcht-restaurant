@@ -24,4 +24,4 @@ UPDATE menu_categories SET name = name;
 COMMENT ON COLUMN menu_categories.search_vector IS
 'Full-text menu category search vector.
 A = Name
-B = Description';
+B = Description';~

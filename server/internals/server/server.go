@@ -17,12 +17,12 @@ type Server struct {
 	cfg                 *config.Config
 	log                 zerolog.Logger
 	db                  *gorm.DB
-	authServices        *services.AuthService
+	authServices        services.AuthServiceInterface
 	redisStore          interfaces.Cacher
 	uploadServices      *services.UploadService
 	categoryServices    *services.CategoryService
 	menuServices        *services.MenuService
-	allergenServices    *services.AllergenService
+	allergenServices    services.AllergenServiceInterface
 	dietaryTagsService  *services.DietaryTagsService
 	userServices        *services.UserService
 	reservationServices *services.ReservationService
@@ -41,12 +41,12 @@ func NewServer(
 	cfg *config.Config,
 	db *gorm.DB,
 	log zerolog.Logger,
-	authServices *services.AuthService,
+	authServices services.AuthServiceInterface,
 	redisStore interfaces.Cacher,
 	uploadServices *services.UploadService,
 	categoryServices *services.CategoryService,
 	menuServices *services.MenuService,
-	allergenServices *services.AllergenService,
+	allergenServices    services.AllergenServiceInterface,
 	dietaryTagsService *services.DietaryTagsService,
 	reservationServices *services.ReservationService,
 	waitlistService *services.WaitlistService,

@@ -117,6 +117,9 @@ type MenuRepositoryInterface interface {
 	DeleteImage(ctx context.Context, image *models.MenuImage) error
 	GetNextPrimaryImage(ctx context.Context, menuID uint, excludeID uint) (*models.MenuImage, error)
 	SetImagePrimary(ctx context.Context, image *models.MenuImage) error
+
+	// Search tsvector
+	TsvectorSearchMenuItems(ctx context.Context, req *dto.MenuSearchRequest) ([]models.Menu, int64 ,error)
 }
 
 // Order repository interface

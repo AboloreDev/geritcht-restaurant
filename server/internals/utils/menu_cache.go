@@ -7,28 +7,27 @@ import (
 	"github.com/AboloreDev/geritcht-restaurant/internals/dto"
 )
 
-func BuildMenuCacheKey(filter dto.MenuFilterRequest) string {
+func BuildMenuCacheKey(filter *dto.MenuSearchRequest) string {
 	return fmt.Sprintf(
-		"menu:all:p%d:s%d:cat%d:min%.0f:max%.0f:spice%d:dietary%s:search%s:sort%s:%s",
+		"menu:all:p%d:s%d:c%d:s%d:m%d:M%d:t%d:q%s",
 		filter.Page,
-		filter.PageSize,
+		filter.Limit,
 		filter.CategoryID,
-		filter.MinPrice,
-		filter.MaxPrice,
 		filter.SpiceLevel,
-		filter.Dietary,
-		filter.Search,
-		filter.SortBy,
-		filter.SortOrder,
+		filter.MaxPrice,
+		filter.MinPrice,
+		filter.PrepTimeMinutes,
+		filter.Query,
 	)
 }
 
-func GetCacheTTL(filter dto.MenuFilterRequest) time.Duration {
-	hasFilter := filter.CategoryID > 0 ||
-		filter.MinPrice > 0 ||
-		filter.MaxPrice > 0 ||
-		filter.Search != "" ||
-		filter.Dietary != ""
+
+func GetCacheTTL(filter *dto.MenuSearchRequest) time.Duration {
+	hasFilter := filter.CategoryID != nil ||
+		filter.MinPrice != nil ||
+		filter.MaxPrice != nil ||
+		filter.SpiceLevel != nil ||
+		filter.PrepTimeMinutes != nil
 
 	if hasFilter {
 		return 30 * time.Minute
