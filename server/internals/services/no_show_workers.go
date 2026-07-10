@@ -43,7 +43,7 @@ func (w *NoShowWorker) StartMarkNoShowWorker(ctx context.Context, log zerolog.Lo
 		case <-ticker.C:
 			w.processNoShow(ctx)
 			log.Info().Msg("MarkNoShow worker executed")
-	
+
 		}
 	}
 }

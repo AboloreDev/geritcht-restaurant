@@ -69,12 +69,12 @@ type UpdateLinkItemRequest struct {
 	Quantity float64 `json:"quantity" binding:"required,gt=0"`
 }
 
-
 type IngredientSearchRequest struct {
-	Query string `form:"q" binding:"required,min=1"`
-	Page int `form:"page"`
-	Limit int `form:"limit"`
+	Query        string   `form:"q" binding:"required,min=1"`
+	Page         int      `form:"page"`
+	Limit        int      `form:"limit"`
 	MinThreshold *float64 `form:"min_threshold"`
+	CurrentStock *float64 `form:"current_stock"`
 }
 
 type IngredientSearchResponse struct {

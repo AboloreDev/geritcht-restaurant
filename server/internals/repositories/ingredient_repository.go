@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/AboloreDev/geritcht-restaurant/internals/domain"
+	"github.com/AboloreDev/geritcht-restaurant/internals/dto"
 	"github.com/AboloreDev/geritcht-restaurant/internals/models"
 	"github.com/AboloreDev/geritcht-restaurant/internals/utils"
 	"gorm.io/gorm"
@@ -120,4 +121,39 @@ func (r *IngredientRepository) UpdateThreshHoldLimit(ctx context.Context, ingred
 	}
 
 	return nil
+}
+
+func (r *IngredientRepository) TsvectorSearchIngredients(ctx context.Context, req *dto.IngredientSearchRequest) ([]models.Ingredient, int64, error) {
+	offset := utils.Pagination(req.Page, req.Limit)
+
+	// build query
+	query := r.db.Model(&models.Ingredient{}).WithContext(ctx).
+		Select("categories.*, ts_rank(search_vector, plainto_tsquery('english', ?)) AS rank", req.Query).
+		Where("search_vector @@ plainto_tsquery('english', ?)", req.Query).
+		Offset(offset).Limit(req.Limit)
+
+	if req.MinThreshold != nil {
+		query.Where("min_threshold >= ?", req.MinThreshold)
+	}
+	if req.CurrentStock != nil {
+		query.Where("current_stock >= ?", req.CurrentStock)
+	}
+
+	var count int64
+	query.Count(&count)
+
+	// Execute query with ranking
+	var ingredients []models.Ingredient
+	err :=
+		query.Order("rank DESC, created_at DESC").
+			Preload("StockMovement").
+			Preload("MenuItemIngredients").
+			Offset(offset).Limit(req.Limit).
+			Find(&ingredients).Error
+
+	if err != nil {
+		return nil, 0, err
+	}
+
+	return ingredients, count, nil
 }

@@ -25,7 +25,7 @@ func (s *Server) AddRecipeHandler(ctx *gin.Context) {
 		return
 	}
 
-	response, err := s.recipesService.AddMenuRecipe(menuID, &req)
+	response, err := s.recipesService.AddMenuRecipe(ctx.Request.Context(), menuID, &req)
 	if err != nil {
 		switch err {
 		case domain.ErrIngredientAlreadyLinked:
@@ -73,7 +73,7 @@ func (s *Server) UpdateRecipeHandler(ctx *gin.Context) {
 		return
 	}
 
-	response, err := s.recipesService.UpdateMenuRecipe(menuID, ingredientID, &req)
+	response, err := s.recipesService.UpdateMenuRecipe(ctx.Request.Context(), menuID, ingredientID, &req)
 	if err != nil {
 		utils.InternalServerError(ctx, "Failed to update recipe", err)
 		return
@@ -99,7 +99,7 @@ func (s *Server) DeleteRecipeHandler(ctx *gin.Context) {
 	}
 	ingredientID := uint(ingredient_id)
 
-	err = s.recipesService.DeleteRecipe(menuID, ingredientID)
+	err = s.recipesService.DeleteRecipe(ctx.Request.Context(), menuID, ingredientID)
 	if err != nil {
 		switch err {
 		case domain.ErrNotFound:
@@ -123,7 +123,7 @@ func (s *Server) GetRecipesHandler(ctx *gin.Context) {
 	}
 	menuID := uint(id)
 
-	response, err := s.recipesService.GetRecipes(menuID)
+	response, err := s.recipesService.GetAllRecipes(ctx.Request.Context(), menuID)
 	if err != nil {
 		switch err {
 		case domain.ErrMenuNotFound:

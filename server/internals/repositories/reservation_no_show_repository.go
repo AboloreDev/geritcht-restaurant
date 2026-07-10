@@ -22,14 +22,14 @@ func NewReservationNoShowRepository(db *gorm.DB) *ReservationNoShowRepository {
 
 func (r *ReservationNoShowRepository) GetAllReservations(ctx context.Context) ([]models.Reservation, error) {
 	var reservations []models.Reservation
-	threshold := time.Now().Add(-5*time.Minute).Format("15:04:00")
-	now :=	time.Now().Format("2006-01-02")
+	threshold := time.Now().Add(-5 * time.Minute).Format("15:04:00")
+	now := time.Now().Format("2006-01-02")
 
 	err := r.db.Preload("Table").
 		WithContext(ctx).
 		Where("date = ? AND time_slot <= ? AND status = ?",
-		now,
-		threshold,
+			now,
+			threshold,
 			models.ReservationStatusConfirmed).
 		Find(&reservations).Error
 	if err != nil {

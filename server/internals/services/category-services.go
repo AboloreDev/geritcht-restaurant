@@ -217,3 +217,49 @@ func (s *CategoryService) GetCategoryService(ctx context.Context, categoryID uin
 
 	return s.ConvertCategoryResponse(category), nil
 }
+
+func (s *CategoryService) SearchCategory(ctx context.Context, req *dto.CategorySearchRequest) ([]*dto.CategorySearchResponse, *utils.PaginatedMeta, error) {
+	cacheKey := fmt.Sprintf("menu:categories:%s:p%d:s%d", req.Query, req.Page, req.Limit)
+	cached, err := s.redisStore.Get(ctx, cacheKey)
+	if err == nil && cached != "" {
+		var cachedResponse struct {
+			Data []*dto.CategorySearchResponse `json:"data"`
+			Meta *utils.PaginatedMeta          `json:"meta"`
+		}
+		if err := json.Unmarshal([]byte(cached), &cachedResponse); err == nil {
+			return cachedResponse.Data, cachedResponse.Meta, nil
+		}
+	}
+
+	categories, count, err := s.categoryRepo.TsvectorSearchCategories(ctx, req)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	response := make([]*dto.CategorySearchResponse, len(categories))
+
+	for i, cat := range categories {
+		response[i] = &dto.CategorySearchResponse{
+			MenuCategoryResponse: *s.ConvertCategoryResponse(&cat),
+			Rank:                 0.0,
+		}
+	}
+
+	totalPages := int((count + int64(req.Limit) - 1) / int64(req.Limit))
+	meta := &utils.PaginatedMeta{
+		Page:       req.Page,
+		Limit:      req.Limit,
+		Total:      count,
+		TotalPages: totalPages,
+	}
+
+	cacheData := struct {
+		Data []*dto.CategorySearchResponse `json:"data"`
+		Meta *utils.PaginatedMeta          `json:"meta"`
+	}{Data: response, Meta: meta}
+
+	data, _ := json.Marshal(&cacheData)
+	s.redisStore.Set(ctx, cacheKey, string(data), 1*time.Hour)
+
+	return response, meta, nil
+}

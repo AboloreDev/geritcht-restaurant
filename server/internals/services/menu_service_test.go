@@ -89,6 +89,10 @@ func (m *MockMenuRepository) SetImagePrimary(_ context.Context, image *models.Me
 	return nil
 }
 
+func (m *MockMenuRepository) TsvectorSearchMenuItems(ctx context.Context, req *dto.MenuSearchRequest) ([]models.Menu, int64, error) {
+	return m.menus, m.total, m.getErr
+}
+
 func newMenuService(repo *MockMenuRepository) *MenuService {
 	return NewMenuService(repo, redisStore.NewNopCache())
 }

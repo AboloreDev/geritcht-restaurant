@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/AboloreDev/geritcht-restaurant/internals/domain"
+	"github.com/AboloreDev/geritcht-restaurant/internals/dto"
 	"github.com/AboloreDev/geritcht-restaurant/internals/models"
 	"github.com/AboloreDev/geritcht-restaurant/internals/utils"
 	"gorm.io/gorm"
@@ -84,4 +85,32 @@ func (r *CategoryRepository) CountMenuItems(ctx context.Context, categoryID uint
 		Where("menu_category_id = ?", categoryID).
 		Count(&count).Error
 	return count, err
+}
+
+// TSvector search
+func (r *MenuRepository) TsvectorSearchCategories(ctx context.Context, req *dto.CategorySearchRequest) ([]models.MenuCategory, int64, error) {
+	offset := utils.Pagination(req.Page, req.Limit)
+
+	// build query
+	query := r.db.Model(&models.MenuCategory{}).
+		Select("categories.*, ts_rank(search_vector, plainto_tsquery('english', ?)) AS rank", req.Query).
+		Where("search_vector @@ plainto_tsquery('english', ?)", req.Query).
+		Where("is_active = ?", true).
+		Offset(offset).Limit(req.Limit)
+
+	var count int64
+	query.Count(&count)
+
+	// Execute query with ranking
+	var catrgories []models.MenuCategory
+	err :=
+		query.Order("rank DESC, created_at DESC").
+			Offset(offset).Limit(req.Limit).
+			Find(&catrgories).Error
+
+	if err != nil {
+		return nil, 0, err
+	}
+
+	return catrgories, count, nil
 }

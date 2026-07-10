@@ -67,6 +67,9 @@ func (r *MockIngredientRepository) CompareCurrentStockAgainstMinTheshold(ctx con
 func (r *MockIngredientRepository) UpdateThreshHoldLimit(ctx context.Context, ingredientID uint, threshHold float64) error {
 	return r.ingredientErr
 }
+func (r *MockIngredientRepository) TsvectorSearchIngredeints(ctx context.Context, req *dto.IngredientSearchRequest) ([]models.Ingredient, int64, error) {
+	return r.ingredients, r.count, r.ingredientsErr
+}
 
 func newIngredientService(repo *MockIngredientRepository) *IngredientService {
 	return NewIngredientService(

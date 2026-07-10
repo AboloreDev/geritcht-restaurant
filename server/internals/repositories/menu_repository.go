@@ -157,9 +157,8 @@ func (r *MenuRepository) SetImagePrimary(ctx context.Context, image *models.Menu
 	return r.db.WithContext(ctx).Model(image).Update("is_primary", true).Error
 }
 
-
-// TSvector search 
-func (r *MenuRepository) TsvectorSearchMenuItems(ctx context.Context, req *dto.MenuSearchRequest) ([]models.Menu, int64 ,error) {
+// TSvector search
+func (r *MenuRepository) TsvectorSearchMenuItems(ctx context.Context, req *dto.MenuSearchRequest) ([]models.Menu, int64, error) {
 	offset := utils.Pagination(req.Page, req.Limit)
 
 	// build query
@@ -194,15 +193,15 @@ func (r *MenuRepository) TsvectorSearchMenuItems(ctx context.Context, req *dto.M
 
 	// Execute query with ranking
 	var menus []models.Menu
-	err := 
+	err :=
 		query.Order("rank DESC, created_at DESC").
-		Preload("Images").
-		Preload("MenuCategory").
-		Preload("DietaryTags").
-		Preload("Allergens").
-		Offset(offset).Limit(req.Limit).
-		Find(&menus).Error
-	
+			Preload("Images").
+			Preload("MenuCategory").
+			Preload("DietaryTags").
+			Preload("Allergens").
+			Offset(offset).Limit(req.Limit).
+			Find(&menus).Error
+
 	if err != nil {
 		return nil, 0, err
 	}

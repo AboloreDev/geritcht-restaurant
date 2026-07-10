@@ -344,3 +344,56 @@ func (s *IngredientService) sendLowStockAlert(ctx context.Context, user *models.
 
 	return nil
 }
+
+func (s *IngredientService) SearchIngredients(ctx context.Context, req *dto.IngredientSearchRequest) ([]*dto.IngredientSearchResponse, *utils.PaginatedMeta, error) {
+	cacheKey := fmt.Sprintf("menu:ingredients:%s:p%d:s%d", req.Query, req.Page, req.Limit)
+	cached, err := s.redisStore.Get(ctx, cacheKey)
+	if err == nil && cached != "" {
+		var cachedResponse struct {
+			Data []*dto.IngredientSearchResponse `json:"data"`
+			Meta *utils.PaginatedMeta            `json:"meta"`
+		}
+		if err := json.Unmarshal([]byte(cached), &cachedResponse); err == nil {
+			return cachedResponse.Data, cachedResponse.Meta, nil
+		}
+	}
+
+	ingredients, count, err := s.ingredientRepo.TsvectorSearchIngredeints(ctx, req)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	response := make([]*dto.IngredientSearchResponse, len(ingredients))
+
+	for i, ingredient := range ingredients {
+		response[i] = &dto.IngredientSearchResponse{
+			IngredientResponse: dto.IngredientResponse{
+				ID:           ingredient.ID,
+				Name:         ingredient.Name,
+				Unit:         ingredient.Unit,
+				CurrentStock: ingredient.CurrentStock,
+				MinThreshold: ingredient.MinThreshold,
+				CreatedAt:    ingredient.CreatedAt,
+			},
+			Rank: 0.0,
+		}
+	}
+
+	totalPages := int((count + int64(req.Limit) - 1) / int64(req.Limit))
+	meta := &utils.PaginatedMeta{
+		Page:       req.Page,
+		Limit:      req.Limit,
+		Total:      count,
+		TotalPages: totalPages,
+	}
+
+	cacheData := struct {
+		Data []*dto.IngredientSearchResponse `json:"data"`
+		Meta *utils.PaginatedMeta            `json:"meta"`
+	}{Data: response, Meta: meta}
+
+	data, _ := json.Marshal(&cacheData)
+	s.redisStore.Set(ctx, cacheKey, string(data), 1*time.Hour)
+
+	return response, meta, nil
+}

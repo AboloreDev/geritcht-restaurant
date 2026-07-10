@@ -282,7 +282,6 @@ func (s *ReservationService) CheckInReservation(ctx context.Context, reservation
 		return nil, domain.ErrCannotCheckIn
 	}
 
-
 	err = s.db.Transaction(func(tx *gorm.DB) error {
 		if err := s.reservationRepo.UpdateStatus(ctx, tx, reservationID, map[string]interface{}{
 			"status":        models.ReservationStatusCheckedIn,
@@ -437,7 +436,6 @@ func (s *ReservationService) buildReservationListResponse(
 		TotalPages:   totalPages,
 	}
 }
-
 
 func canCheckIn(reservationDate time.Time, timeSlot datatypes.Time) error {
 	now := time.Now()

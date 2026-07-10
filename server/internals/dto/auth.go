@@ -77,8 +77,8 @@ type MessageResponse struct {
 
 type UserSearchRequest struct {
 	Query string `form:"q" binding:"required,min=1"`
-	Page int `form:"page"`
-	Limit int `form:"limit"`
+	Page  int    `form:"page"`
+	Limit int    `form:"limit"`
 }
 
 type UserSearchResponse struct {

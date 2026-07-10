@@ -121,14 +121,14 @@ type MenuFilterRequest struct {
 }
 
 type MenuSearchRequest struct {
-	Query string `form:"q" binding:"required,min=1"`
-	Page int `form:"page"`
-	Limit int `form:"limit"`
-	CategoryID *uint `form:"category_id"`
-	MinPrice *float64 `form:"min_price"`
-	MaxPrice *float64 `form:"max_price"`
-	PrepTimeMinutes *int            `form:"prep_time_minutes"`
-	SpiceLevel      *int            `form:"spice_level"`
+	Query           string   `form:"q" binding:"required,min=1"`
+	Page            int      `form:"page"`
+	Limit           int      `form:"limit"`
+	CategoryID      *uint    `form:"category_id"`
+	MinPrice        *float64 `form:"min_price"`
+	MaxPrice        *float64 `form:"max_price"`
+	PrepTimeMinutes *int     `form:"prep_time_minutes"`
+	SpiceLevel      *int     `form:"spice_level"`
 }
 
 type MenuSearchResponse struct {
@@ -138,11 +138,11 @@ type MenuSearchResponse struct {
 
 type CategorySearchRequest struct {
 	Query string `form:"q" binding:"required,min=1"`
-	Page int `form:"page"`
-	Limit int `form:"limit"`
+	Page  int    `form:"page"`
+	Limit int    `form:"limit"`
 }
 
-type CategorySearchResponse struct {	
+type CategorySearchResponse struct {
 	MenuCategoryResponse
 	Rank float32 `json:"rank"`
 }

@@ -46,7 +46,7 @@ func NewServer(
 	uploadServices *services.UploadService,
 	categoryServices *services.CategoryService,
 	menuServices *services.MenuService,
-	allergenServices    services.AllergenServiceInterface,
+	allergenServices services.AllergenServiceInterface,
 	dietaryTagsService *services.DietaryTagsService,
 	reservationServices *services.ReservationService,
 	waitlistService *services.WaitlistService,
@@ -108,7 +108,7 @@ func (s *Server) SetUpRoutes() *gin.Engine {
 			auth.POST("/forgot", s.RateLimiter(3, time.Minute), s.ForgotPasswordHandler)
 			auth.POST("/reset-password", s.RateLimiter(5, time.Minute), s.ResetPasswordHandler)
 			auth.POST("/verify", s.RateLimiter(5, time.Minute), s.VerifyEmailHandler)
-			auth.POST("/verify-reset-otp", s.RateLimiter(20, time.Minute),s.VerifyResetOTPHandler)
+			auth.POST("/verify-reset-otp", s.RateLimiter(20, time.Minute), s.VerifyResetOTPHandler)
 
 		}
 		protected := api.Group("/")
@@ -149,7 +149,7 @@ func (s *Server) SetUpRoutes() *gin.Engine {
 			{
 				// Menu Protected Routes
 				menu.POST("/", s.RateLimiter(20, time.Minute), s.AdminMiddleware(), s.CreateMenuHandler)
-				menu.PATCH("/:id",s.RateLimiter(20, time.Minute),  s.AdminMiddleware(), s.UpdateMenuHandler)
+				menu.PATCH("/:id", s.RateLimiter(20, time.Minute), s.AdminMiddleware(), s.UpdateMenuHandler)
 				menu.GET("/menu", s.GetAllMenuHandler)
 				menu.GET("/menu/:id", s.GetMenuHandler)
 				menu.DELETE("/:id", s.AdminMiddleware(), s.DeleteMenuHandler)
@@ -241,15 +241,15 @@ func (s *Server) SetUpRoutes() *gin.Engine {
 				ingredient.POST("/", s.RateLimiter(20, time.Minute), s.AdminMiddleware(), s.CreateIngredientHandler)
 				ingredient.GET("/", s.AdminMiddleware(), s.GetAllIngredientHandler)
 				ingredient.GET("/:id", s.AdminMiddleware(), s.GetIngredientHandler)
-				ingredient.PATCH("/:id", s.RateLimiter(20, time.Minute),s.AdminMiddleware(), s.UpdateIngredientHandler)
+				ingredient.PATCH("/:id", s.RateLimiter(20, time.Minute), s.AdminMiddleware(), s.UpdateIngredientHandler)
 				ingredient.DELETE("/:id", s.AdminMiddleware(), s.DeleteIngredientHandler)
 				ingredient.GET("/low-stock", s.AdminMiddleware(), s.GetLowStockIngredientsHandler)
-				ingredient.POST("/linit",s.RateLimiter(20, time.Minute), s.AdminMiddleware(), s.SetThresholdLimitHandler)
+				ingredient.POST("/linit", s.RateLimiter(20, time.Minute), s.AdminMiddleware(), s.SetThresholdLimitHandler)
 			}
 			recipes := protected.Group("/recipes")
 			{
 				// Recipes Protected Routes
-				recipes.POST("/",s.RateLimiter(20, time.Minute), s.AdminMiddleware(), s.AddRecipeHandler)
+				recipes.POST("/", s.RateLimiter(20, time.Minute), s.AdminMiddleware(), s.AddRecipeHandler)
 				recipes.GET("/:id", s.AdminMiddleware(), s.GetRecipesHandler)
 				recipes.PATCH("/:id", s.RateLimiter(20, time.Minute), s.AdminMiddleware(), s.UpdateRecipeHandler)
 				recipes.DELETE("/:id", s.AdminMiddleware(), s.DeleteRecipeHandler)

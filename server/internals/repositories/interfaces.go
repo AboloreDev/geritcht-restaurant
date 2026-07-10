@@ -71,6 +71,9 @@ type CategoryRepositoryInterface interface {
 	Update(ctx context.Context, category *models.MenuCategory) error
 	Delete(ctx context.Context, categoryID uint) error
 	CountMenuItems(ctx context.Context, categoryID uint) (int64, error)
+
+	// Search tsvector
+	TsvectorSearchCategories(ctx context.Context, req *dto.CategorySearchRequest) ([]models.MenuCategory, int64, error)
 }
 
 // Dietary tags interface
@@ -119,7 +122,7 @@ type MenuRepositoryInterface interface {
 	SetImagePrimary(ctx context.Context, image *models.MenuImage) error
 
 	// Search tsvector
-	TsvectorSearchMenuItems(ctx context.Context, req *dto.MenuSearchRequest) ([]models.Menu, int64 ,error)
+	TsvectorSearchMenuItems(ctx context.Context, req *dto.MenuSearchRequest) ([]models.Menu, int64, error)
 }
 
 // Order repository interface
@@ -232,6 +235,9 @@ type IngredientRepositoryInterface interface {
 	GetAllIngredients(ctx context.Context, page, pageSize int) ([]models.Ingredient, int64, error)
 	CompareCurrentStockAgainstMinTheshold(ctx context.Context) ([]models.Ingredient, error)
 	UpdateThreshHoldLimit(ctx context.Context, ingredientID uint, threshHold float64) error
+
+	// Search tsvector
+	TsvectorSearchIngredeints(ctx context.Context, req *dto.IngredientSearchRequest) ([]models.Ingredient, int64, error)
 }
 
 // Outbox repository interface
@@ -260,4 +266,14 @@ type ReservationCheckoutInterface interface {
 	GetAllRservations(ctx context.Context, now time.Time) ([]models.Reservation, error)
 
 	Checkout(ctx context.Context, reservation models.Reservation) error
+}
+
+// Menu Item Ingredient (Recipes) Interface
+type RecipesRepositoryInterface interface {
+	GetByMenuItemID(ctx context.Context, menuItemID uint) ([]models.MenuItemIngredient, error)
+	Create(ctx context.Context, recipe *models.MenuItemIngredient) error
+	Update(ctx context.Context, recipe *models.MenuItemIngredient) error
+	Delete(ctx context.Context, menuItemID, ingredientID uint) error
+	CheckForLinkedIngredient(ctx context.Context, menuItemID uint, ingredientID uint) (*models.MenuItemIngredient, error)
+	GetLinkedIngredient(ctx context.Context, menuItemID uint, ingredientID uint) (*models.MenuItemIngredient, error)
 }

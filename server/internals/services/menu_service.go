@@ -368,8 +368,8 @@ func (s *MenuService) SearchProduct(ctx context.Context, req *dto.MenuSearchRequ
 	cached, err := s.redisStore.Get(ctx, cacheKey)
 	if err == nil && cached != "" {
 		var cachedResponse struct {
-			Data []*dto.MenuSearchResponse  `json:"data"`
-			Meta *utils.PaginatedMeta `json:"meta"`
+			Data []*dto.MenuSearchResponse `json:"data"`
+			Meta *utils.PaginatedMeta      `json:"meta"`
 		}
 		if err := json.Unmarshal([]byte(cached), &cachedResponse); err == nil {
 			return cachedResponse.Data, cachedResponse.Meta, nil
@@ -399,8 +399,8 @@ func (s *MenuService) SearchProduct(ctx context.Context, req *dto.MenuSearchRequ
 	}
 
 	cacheData := struct {
-		Data []*dto.MenuSearchResponse  `json:"data"`
-		Meta *utils.PaginatedMeta `json:"meta"`
+		Data []*dto.MenuSearchResponse `json:"data"`
+		Meta *utils.PaginatedMeta      `json:"meta"`
 	}{Data: response, Meta: meta}
 
 	data, _ := json.Marshal(&cacheData)

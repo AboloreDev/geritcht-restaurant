@@ -21,7 +21,6 @@ func BuildMenuCacheKey(filter *dto.MenuSearchRequest) string {
 	)
 }
 
-
 func GetCacheTTL(filter *dto.MenuSearchRequest) time.Duration {
 	hasFilter := filter.CategoryID != nil ||
 		filter.MinPrice != nil ||
