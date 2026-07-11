@@ -1,6 +1,7 @@
 package server
 
 import (
+	"errors"
 	"strconv"
 
 	"github.com/AboloreDev/geritcht-restaurant/internals/domain"
@@ -210,4 +211,31 @@ func (s *Server) ToggleMenuAvailabilityHandler(ctx *gin.Context) {
 	}
 
 	utils.SuccessResponse(ctx, "Menu availability toggled successfully", nil)
+}
+
+func (s *Server) SearchMenuHandler(ctx *gin.Context) {
+	var req dto.MenuSearchRequest
+
+	if err := ctx.ShouldBindQuery(&req); err != nil {
+		utils.BadRequest(ctx, "Invalid search parameters", err)
+		return
+	}
+
+	response, meta, err := s.menuServices.SearchProduct(ctx.Request.Context(), &req)
+	if err != nil {
+		switch err {
+		case domain.ErrMenuSearchNotFound:
+        utils.NotFound(ctx, "Search returned no result", err)
+    case domain.ErrInternalServerError:
+        s.log.Error().Err(err).Msg("Menu search failed")
+        utils.InternalServerError(ctx, "Something went wrong", errors.New("unable to complete search at this time"))
+    default:
+        s.log.Error().Err(err).Msg("Menu search failed")
+        utils.InternalServerError(ctx, "Something went wrong", errors.New("unable to complete search at this time"))
+    }
+    return 
+
+	}
+
+	utils.PaginatedSuccessResponse(ctx, "Menus retrieved successfully", response, *meta)
 }

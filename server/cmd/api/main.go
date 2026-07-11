@@ -126,12 +126,13 @@ func main() {
 	noShowWorkerRepo := repositories.NewReservationNoShowRepository(db)
 	reminderRepo := repositories.NewReservationReminderRepository(db)
 	checkoutRepo := repositories.NewReservationCheckoutRepository(db)
+	receipesRepo := repositories.NewRecipe(db)
 
 	// Services
 	authServices := services.NewAuthService(cfg, eventPublisher, userRepo, authRepo, cartRepo)
 	uploadServices := services.NewUploadServices(uploadProvider)
 	categoryServices := services.NewCategoryService(redisStore, categoryRepo)
-	menuServices := services.NewMenuService(menuRepo, redisStore)
+	menuServices := services.NewMenuService(menuRepo, redisStore, log)
 	allegenServices := services.NewAllergenService(allergenRepo, redisStore)
 	dietaryTagsService := services.NewDietaryTagsService(tagRepo, redisStore)
 	userServices := services.NewUserService(userRepo)
@@ -148,7 +149,7 @@ func main() {
 	orderService := services.NewOrderService(db, orderRepo, paymentRepo, cartRepo, redisStore)
 	cartService := services.NewCartService(cartRepo, menuRepo)
 	ingredientService := services.NewIngredientService(redisStore, eventPublisher, ingredientRepo, userRepo, paymentRepo)
-	recipesService := services.NewMenuItemIngredientService(db)
+	recipesService := services.NewMenuItemIngredientService(receipesRepo, ingredientRepo)
 
 	// websockts hub for order
 	hub := websockets.NewHub()

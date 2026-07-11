@@ -358,25 +358,32 @@ func (s *IngredientService) SearchIngredients(ctx context.Context, req *dto.Ingr
 		}
 	}
 
-	ingredients, count, err := s.ingredientRepo.TsvectorSearchIngredeints(ctx, req)
+	rows, count, err := s.ingredientRepo.TsvectorSearchIngredients(ctx, req)
 	if err != nil {
-		return nil, nil, err
+		return nil, nil, domain.ErrIngredientSearchNotFound
 	}
 
-	response := make([]*dto.IngredientSearchResponse, len(ingredients))
+	response := make([]*dto.IngredientSearchResponse, len(rows))
 
-	for i, ingredient := range ingredients {
+	for i := range rows {
 		response[i] = &dto.IngredientSearchResponse{
 			IngredientResponse: dto.IngredientResponse{
-				ID:           ingredient.ID,
-				Name:         ingredient.Name,
-				Unit:         ingredient.Unit,
-				CurrentStock: ingredient.CurrentStock,
-				MinThreshold: ingredient.MinThreshold,
-				CreatedAt:    ingredient.CreatedAt,
+				ID:           rows[i].ID,
+				Name:         rows[i].Name,
+				Unit:         rows[i].Unit,
+				CurrentStock: rows[i].CurrentStock,
+				MinThreshold: rows[i].MinThreshold,
+				CreatedAt:    rows[i].CreatedAt,
 			},
-			Rank: 0.0,
+			Rank: (rows[i].Rank),
 		}
+	}
+
+	if req.Page <= 0 {
+		req.Page = 1
+	}
+	if req.Limit <= 0 {
+		req.Limit = 20
 	}
 
 	totalPages := int((count + int64(req.Limit) - 1) / int64(req.Limit))

@@ -13,17 +13,20 @@ import (
 	"github.com/AboloreDev/geritcht-restaurant/internals/models"
 	"github.com/AboloreDev/geritcht-restaurant/internals/repositories"
 	"github.com/AboloreDev/geritcht-restaurant/internals/utils"
+	"github.com/rs/zerolog"
 )
 
 type MenuService struct {
 	menuRepo   repositories.MenuRepositoryInterface
 	redisStore interfaces.Cacher
+	log zerolog.Logger
 }
 
-func NewMenuService(menuRepo repositories.MenuRepositoryInterface, redisStore interfaces.Cacher) *MenuService {
+func NewMenuService(menuRepo repositories.MenuRepositoryInterface, redisStore interfaces.Cacher, log zerolog.Logger) *MenuService {
 	return &MenuService{
 		menuRepo:   menuRepo,
 		redisStore: redisStore,
+		log: log,
 	}
 }
 
@@ -378,19 +381,32 @@ func (s *MenuService) SearchProduct(ctx context.Context, req *dto.MenuSearchRequ
 
 	menus, count, err := s.menuRepo.TsvectorSearchMenuItems(ctx, req)
 	if err != nil {
-		return nil, nil, err
+    s.log.Error().Err(err).Str("query", req.Query).Msg("menu search query failed")
+    return nil, nil, domain.ErrInternalServerError
 	}
+
+if len(menus) == 0 {
+    return nil, nil, domain.ErrMenuSearchNotFound
+}
 
 	response := make([]*dto.MenuSearchResponse, len(menus))
 
 	for i, menu := range menus {
 		response[i] = &dto.MenuSearchResponse{
-			MenuResponse: *s.ConvertToMenuResponse(&menu),
-			Rank:         0.0,
+			MenuResponse: *s.ConvertToMenuResponse(&menu.Menu),
+			Rank:         menu.Rank,
 		}
 	}
 
+	if req.Page <= 0 {
+		req.Page = 1
+	}
+	if req.Limit <= 0 {
+		req.Limit = 20
+	}
+
 	totalPages := int((count + int64(req.Limit) - 1) / int64(req.Limit))
+
 	meta := &utils.PaginatedMeta{
 		Page:       req.Page,
 		Limit:      req.Limit,

@@ -163,7 +163,7 @@ func TestUpdateProfile_PartialUpdate(t *testing.T) {
 
 func TestGetAllUsers_Success(t *testing.T) {
 	service := newUserService(&MockUserRepository{
-		users: []*models.User{
+		users: []models.User{
 			{ID: 1, Email: "user1@test.com", Role: models.RoleCustomer},
 			{ID: 2, Email: "user2@test.com", Role: models.RoleCustomer},
 		},
@@ -179,7 +179,7 @@ func TestGetAllUsers_Success(t *testing.T) {
 
 func TestGetAllStaff_Success(t *testing.T) {
 	service := newUserService(&MockUserRepository{
-		users: []*models.User{
+		users: []models.User{
 			{ID: 1, Email: "staff1@test.com", Role: models.RoleStaff},
 		},
 		total: 1,

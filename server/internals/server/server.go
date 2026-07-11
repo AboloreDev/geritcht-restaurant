@@ -19,22 +19,22 @@ type Server struct {
 	db                  *gorm.DB
 	authServices        services.AuthServiceInterface
 	redisStore          interfaces.Cacher
-	uploadServices      *services.UploadService
-	categoryServices    *services.CategoryService
-	menuServices        *services.MenuService
+	uploadServices      services.UplaodServiceInterface
+	categoryServices    services.CategoryServiceInterface
+	menuServices        services.MenuServiceInterface
 	allergenServices    services.AllergenServiceInterface
-	dietaryTagsService  *services.DietaryTagsService
-	userServices        *services.UserService
-	reservationServices *services.ReservationService
-	waitlistService     *services.WaitlistService
-	tableServices       *services.TableService
-	paymentService      *services.PaymentService
-	orderService        *services.OrderService
-	cartServices        *services.CartService
+	dietaryTagsService  services.DietaryTagsServiceInterface
+	userServices        services.UserServiceInterface
+	reservationServices services.ReservationServiceInterface
+	waitlistService     services.WaitlistServiceInterface
+	tableServices       services.TableServiceInterface
+	paymentService      services.PaymentServiceInterface
+	orderService        services.OrderServiceInterface
+	cartServices        services.CartServiceInterface
 	hub                 *websockets.Hub
-	ingredientService   *services.IngredientService
-	recipesService      *services.MenuItemIngredientService
-	inventoryService    *services.InventoryService
+	ingredientService   services.IngredientServiceInterface
+	recipesService      services.ReceipesServiceInterface
+	inventoryService    services.InventoryServiceInterface
 }
 
 func NewServer(
@@ -43,22 +43,22 @@ func NewServer(
 	log zerolog.Logger,
 	authServices services.AuthServiceInterface,
 	redisStore interfaces.Cacher,
-	uploadServices *services.UploadService,
-	categoryServices *services.CategoryService,
-	menuServices *services.MenuService,
+	uploadServices services.UplaodServiceInterface,
+	categoryServices services.CategoryServiceInterface,
+	menuServices services.MenuServiceInterface,
 	allergenServices services.AllergenServiceInterface,
-	dietaryTagsService *services.DietaryTagsService,
-	reservationServices *services.ReservationService,
-	waitlistService *services.WaitlistService,
-	userServices *services.UserService,
-	tableServices *services.TableService,
-	paymentService *services.PaymentService,
-	orderService *services.OrderService,
-	cartServices *services.CartService,
+	dietaryTagsService services.DietaryTagsServiceInterface,
+	reservationServices services.ReservationServiceInterface,
+	waitlistService services.WaitlistServiceInterface,
+	userServices services.UserServiceInterface,
+	tableServices services.TableServiceInterface,
+	paymentService services.PaymentServiceInterface,
+	orderService services.OrderServiceInterface,
+	cartServices services.CartServiceInterface,
 	hub *websockets.Hub,
-	ingredientService *services.IngredientService,
-	recipesService *services.MenuItemIngredientService,
-	inventoryService *services.InventoryService) *Server {
+	ingredientService services.IngredientServiceInterface,
+	recipesService services.ReceipesServiceInterface,
+	inventoryService services.InventoryServiceInterface) *Server {
 	return &Server{
 		cfg:                 cfg,
 		log:                 log,
@@ -123,6 +123,7 @@ func (s *Server) SetUpRoutes() *gin.Engine {
 				users.PATCH("/profile/deactivate", s.DeactivateUserHandler)
 				users.PATCH("/profile/activate", s.ActivateUserHandler)
 				users.GET("/", s.AdminMiddleware(), s.GetAllUserHandler)
+				users.GET("/search", s.AdminMiddleware(), s.SearchUserHandler)
 			}
 
 			staffs := protected.Group("/staff")
@@ -245,6 +246,7 @@ func (s *Server) SetUpRoutes() *gin.Engine {
 				ingredient.DELETE("/:id", s.AdminMiddleware(), s.DeleteIngredientHandler)
 				ingredient.GET("/low-stock", s.AdminMiddleware(), s.GetLowStockIngredientsHandler)
 				ingredient.POST("/linit", s.RateLimiter(20, time.Minute), s.AdminMiddleware(), s.SetThresholdLimitHandler)
+				ingredient.GET("/search", s.AdminMiddleware(), s.SearchIngredientHandler)
 			}
 			recipes := protected.Group("/recipes")
 			{
@@ -265,6 +267,8 @@ func (s *Server) SetUpRoutes() *gin.Engine {
 		// Public routes
 		api.GET("/categories", s.RateLimiter(100, time.Minute), s.GetCategoriesHandler)
 		api.GET("/categories/:id", s.RateLimiter(100, time.Minute), s.GetCategory)
+		api.GET("/category/search", s.SearchCategoryHandler)
+		api.GET("/menu/search", s.SearchMenuHandler)
 		api.GET("/menu", s.RateLimiter(100, time.Minute), s.GetAllMenuHandler)
 		api.GET("/menu/:id", s.RateLimiter(100, time.Minute), s.GetMenuHandler)
 		api.GET("/table", s.RateLimiter(100, time.Minute), s.GetAllTablesHandler)

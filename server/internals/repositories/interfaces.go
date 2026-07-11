@@ -20,9 +20,11 @@ type UserRepositoryInterface interface {
 	GetAll(ctx context.Context) ([]*models.User, error)
 	GetByIdAndActive(ctx context.Context, id uint, active bool) (*models.User, error)
 
-	GetAllByRole(ctx context.Context, role models.UserRole, page, pageSize int) ([]*models.User, int64, error)
+	GetAllByRole(ctx context.Context, role models.UserRole, page, pageSize int) ([]models.User, int64, error)
 	GetByIDAndRole(ctx context.Context, id uint, role models.UserRole) (*models.User, error)
 	UpdateActiveByRole(ctx context.Context, id uint, role models.UserRole, active bool) error
+
+	TsvectorSearchUsers(ctx context.Context, req *dto.UserSearchRequest) ([]models.UserWithRank, int64, error)
 }
 
 // Auth Repository
@@ -73,7 +75,7 @@ type CategoryRepositoryInterface interface {
 	CountMenuItems(ctx context.Context, categoryID uint) (int64, error)
 
 	// Search tsvector
-	TsvectorSearchCategories(ctx context.Context, req *dto.CategorySearchRequest) ([]models.MenuCategory, int64, error)
+	TsvectorSearchCategories(ctx context.Context, req *dto.CategorySearchRequest) ([]models.MenuCategoryWithRank, int64, error)
 }
 
 // Dietary tags interface
@@ -122,7 +124,7 @@ type MenuRepositoryInterface interface {
 	SetImagePrimary(ctx context.Context, image *models.MenuImage) error
 
 	// Search tsvector
-	TsvectorSearchMenuItems(ctx context.Context, req *dto.MenuSearchRequest) ([]models.Menu, int64, error)
+	TsvectorSearchMenuItems(ctx context.Context, req *dto.MenuSearchRequest) ([]models.MenuWithRank, int64, error)
 }
 
 // Order repository interface
@@ -237,7 +239,7 @@ type IngredientRepositoryInterface interface {
 	UpdateThreshHoldLimit(ctx context.Context, ingredientID uint, threshHold float64) error
 
 	// Search tsvector
-	TsvectorSearchIngredeints(ctx context.Context, req *dto.IngredientSearchRequest) ([]models.Ingredient, int64, error)
+	TsvectorSearchIngredients(ctx context.Context, req *dto.IngredientSearchRequest) ([]models.IngredientWithRank, int64, error)
 }
 
 // Outbox repository interface
@@ -270,10 +272,10 @@ type ReservationCheckoutInterface interface {
 
 // Menu Item Ingredient (Recipes) Interface
 type RecipesRepositoryInterface interface {
-	GetByMenuItemID(ctx context.Context, menuItemID uint) ([]models.MenuItemIngredient, error)
-	Create(ctx context.Context, recipe *models.MenuItemIngredient) error
-	Update(ctx context.Context, recipe *models.MenuItemIngredient) error
-	Delete(ctx context.Context, menuItemID, ingredientID uint) error
 	CheckForLinkedIngredient(ctx context.Context, menuItemID uint, ingredientID uint) (*models.MenuItemIngredient, error)
+	CreateRecipe(ctx context.Context, recipe *models.MenuItemIngredient) error
 	GetLinkedIngredient(ctx context.Context, menuItemID uint, ingredientID uint) (*models.MenuItemIngredient, error)
+	UpdateLinkedIngredients(ctx context.Context, recipe *models.MenuItemIngredient) error
+	DeleteLinkedIngredient(ctx context.Context, menuItemID uint, ingredientID uint) error
+	GetRecipesByMenuItemID(ctx context.Context, menuItemID uint) ([]models.MenuItemIngredient, error)
 }

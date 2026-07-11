@@ -8,6 +8,7 @@ import (
 	"github.com/AboloreDev/geritcht-restaurant/internals/dto"
 	"github.com/AboloreDev/geritcht-restaurant/internals/models"
 	redisStore "github.com/AboloreDev/geritcht-restaurant/internals/redis"
+	"github.com/rs/zerolog"
 	"github.com/stretchr/testify/assert"
 	"gorm.io/gorm"
 )
@@ -20,6 +21,7 @@ type MockMenuRepository struct {
 	category    *models.MenuCategory
 	allergens   []models.Allergen
 	dietaryTags []models.DietaryTag
+	searchRank []models.MenuWithRank
 	menu        *models.Menu
 	menus       []models.Menu
 	total       int64
@@ -89,12 +91,12 @@ func (m *MockMenuRepository) SetImagePrimary(_ context.Context, image *models.Me
 	return nil
 }
 
-func (m *MockMenuRepository) TsvectorSearchMenuItems(ctx context.Context, req *dto.MenuSearchRequest) ([]models.Menu, int64, error) {
-	return m.menus, m.total, m.getErr
+func (m *MockMenuRepository) TsvectorSearchMenuItems(ctx context.Context, req *dto.MenuSearchRequest) ([]models.MenuWithRank, int64, error) {
+	return m.searchRank, m.total, m.getErr
 }
 
 func newMenuService(repo *MockMenuRepository) *MenuService {
-	return NewMenuService(repo, redisStore.NewNopCache())
+	return NewMenuService(repo, redisStore.NewNopCache(), zerolog.Nop().With().Logger())
 }
 
 // ─── CreateMenu Tests

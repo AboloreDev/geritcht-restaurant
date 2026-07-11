@@ -20,6 +20,7 @@ type MockIngredientRepository struct {
 	rowsAffected int64
 	lowStock     []models.Ingredient
 	count        int64
+	serachRank []models.IngredientWithRank
 
 	ingredientsErr error
 	ingredientErr  error
@@ -30,6 +31,7 @@ type MockIngredientRepository struct {
 	createErr      error
 	countErr       error
 }
+
 
 func (r *MockIngredientRepository) GetIngredientByName(_ context.Context, name string) (*models.Ingredient, error) {
 	return r.ingredient, r.ingredientErr
@@ -67,8 +69,8 @@ func (r *MockIngredientRepository) CompareCurrentStockAgainstMinTheshold(ctx con
 func (r *MockIngredientRepository) UpdateThreshHoldLimit(ctx context.Context, ingredientID uint, threshHold float64) error {
 	return r.ingredientErr
 }
-func (r *MockIngredientRepository) TsvectorSearchIngredeints(ctx context.Context, req *dto.IngredientSearchRequest) ([]models.Ingredient, int64, error) {
-	return r.ingredients, r.count, r.ingredientsErr
+func (r *MockIngredientRepository) TsvectorSearchIngredients(ctx context.Context, req *dto.IngredientSearchRequest) ([]models.IngredientWithRank, int64, error) {
+	return r.serachRank, r.count, r.ingredientsErr
 }
 
 func newIngredientService(repo *MockIngredientRepository) *IngredientService {

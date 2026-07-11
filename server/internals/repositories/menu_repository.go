@@ -158,53 +158,97 @@ func (r *MenuRepository) SetImagePrimary(ctx context.Context, image *models.Menu
 }
 
 // TSvector search
-func (r *MenuRepository) TsvectorSearchMenuItems(ctx context.Context, req *dto.MenuSearchRequest) ([]models.Menu, int64, error) {
+func (r *MenuRepository) TsvectorSearchMenuItems(ctx context.Context, req *dto.MenuSearchRequest) ([]models.MenuWithRank, int64, error) {
+	if req.Page <= 0 {
+		req.Page = 1
+	}
+	if req.Limit <= 0 {
+		req.Limit = 20
+	}
+
 	offset := utils.Pagination(req.Page, req.Limit)
 
-	// build query
-	query := r.db.Model(&models.Menu{}).
-		Select("menus.*, ts_rank(search_vector, plainto_tsquery('english', ?)) AS rank", req.Query).
-		Where("search_vector @@ plainto_tsquery('english', ?)", req.Query).
-		Where("is_active = ?", true).
-		Offset(offset).Limit(req.Limit)
+	// Base filtered query (shared by count + id/rank lookup)
+	base := r.db.WithContext(ctx).Model(&models.Menu{}).
+		Where("search_vector @@ to_tsquery('english', ? || ':*')", req.Query).
+		Where("is_available = ?", true)
 
 	if req.CategoryID != nil {
-		query.Where("menu_category_id = ?", *req.CategoryID)
+		base = base.Where("menu_category_id = ?", *req.CategoryID)
 	}
-
 	if req.MinPrice != nil {
-		query.Where("price >= ?", *req.MinPrice)
+		base = base.Where("price >= ?", *req.MinPrice)
 	}
-
 	if req.MaxPrice != nil {
-		query.Where("price <= ?", *req.MaxPrice)
+		base = base.Where("price <= ?", *req.MaxPrice)
 	}
-
 	if req.PrepTimeMinutes != nil {
-		query.Where("prep_time_minutes <= ?", *req.PrepTimeMinutes)
+		base = base.Where("prep_time_minutes <= ?", *req.PrepTimeMinutes)
 	}
-
 	if req.SpiceLevel != nil {
-		query.Where("spice_level = ?", *req.SpiceLevel)
+		base = base.Where("spice_level = ?", *req.SpiceLevel)
 	}
 
 	var count int64
-	query.Count(&count)
+	if err := base.Session(&gorm.Session{}).Count(&count).Error; err != nil {
+		return nil, 0, err
+	}
 
-	// Execute query with ranking
-	var menus []models.Menu
-	err :=
-		query.Order("rank DESC, created_at DESC").
-			Preload("Images").
-			Preload("MenuCategory").
-			Preload("DietaryTags").
-			Preload("Allergens").
-			Offset(offset).Limit(req.Limit).
-			Find(&menus).Error
-
+	// get ordered IDs + ranks only, no preloads, no association confusion
+	type idRank struct {
+		ID   uint
+		Rank float32
+	}
+	var idRanks []idRank
+	err := base.Session(&gorm.Session{}).
+		Select("menus.id, ts_rank(search_vector, plainto_tsquery('english', ?)) AS rank", req.Query).
+		Order("rank DESC, created_at DESC").
+		Offset(offset).Limit(req.Limit).
+		Scan(&idRanks).Error
 	if err != nil {
 		return nil, 0, err
 	}
 
-	return menus, count, nil
+	if len(idRanks) == 0 {
+		return []models.MenuWithRank{}, count, nil
+	}
+
+	ids := make([]uint, len(idRanks))
+	rankByID := make(map[uint]float32, len(idRanks))
+	for i, ir := range idRanks {
+		ids[i] = ir.ID
+		rankByID[ir.ID] = ir.Rank
+	}
+
+	// fetch full Menu rows with preloads — normal Menu struct,
+	// so association FK inference works correctly.
+	var menus []models.Menu
+	err = r.db.WithContext(ctx).
+		Preload("Images").
+		Preload("MenuCategory").
+		Preload("DietaryTags").
+		Preload("Allergens").
+		Where("id IN ?", ids).
+		Find(&menus).Error
+	if err != nil {
+		return nil, 0, err
+	}
+
+	// re-merge in rank order (Find with IN doesn't guarantee order)
+	menuByID := make(map[uint]models.Menu, len(menus))
+	for _, m := range menus {
+		menuByID[m.ID] = m
+	}
+
+	rows := make([]models.MenuWithRank, 0, len(ids))
+	for _, id := range ids {
+		if m, ok := menuByID[id]; ok {
+			rows = append(rows, models.MenuWithRank{
+				Menu: m,
+				Rank: rankByID[id],
+			})
+		}
+	}
+
+	return rows, count, nil
 }

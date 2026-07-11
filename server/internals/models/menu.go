@@ -72,3 +72,13 @@ type DietaryTag struct {
 	// Relationships
 	Menu []Menu `json:"-" gorm:"many2many:menu_item_dietary"`
 }
+
+type MenuWithRank struct {
+	Menu
+	Rank float32 `gorm:"column:rank"`
+}
+
+type MenuCategoryWithRank struct {
+	MenuCategory
+	Rank float32 `gorm:"column:rank"`
+}

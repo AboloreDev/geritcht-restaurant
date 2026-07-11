@@ -21,7 +21,8 @@ type MockUserRepository struct {
 	getErr    error
 	createErr error
 	updateErr error
-	users     []*models.User
+	users     []models.User
+	userSearchRank []models.UserWithRank
 	total     int64
 }
 
@@ -66,7 +67,7 @@ func (m *MockUserRepository) UpdateActiveByRole(ctx context.Context, id uint, ro
 func (m *MockUserRepository) GetByIDAndRole(ctx context.Context, id uint, role models.UserRole) (*models.User, error) {
 	return m.user, m.getErr
 }
-func (m *MockUserRepository) GetAllByRole(ctx context.Context, role models.UserRole, page, pageSize int) ([]*models.User, int64, error) {
+func (m *MockUserRepository) GetAllByRole(ctx context.Context, role models.UserRole, page, pageSize int) ([]models.User, int64, error) {
 	return m.users, m.total, m.getErr
 }
 
@@ -90,12 +91,16 @@ func (m *MockAuthRepository) ResetPassword(user *models.User, token *models.Toke
 	return m.err
 }
 func (m *MockAuthRepository) ChangePassword(user *models.User, password string) error { return m.err }
+func (m *MockUserRepository) TsvectorSearchUsers(_ context.Context, req *dto.UserSearchRequest) ([]models.UserWithRank, int64, error) {
+	return m.userSearchRank, m.total, m.getErr
+}
 
 // ─── MockPublisher
 
 func (m *MockPublisher) PublishMessage(eventType string, payload interface{}, metadata map[string]string) error {
 	return m.err
 }
+
 func (m *MockPublisher) CloseMessage() error { return nil }
 
 // ─── Config

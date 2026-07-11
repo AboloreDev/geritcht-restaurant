@@ -88,13 +88,21 @@ func (r *CategoryRepository) CountMenuItems(ctx context.Context, categoryID uint
 }
 
 // TSvector search
-func (r *MenuRepository) TsvectorSearchCategories(ctx context.Context, req *dto.CategorySearchRequest) ([]models.MenuCategory, int64, error) {
+func (r *CategoryRepository) TsvectorSearchCategories(ctx context.Context, req *dto.CategorySearchRequest) ([]models.MenuCategoryWithRank, int64, error) {
+	
+	if req.Page <= 0 {
+		req.Page = 1
+	}
+	if req.Limit <= 0 {
+		req.Limit = 20
+	}
 	offset := utils.Pagination(req.Page, req.Limit)
+	
 
 	// build query
 	query := r.db.Model(&models.MenuCategory{}).
-		Select("categories.*, ts_rank(search_vector, plainto_tsquery('english', ?)) AS rank", req.Query).
-		Where("search_vector @@ plainto_tsquery('english', ?)", req.Query).
+		Select("menu_categories.*, ts_rank(search_vector, plainto_tsquery('english', ?)) AS rank", req.Query).
+		Where("search_vector @@ to_tsquery('english', ? || ':*')", req.Query).
 		Where("is_active = ?", true).
 		Offset(offset).Limit(req.Limit)
 
@@ -102,15 +110,15 @@ func (r *MenuRepository) TsvectorSearchCategories(ctx context.Context, req *dto.
 	query.Count(&count)
 
 	// Execute query with ranking
-	var catrgories []models.MenuCategory
+	var rows []models.MenuCategoryWithRank
 	err :=
 		query.Order("rank DESC, created_at DESC").
 			Offset(offset).Limit(req.Limit).
-			Find(&catrgories).Error
+			Find(&rows).Error
 
 	if err != nil {
 		return nil, 0, err
 	}
 
-	return catrgories, count, nil
+	return rows, count, nil
 }

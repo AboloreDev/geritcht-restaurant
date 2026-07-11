@@ -51,7 +51,7 @@ func (s *MenuItemIngredientService) AddMenuRecipe(ctx context.Context, menuItemI
 		CreatedAt:    time.Now(),
 	}
 
-	err = s.recipesRepo.Create(ctx, &recipe)
+	err = s.recipesRepo.CreateRecipe(ctx, &recipe)
 	if err != nil {
 		return nil, err
 	}
@@ -78,7 +78,7 @@ func (s *MenuItemIngredientService) UpdateMenuRecipe(ctx context.Context, menuIt
 		recipe.Quantity = req.Quantity
 	}
 
-	err = s.recipesRepo.Update(ctx, recipe)
+	err = s.recipesRepo.UpdateLinkedIngredients(ctx, recipe)
 	if err != nil {
 		return nil, err
 	}
@@ -96,7 +96,7 @@ func (s *MenuItemIngredientService) UpdateMenuRecipe(ctx context.Context, menuIt
 }
 
 func (s *MenuItemIngredientService) DeleteRecipe(ctx context.Context, menuItemID uint, ingredientID uint) error {
-	err := s.recipesRepo.Delete(ctx, menuItemID, ingredientID)
+	err := s.recipesRepo.DeleteLinkedIngredient(ctx, menuItemID, ingredientID)
 	if err != nil {
 		return domain.ErrNotFound
 	}
@@ -105,7 +105,7 @@ func (s *MenuItemIngredientService) DeleteRecipe(ctx context.Context, menuItemID
 }
 
 func (s *MenuItemIngredientService) GetAllRecipes(ctx context.Context, menuItemID uint) ([]*dto.MenuItemIngredientResponse, error) {
-	recipes, err := s.recipesRepo.GetByMenuItemID(ctx, menuItemID)
+	recipes, err := s.recipesRepo.GetRecipesByMenuItemID(ctx, menuItemID)
 	if err != nil {
 		return nil, domain.ErrMenuNotFound
 	}

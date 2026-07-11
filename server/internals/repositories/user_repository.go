@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/AboloreDev/geritcht-restaurant/internals/domain"
+	"github.com/AboloreDev/geritcht-restaurant/internals/dto"
 	"github.com/AboloreDev/geritcht-restaurant/internals/models"
 	"github.com/AboloreDev/geritcht-restaurant/internals/utils"
 	"gorm.io/gorm"
@@ -82,8 +83,8 @@ func (r *UserRepository) GetByIdAndActive(ctx context.Context, id uint, active b
 	return &user, nil
 }
 
-func (r *UserRepository) GetAllByRole(ctx context.Context, role models.UserRole, page, pageSize int) ([]*models.User, int64, error) {
-	var users []*models.User
+func (r *UserRepository) GetAllByRole(ctx context.Context, role models.UserRole, page, pageSize int) ([]models.User, int64, error) {
+	var users []models.User
 	var total int64
 	offset := utils.Pagination(page, pageSize)
 
@@ -126,4 +127,82 @@ func (r *UserRepository) UpdateActiveByRole(ctx context.Context, id uint, role m
 		return domain.ErrNotFound
 	}
 	return nil
+}
+
+func (r *UserRepository) TsvectorSearchUsers(ctx context.Context, req *dto.UserSearchRequest) ([]models.UserWithRank, int64, error) {
+	if req.Page <= 0 {
+		req.Page = 1
+	}
+	if req.Limit <= 0 {
+		req.Limit = 20
+	}
+
+	offset := utils.Pagination(req.Page, req.Limit)
+
+	// Base filtered query (shared by count + id/rank lookup)
+	base := r.db.WithContext(ctx).Model(&models.User{}).
+		Where("search_vector @@ to_tsquery('english', ? || ':*')", req.Query).
+		Where("is_active = ?", true)
+
+	var count int64
+	if err := base.Session(&gorm.Session{}).Count(&count).Error; err != nil {
+		return nil, 0, err
+	}
+
+	// get ordered IDs + ranks only, no preloads, no association confusion
+	type idRank struct {
+		ID   uint
+		Rank float32
+	}
+	var idRanks []idRank
+	err := base.Session(&gorm.Session{}).
+		Select("users.id, ts_rank(search_vector, plainto_tsquery('english', ?)) AS rank", req.Query).
+		Order("rank DESC, created_at DESC").
+		Offset(offset).Limit(req.Limit).
+		Scan(&idRanks).Error
+	if err != nil {
+		return nil, 0, err
+	}
+
+	if len(idRanks) == 0 {
+		return []models.UserWithRank{}, count, nil
+	}
+
+	ids := make([]uint, len(idRanks))
+	rankByID := make(map[uint]float32, len(idRanks))
+	for i, ir := range idRanks {
+		ids[i] = ir.ID
+		rankByID[ir.ID] = ir.Rank
+	}
+
+	// fetch full Menu rows with preloads — normal Menu struct,
+	// so association FK inference works correctly.
+	var users []models.User
+	err = r.db.WithContext(ctx).
+		Preload("Orders").
+		Preload("Reservations").
+		Where("id IN ?", ids).
+		Find(&users).Error
+	if err != nil {
+		return nil, 0, err
+	}
+
+	// re-merge in rank order (Find with IN doesn't guarantee order)
+	userByID := make(map[uint]models.User, len(users))
+	for _, m := range users {
+		userByID[m.ID] = m
+	}
+
+	rows := make([]models.UserWithRank, 0, len(ids))
+	for _, id := range ids {
+		if m, ok := userByID[id]; ok {
+			rows = append(rows, models.UserWithRank{
+				User: m,
+				Rank: rankByID[id],
+			})
+		}
+	}
+
+	return rows, count, nil
+
 }

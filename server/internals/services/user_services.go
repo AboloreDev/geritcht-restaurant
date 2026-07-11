@@ -97,6 +97,39 @@ func (s *UserService) UpdateStaffService(ctx context.Context, userID uint, req *
 	return s.updateUser(ctx, user, req)
 }
 
+func (s *UserService) SearchUser(ctx context.Context, req *dto.UserSearchRequest) ([]*dto.UserSearchResponse, *utils.PaginatedMeta, error) {
+	users, count, err := s.userRepo.TsvectorSearchUsers(ctx, req)
+	if err != nil {
+		return nil, nil, domain.ErrUserSearchNotFound
+	}
+
+	response := make([]*dto.UserSearchResponse, len(users))
+
+	for i, user := range users {
+		response[i] = &dto.UserSearchResponse{
+			UserResponse: *s.ConvertToUserResponse(&user.User),
+			Rank:         user.Rank,
+		}
+	}
+
+	if req.Page <= 0 {
+		req.Page = 1
+	}
+	if req.Limit <= 0 {
+		req.Limit = 20
+	}
+
+	totalPages := int((count + int64(req.Limit) - 1) / int64(req.Limit))
+	meta := &utils.PaginatedMeta{
+		Page:       req.Page,
+		Limit:      req.Limit,
+		Total:      count,
+		TotalPages: totalPages,
+	}
+
+	return response, meta, nil
+}
+
 // ReUseable helpers
 func (s *UserService) updateUser(ctx context.Context, user *models.User, req *dto.UpdateProfileRequest) (*dto.UserResponse, error) {
 	if req.FirstName != "" {
@@ -116,10 +149,10 @@ func (s *UserService) updateUser(ctx context.Context, user *models.User, req *dt
 	return s.ConvertToUserResponse(user), nil
 }
 
-func (s *UserService) buildUserListResponse(users []*models.User, total int64, page, pageSize int) ([]*dto.UserResponse, *utils.PaginatedMeta, error) {
+func (s *UserService) buildUserListResponse(users []models.User, total int64, page, pageSize int) ([]*dto.UserResponse, *utils.PaginatedMeta, error) {
 	response := make([]*dto.UserResponse, 0, len(users))
 	for _, user := range users {
-		response = append(response, s.ConvertToUserResponse(user))
+		response = append(response, s.ConvertToUserResponse(&user))
 	}
 
 	totalPages := int((total + int64(pageSize) - 1) / int64(pageSize))

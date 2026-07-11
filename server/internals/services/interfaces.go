@@ -123,6 +123,7 @@ type PaymentServiceInterface interface {
 	GetPaymentDetails(ctx context.Context, paymentID uint) (*dto.PaymentResponse, error)
 	GetRefundDetails(ctx context.Context, refundID uint) (*dto.RefundResponse, error)
 	GetAllPaymentHistory(ctx context.Context, userID uint, page, pageSize int) ([]*dto.PaymentResponse, *utils.PaginatedMeta, error)
+	VerifyPayment(ctx context.Context, req *dto.VerifyPaymentRequest) (*dto.PaymentResponse, error)
 }
 
 // Reservation Service
@@ -168,7 +169,8 @@ type UserServiceInterface interface {
 	UpdateProfileService(ctx context.Context, userID uint, req *dto.UpdateProfileRequest) (*dto.UserResponse, error)
 	UpdateStaffService(ctx context.Context, userID uint, req *dto.UpdateProfileRequest) (*dto.UserResponse, error)
 	updateUser(ctx context.Context, user *models.User, req *dto.UpdateProfileRequest) (*dto.UserResponse, error)
-	buildUserListResponse(users []*models.User, total int64, page, pageSize int) ([]*dto.UserResponse, *utils.PaginatedMeta, error)
+	buildUserListResponse(users []models.User, total int64, page, pageSize int) ([]*dto.UserResponse, *utils.PaginatedMeta, error)
+	SearchUser(ctx context.Context, req *dto.UserSearchRequest) ([]*dto.UserSearchResponse, *utils.PaginatedMeta, error)
 }
 
 // Waitlist service

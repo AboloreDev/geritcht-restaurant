@@ -57,4 +57,8 @@ var (
 	ErrInternalServerError      = errors.New("Internal Server Error")
 	ErrCannotCheckIn            = errors.New("Cannot check in yet. Please wait until your reservation time")
 	ErrLinkedIngredeintNotFound = errors.New("Linked ingredient not found")
+	ErrMenuSearchNotFound       = errors.New("Menu Search Not Found")
+	ErrUserSearchNotFound       = errors.New("User Search Not Found")
+	ErrIngredientSearchNotFound = errors.New("Ingredient Search Not Found")
+	ErrCategoriesSearchNotFound = errors.New("Categories Search Not Found")
 )

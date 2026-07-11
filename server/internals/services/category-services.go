@@ -231,18 +231,25 @@ func (s *CategoryService) SearchCategory(ctx context.Context, req *dto.CategoryS
 		}
 	}
 
-	categories, count, err := s.categoryRepo.TsvectorSearchCategories(ctx, req)
+	rows, count, err := s.categoryRepo.TsvectorSearchCategories(ctx, req)
 	if err != nil {
-		return nil, nil, err
+		return nil, nil, domain.ErrCategoriesSearchNotFound
 	}
 
-	response := make([]*dto.CategorySearchResponse, len(categories))
+	response := make([]*dto.CategorySearchResponse, len(rows))
 
-	for i, cat := range categories {
+	for i, row := range rows {
 		response[i] = &dto.CategorySearchResponse{
-			MenuCategoryResponse: *s.ConvertCategoryResponse(&cat),
-			Rank:                 0.0,
+			MenuCategoryResponse: *s.ConvertCategoryResponse(&row.MenuCategory),
+			Rank:                 row.Rank,
 		}
+	}
+
+	if req.Page <= 0 {
+		req.Page = 1
+	}
+	if req.Limit <= 0 {
+		req.Limit = 20
 	}
 
 	totalPages := int((count + int64(req.Limit) - 1) / int64(req.Limit))

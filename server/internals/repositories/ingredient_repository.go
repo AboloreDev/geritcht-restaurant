@@ -20,6 +20,7 @@ func NewIngredientRepository(db *gorm.DB) *IngredientRepository {
 	}
 }
 
+
 func (r *IngredientRepository) GetIngredientByName(ctx context.Context, name string) (*models.Ingredient, error) {
 	var ingredient models.Ingredient
 
@@ -123,12 +124,19 @@ func (r *IngredientRepository) UpdateThreshHoldLimit(ctx context.Context, ingred
 	return nil
 }
 
-func (r *IngredientRepository) TsvectorSearchIngredients(ctx context.Context, req *dto.IngredientSearchRequest) ([]models.Ingredient, int64, error) {
+func (r *IngredientRepository) TsvectorSearchIngredients(ctx context.Context, req *dto.IngredientSearchRequest) ([]models.IngredientWithRank, int64, error) {
+	if req.Page <= 0 {
+		req.Page = 1
+	}
+	if req.Limit <= 0 {
+		req.Limit = 20
+	}
+	
 	offset := utils.Pagination(req.Page, req.Limit)
 
 	// build query
 	query := r.db.Model(&models.Ingredient{}).WithContext(ctx).
-		Select("categories.*, ts_rank(search_vector, plainto_tsquery('english', ?)) AS rank", req.Query).
+		Select("ingredients.*, ts_rank(search_vector, plainto_tsquery('english', ?)) AS rank", req.Query).
 		Where("search_vector @@ plainto_tsquery('english', ?)", req.Query).
 		Offset(offset).Limit(req.Limit)
 
@@ -143,17 +151,19 @@ func (r *IngredientRepository) TsvectorSearchIngredients(ctx context.Context, re
 	query.Count(&count)
 
 	// Execute query with ranking
-	var ingredients []models.Ingredient
+	// Crreate rank struct 
+	
+	var rows []models.IngredientWithRank
 	err :=
 		query.Order("rank DESC, created_at DESC").
 			Preload("StockMovement").
 			Preload("MenuItemIngredients").
 			Offset(offset).Limit(req.Limit).
-			Find(&ingredients).Error
+			Find(&rows).Error
 
 	if err != nil {
 		return nil, 0, err
 	}
 
-	return ingredients, count, nil
+	return rows, count, nil
 }

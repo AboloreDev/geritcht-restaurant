@@ -50,3 +50,8 @@ const (
 	StockMovementOut   StockMovementType = "out"
 	StockMovementWaste StockMovementType = "waste"
 )
+
+type IngredientWithRank struct {
+	Ingredient
+	Rank float32 `gorm:"column:rank"`
+}

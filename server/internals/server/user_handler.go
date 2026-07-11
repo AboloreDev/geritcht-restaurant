@@ -1,6 +1,7 @@
 package server
 
 import (
+	"errors"
 	"strconv"
 
 	"github.com/AboloreDev/geritcht-restaurant/internals/domain"
@@ -177,4 +178,29 @@ func (s *Server) UpdateStaffProfileHandler(ctx *gin.Context) {
 	}
 
 	utils.SuccessResponse(ctx, "Staff updated successfully", response)
+}
+
+func (s *Server) SearchUserHandler(ctx *gin.Context) {
+	var req dto.UserSearchRequest
+
+	if err := ctx.ShouldBindQuery(&req); err != nil {
+		utils.BadRequest(ctx, "Invalid search parameters", err)
+		return
+	}
+
+	response, meta, err := s.userServices.SearchUser(ctx.Request.Context(), &req)
+	if err != nil {
+		switch err {
+		case domain.ErrUserSearchNotFound:
+
+			utils.NotFound(ctx, "Search returned no result", err)
+		case domain.ErrInternalServerError:
+			s.log.Error().Err(err).Msg("User search failed")
+			utils.InternalServerError(ctx, "Something went wrong", errors.New("unable to complete search at this time"))
+			return
+		}
+
+	}
+
+	utils.PaginatedSuccessResponse(ctx, "user retrieved successfully", response, *meta)
 }

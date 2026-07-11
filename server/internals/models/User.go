@@ -45,3 +45,9 @@ const (
 	RoleStaff    UserRole = "staff"
 	RoleAdmin    UserRole = "admin"
 )
+
+
+type UserWithRank struct {
+	User
+	Rank float32 `gorm:"column:rank"`
+}

@@ -18,6 +18,7 @@ var testCategoryCtx = context.Background()
 type MockCategoryRepository struct {
 	category   *models.MenuCategory
 	categories []models.MenuCategory
+	searchRank []models.MenuCategoryWithRank
 	total      int64
 	getErr     error
 	createErr  error
@@ -49,8 +50,8 @@ func (m *MockCategoryRepository) Delete(_ context.Context, categoryID uint) erro
 func (m *MockCategoryRepository) CountMenuItems(_ context.Context, categoryID uint) (int64, error) {
 	return m.menuCount, m.countErr
 }
-func (m *MockCategoryRepository) TsvectorSearchCategories(_ context.Context, req *dto.CategorySearchRequest) ([]models.MenuCategory, int64, error) {
-	return m.categories, m.menuCount, m.countErr
+func (m *MockCategoryRepository) TsvectorSearchCategories(_ context.Context, req *dto.CategorySearchRequest) ([]models.MenuCategoryWithRank, int64, error) {
+	return m.searchRank, m.menuCount, m.countErr
 }
 
 // ─── Helper
