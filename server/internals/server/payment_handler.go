@@ -170,7 +170,7 @@ func (s *Server) GetAllPaymentHistory(ctx *gin.Context) {
 // @Failure 401 {object} utils.Response "Unauthorized"
 // @Failure 404 {object} utils.Response "Payment not found"
 // @Failure 500 {object} utils.Response "Internal server error"
-// @Router /payments/{reference} [get]
+// @Router /payments/ref/{reference} [get]
 func (s *Server) GetPaymentByReferenceHandler(ctx *gin.Context) {
 	reference := ctx.Param("reference")
 

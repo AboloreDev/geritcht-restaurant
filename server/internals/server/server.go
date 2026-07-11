@@ -238,7 +238,7 @@ func (s *Server) SetUpRoutes() *gin.Engine {
 				payment.GET("/history", s.GetAllPaymentHistory)
 				payment.GET("/:id", s.GetPaymentDetailsHandler)
 				payment.GET("/refund/:id", s.GetRefundDetailsHandler)
-				payment.GET("/:reference", s.GetPaymentByReferenceHandler)
+				payment.GET("/ref/:reference", s.GetPaymentByReferenceHandler)
 
 			}
 			websocket := protected.Group("/ws")
