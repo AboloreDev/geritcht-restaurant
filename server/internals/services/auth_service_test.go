@@ -17,13 +17,13 @@ var testCtx = context.Background()
 
 // ─── MockUserRepository
 type MockUserRepository struct {
-	user      *models.User
-	getErr    error
-	createErr error
-	updateErr error
-	users     []models.User
+	user           *models.User
+	getErr         error
+	createErr      error
+	updateErr      error
+	users          []models.User
 	userSearchRank []models.UserWithRank
-	total     int64
+	total          int64
 }
 
 type MockAuthRepository struct {

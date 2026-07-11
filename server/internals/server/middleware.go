@@ -9,6 +9,8 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+// @Security BearerAuth
+// @Failure 401 {object} utils.Response "Unauthorized"
 func (s *Server) AuthMiddleware() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		// Authorization Bearer token
@@ -41,6 +43,9 @@ func (s *Server) AuthMiddleware() gin.HandlerFunc {
 	}
 }
 
+// @Security BearerAuth
+// @Failure 401 {object} utils.Response "Unauthorized"
+// @Failure 403 {object} utils.Response "Forbidden"
 func (s *Server) AdminMiddleware() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		role, exists := ctx.Get("user_role")
@@ -61,6 +66,9 @@ func (s *Server) AdminMiddleware() gin.HandlerFunc {
 	}
 }
 
+// @Security BearerAuth
+// @Failure 401 {object} utils.Response "Unauthorized"
+// @Failure 403 {object} utils.Response "Forbidden"
 func (s *Server) StaffMiddleware() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		role, exists := ctx.Get("user_role")
@@ -81,6 +89,9 @@ func (s *Server) StaffMiddleware() gin.HandlerFunc {
 	}
 }
 
+// @Security BearerAuth
+// @Failure 401 {object} utils.Response "Unauthorized"
+// @Failure 403 {object} utils.Response "Forbidden"
 func (s *Server) RoleMiddleware(roles ...string) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 
@@ -91,14 +102,14 @@ func (s *Server) RoleMiddleware(roles ...string) gin.HandlerFunc {
 
 		userRole, exists := ctx.Get("user_role")
 		if !exists {
-			utils.Forbidden(ctx, "Forbidden", nil)
+			utils.Forbidden(ctx, "You do not have permission to access this resource", nil)
 			ctx.Abort()
 			return
 		}
 
 		roleStr, ok := userRole.(string)
 		if !ok {
-			utils.Forbidden(ctx, "Invalid Role", nil)
+			utils.Forbidden(ctx, "Invalid role information", nil)
 			ctx.Abort()
 			return
 		}

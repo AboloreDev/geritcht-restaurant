@@ -11,6 +11,19 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+// @Summary Initialize payment
+// @Description Initialize a payment for an existing order and return the payment authorization details.
+// @Tags Payments
+// @Accept json
+// @Produce json
+// @Param input body dto.InitializePaymentRequest true "Payment initialization request"
+// @Security BearerAuth
+// @Success 200 {object} utils.Response{data=dto.InitializePaymentResponse} "Payment initialized successfully"
+// @Failure 400 {object} utils.Response "Invalid request data, invalid order status, or order already paid"
+// @Failure 401 {object} utils.Response "Unauthorized"
+// @Failure 404 {object} utils.Response "Order or payment not found"
+// @Failure 500 {object} utils.Response "Internal server error"
+// @Router /payments/initialize [post]
 func (s *Server) InitilaisePaymentHandler(ctx *gin.Context) {
 	userID := ctx.GetUint("user_id")
 
@@ -36,11 +49,22 @@ func (s *Server) InitilaisePaymentHandler(ctx *gin.Context) {
 			utils.InternalServerError(ctx, "Failed to initialize payment", err)
 			return
 		}
+		return
 	}
 
 	utils.SuccessResponse(ctx, "Payment initialized successfully", response)
 }
 
+// @Summary Verify payment
+// @Description Verify the status of a payment using its transaction reference.
+// @Tags Payments
+// @Accept json
+// @Produce json
+// @Param input body dto.VerifyPaymentRequest true "Payment verification request"
+// @Success 200 {object} utils.Response{data=dto.VerifyPaymentResponse} "Payment verified successfully"
+// @Failure 400 {object} utils.Response "Invalid request data or payment not found"
+// @Failure 500 {object} utils.Response "Internal server error"
+// @Router /payments/verify/{ref} [post]
 func (s *Server) VerifyPaymentHandler(ctx *gin.Context) {
 	var req dto.VerifyPaymentRequest
 	err := ctx.ShouldBindJSON(&req)
@@ -58,11 +82,22 @@ func (s *Server) VerifyPaymentHandler(ctx *gin.Context) {
 			utils.InternalServerError(ctx, "Failed to verify payment", err)
 			return
 		}
+		return
 	}
 
 	utils.SuccessResponse(ctx, "Payment verified successfully", response)
 }
 
+// @Summary Handle Paystack webhook
+// @Description Internal endpoint to handle incoming Paystack webhook requests for payment updates.
+// @Tags Payments
+// @Accept json
+// @Produce json
+// @Param payload body dto.WebhookPayload true "Webhook payload"
+// @Success 200 "Webhook processed successfully"
+// @Failure 400 {object} utils.Response "Invalid signature or payment not found"
+// @Failure 500 {object} utils.Response "Internal server error"
+// @Router /payments/webhook [post]
 func (s *Server) WebhookHandler(ctx *gin.Context) {
 	body, err := io.ReadAll(ctx.Request.Body)
 	if err != nil {
@@ -89,11 +124,24 @@ func (s *Server) WebhookHandler(ctx *gin.Context) {
 			ctx.Status(http.StatusOK)
 			return
 		}
+		return
 	}
 
 	utils.SuccessResponse(ctx, "success", nil)
 }
 
+// @Summary Get payment history
+// @Description Retrieve a paginated list of all payments made by the authenticated user.
+// @Tags Payments
+// @Accept json
+// @Produce json
+// @Param page query int false "Page number" default(1)
+// @Param pageSize query int false "Number of items per page" default(10)
+// @Security BearerAuth
+// @Success 200 {object} utils.PaginatedResponse{data=[]dto.PaymentResponse} "Payment history retrieved successfully"
+// @Failure 401 {object} utils.Response "Unauthorized"
+// @Failure 500 {object} utils.Response "Internal server error"
+// @Router /payments/history [get]
 func (s *Server) GetAllPaymentHistory(ctx *gin.Context) {
 	userID := ctx.GetUint("user_id")
 	pageStr := ctx.DefaultQuery("page", "1")
@@ -111,6 +159,18 @@ func (s *Server) GetAllPaymentHistory(ctx *gin.Context) {
 	utils.PaginatedSuccessResponse(ctx, "Payments fetched successfully", response, *meta)
 }
 
+// @Summary Get payment by reference
+// @Description Retrieve the details of a payment using its unique payment reference.
+// @Tags Payments
+// @Accept json
+// @Produce json
+// @Param reference path string true "Payment reference"
+// @Security BearerAuth
+// @Success 200 {object} utils.Response{data=dto.PaymentResponse} "Payment retrieved successfully"
+// @Failure 401 {object} utils.Response "Unauthorized"
+// @Failure 404 {object} utils.Response "Payment not found"
+// @Failure 500 {object} utils.Response "Internal server error"
+// @Router /payments/{reference} [get]
 func (s *Server) GetPaymentByReferenceHandler(ctx *gin.Context) {
 	reference := ctx.Param("reference")
 
@@ -122,11 +182,24 @@ func (s *Server) GetPaymentByReferenceHandler(ctx *gin.Context) {
 		default:
 			utils.InternalServerError(ctx, "Failed to fetch payment history", err)
 		}
+		return
 	}
 
 	utils.SuccessResponse(ctx, "Payment fetched successfully", response)
 }
 
+// @Summary Get payment details
+// @Description Retrieve the details of a payment using its unique ID.
+// @Tags Payments
+// @Accept json
+// @Produce json
+// @Param id path string true "Payment ID"
+// @Security BearerAuth
+// @Success 200 {object} utils.Response{data=dto.PaymentWithOrderResponse} "Payment retrieved successfully"
+// @Failure 401 {object} utils.Response "Unauthorized"
+// @Failure 404 {object} utils.Response "Payment not found"
+// @Failure 500 {object} utils.Response "Internal server error"
+// @Router /payments/{id} [get]
 func (s *Server) GetPaymentDetailsHandler(ctx *gin.Context) {
 	idStr := ctx.Param("id")
 	id, err := strconv.ParseUint(idStr, 10, 32)
@@ -144,11 +217,24 @@ func (s *Server) GetPaymentDetailsHandler(ctx *gin.Context) {
 		default:
 			utils.InternalServerError(ctx, "Failed to fetch payment history", err)
 		}
+		return
 	}
 
 	utils.SuccessResponse(ctx, "Payment fetched successfully", response)
 }
 
+// @Summary Get refund details
+// @Description Retrieve the details of a refund using its unique ID.
+// @Tags Payments
+// @Accept json
+// @Produce json
+// @Param id path string true "Refund ID"
+// @Security BearerAuth
+// @Success 200 {object} utils.Response{data=dto.RefundResponse} "Refund retrieved successfully"
+// @Failure 401 {object} utils.Response "Unauthorized"
+// @Failure 404 {object} utils.Response "Refund not found"
+// @Failure 500 {object} utils.Response "Internal server error"
+// @Router /refunds/{id} [get]
 func (s *Server) GetRefundDetailsHandler(ctx *gin.Context) {
 	idStr := ctx.Param("id")
 	id, err := strconv.ParseUint(idStr, 10, 32)
@@ -166,6 +252,7 @@ func (s *Server) GetRefundDetailsHandler(ctx *gin.Context) {
 		default:
 			utils.InternalServerError(ctx, "Failed to fetch refund", err)
 		}
+		return
 	}
 
 	utils.SuccessResponse(ctx, "Refund fetched successfully", response)

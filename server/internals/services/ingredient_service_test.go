@@ -20,7 +20,7 @@ type MockIngredientRepository struct {
 	rowsAffected int64
 	lowStock     []models.Ingredient
 	count        int64
-	serachRank []models.IngredientWithRank
+	serachRank   []models.IngredientWithRank
 
 	ingredientsErr error
 	ingredientErr  error
@@ -31,7 +31,6 @@ type MockIngredientRepository struct {
 	createErr      error
 	countErr       error
 }
-
 
 func (r *MockIngredientRepository) GetIngredientByName(_ context.Context, name string) (*models.Ingredient, error) {
 	return r.ingredient, r.ingredientErr

@@ -19,14 +19,14 @@ import (
 type MenuService struct {
 	menuRepo   repositories.MenuRepositoryInterface
 	redisStore interfaces.Cacher
-	log zerolog.Logger
+	log        zerolog.Logger
 }
 
 func NewMenuService(menuRepo repositories.MenuRepositoryInterface, redisStore interfaces.Cacher, log zerolog.Logger) *MenuService {
 	return &MenuService{
 		menuRepo:   menuRepo,
 		redisStore: redisStore,
-		log: log,
+		log:        log,
 	}
 }
 
@@ -381,13 +381,13 @@ func (s *MenuService) SearchProduct(ctx context.Context, req *dto.MenuSearchRequ
 
 	menus, count, err := s.menuRepo.TsvectorSearchMenuItems(ctx, req)
 	if err != nil {
-    s.log.Error().Err(err).Str("query", req.Query).Msg("menu search query failed")
-    return nil, nil, domain.ErrInternalServerError
+		s.log.Error().Err(err).Str("query", req.Query).Msg("menu search query failed")
+		return nil, nil, domain.ErrInternalServerError
 	}
 
-if len(menus) == 0 {
-    return nil, nil, domain.ErrMenuSearchNotFound
-}
+	if len(menus) == 0 {
+		return nil, nil, domain.ErrMenuSearchNotFound
+	}
 
 	response := make([]*dto.MenuSearchResponse, len(menus))
 

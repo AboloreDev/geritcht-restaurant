@@ -7,6 +7,18 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+// @Summary Join waitlist
+// @Description Join the reservation waitlist for a preferred date, time slot, and party size when no suitable table is available.
+// @Tags Waitlist
+// @Accept json
+// @Produce json
+// @Param input body dto.JoinWaitlistRequest true "Waitlist request"
+// @Security BearerAuth
+// @Success 201 {object} utils.Response{data=dto.WaitlistResponse} "Successfully joined the waitlist"
+// @Failure 400 {object} utils.Response "Invalid request data, invalid date/time, table available, invalid table capacity, or user already on the waitlist"
+// @Failure 401 {object} utils.Response "Unauthorized"
+// @Failure 500 {object} utils.Response "Internal server error"
+// @Router /waitlist [post]
 func (s *Server) JoinWaitlistHandler(ctx *gin.Context) {
 	userID := ctx.GetUint("user_id")
 
@@ -40,6 +52,19 @@ func (s *Server) JoinWaitlistHandler(ctx *gin.Context) {
 	utils.CreatedResponse(ctx, "Joined waitlist success", response)
 }
 
+// @Summary Get waitlist position
+// @Description Retrieve the authenticated user's current position on the waitlist for a specific date and time slot.
+// @Tags Waitlist
+// @Accept json
+// @Produce json
+// @Param date query string true "Reservation date (YYYY-MM-DD)"
+// @Param time_slot query string true "Reservation time slot"
+// @Security BearerAuth
+// @Success 200 {object} utils.Response{data=dto.WaitlistPositionResponse} "Waitlist position retrieved successfully"
+// @Failure 400 {object} utils.Response "Invalid request or user is not on the waitlist"
+// @Failure 401 {object} utils.Response "Unauthorized"
+// @Failure 500 {object} utils.Response "Internal server error"
+// @Router /waitlist/position [get]
 func (s *Server) GetWaitlistPositionHandler(ctx *gin.Context) {
 	userID := ctx.GetUint("user_id")
 

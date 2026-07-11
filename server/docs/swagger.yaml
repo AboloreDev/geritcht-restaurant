@@ -1,0 +1,22 @@
+basePath: /api/v1
+host: localhost:9090
+info:
+  contact:
+    email: alabifathiu@yahoo.com
+    name: Alabi Fathiu
+    url: http://linkedin.com/in/fathiu-alabi
+  description: A modern Restaurant API built with Go, Gin, and GORM
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+  termsOfService: http://swagger.io/terms/
+  title: Geritcht Restaurant API
+  version: "1.0"
+paths: {}
+securityDefinitions:
+  BearerAuth:
+    description: Type "Bearer" followed by a space and JWT token.
+    in: header
+    name: Authorization
+    type: apiKey
+swagger: "2.0"

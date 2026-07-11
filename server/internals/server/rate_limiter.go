@@ -9,6 +9,11 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+// @Header 200 {string} X-RateLimit-Limit "Maximum requests allowed"
+// @Header 200 {string} X-RateLimit-Remaining "Remaining requests in the current window"
+// @Header 429 {string} X-RateLimit-Limit "Maximum requests allowed"
+// @Header 429 {string} X-RateLimit-Remaining "Remaining requests (0 when limited)"
+// Under limit -> accept/ allow
 func (s *Server) RateLimiter(limit int, window time.Duration) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		ip := ctx.ClientIP()
@@ -30,12 +35,12 @@ func (s *Server) RateLimiter(limit int, window time.Duration) gin.HandlerFunc {
 		if int(count) > limit {
 			ctx.Header("X-RateLimit-Limit", strconv.Itoa(limit))
 			ctx.Header("X-RateLimit-Remaining", "0")
-			utils.TooManyRequests(ctx, "Too many requests", err)
+			utils.TooManyRequests(ctx, fmt.Sprintf("Rate limit exceeded. Maximum %d requests every %s.", limit, window), nil)
 			ctx.Abort()
 			return
 		}
 
-		// Under limit -> accept/ allow
+		
 		ctx.Header("X-RateLimit-Limit", strconv.Itoa(limit))
 		ctx.Header("X-RateLimit-Remaining", strconv.Itoa(limit-int(count)))
 		ctx.Next()

@@ -1,0 +1,29 @@
+{
+    "swagger": "2.0",
+    "info": {
+        "description": "A modern Restaurant API built with Go, Gin, and GORM",
+        "title": "Geritcht Restaurant API",
+        "termsOfService": "http://swagger.io/terms/",
+        "contact": {
+            "name": "Alabi Fathiu",
+            "url": "http://linkedin.com/in/fathiu-alabi",
+            "email": "alabifathiu@yahoo.com"
+        },
+        "license": {
+            "name": "Apache 2.0",
+            "url": "http://www.apache.org/licenses/LICENSE-2.0.html"
+        },
+        "version": "1.0"
+    },
+    "host": "localhost:9090",
+    "basePath": "/api/v1",
+    "paths": {},
+    "securityDefinitions": {
+        "BearerAuth": {
+            "description": "Type \"Bearer\" followed by a space and JWT token.",
+            "type": "apiKey",
+            "name": "Authorization",
+            "in": "header"
+        }
+    }
+}

@@ -25,6 +25,27 @@ import (
 	"github.com/redis/go-redis/v9"
 )
 
+// @title Geritcht Restaurant API
+// @version 1.0
+// @description A modern Restaurant API built with Go, Gin, and GORM
+// @termsOfService http://swagger.io/terms/
+
+// @contact.name   Alabi Fathiu
+// @contact.url    http://linkedin.com/in/fathiu-alabi
+// @contact.email  alabifathiu@yahoo.com
+
+// @license.name  Apache 2.0
+// @license.url   http://www.apache.org/licenses/LICENSE-2.0.html
+
+// @host localhost:9090
+// @BasePath /api/v1
+// @schemas http https
+
+// @securityDefinitions.apikey BearerAuth
+// @in header
+// @name Authorization
+// @description Type "Bearer" followed by a space and JWT token.
+
 func init() {
 	fmt.Println("Geritcht Restaurant is starting")
 }

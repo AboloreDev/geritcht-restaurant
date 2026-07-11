@@ -9,6 +9,17 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+// @Summary Add item to cart
+// @Description Add a menu item to the current user's shopping cart
+// @Tags Cart
+// @Accept json
+// @Produce json
+// @Param input body dto.AddToCartRequest true "Menu item and quantity to add"
+// @Security BearerAuth
+// @Success 200 {object} utils.Response{data=dto.CartResponse} "Item added to cart successfully"
+// @Failure 401 {object} utils.Response "Unauthorized"
+// @Failure 404 {object} utils.Response "Menu item not found"
+// @Router /cart [post]
 func (s *Server) AddToCartHandler(ctx *gin.Context) {
 	userID := ctx.GetUint("user_id")
 
@@ -28,6 +39,18 @@ func (s *Server) AddToCartHandler(ctx *gin.Context) {
 	utils.SuccessResponse(ctx, "Item Added to cart successfully", cartResponse)
 }
 
+// @Summary Update cart item
+// @Description Update the quantity of a specific item in the current user's shopping cart
+// @Tags Cart
+// @Accept json
+// @Produce json
+// @Param id path string true "Cart Item ID"
+// @Param input body dto.UpdateCartItemRequest true "Updated cart item details"
+// @Security BearerAuth
+// @Success 200 {object} utils.Response{data=dto.CartResponse} "Cart updated successfully"
+// @Failure 401 {object} utils.Response "Unauthorized"
+// @Failure 404 {object} utils.Response "Cart item not found or menu item not found"
+// @Router /cart/{id} [put]
 func (s *Server) UpdateCartItemHandler(ctx *gin.Context) {
 	userID := ctx.GetUint("user_id")
 
@@ -58,11 +81,23 @@ func (s *Server) UpdateCartItemHandler(ctx *gin.Context) {
 			utils.InternalServerError(ctx, "Something went wrong", err)
 			return
 		}
+		return
 	}
 
 	utils.SuccessResponse(ctx, "cart updated successfully", cartResponse)
 }
 
+// @Summary Remove item from cart
+// @Description Remove a specific item from the current user's shopping cart
+// @Tags Cart
+// @Accept json
+// @Produce json
+// @Param id path string true "Cart Item ID"
+// @Security BearerAuth
+// @Success 200 {object} utils.Response "Item removed from cart successfully"
+// @Failure 401 {object} utils.Response "Unauthorized"
+// @Failure 404 {object} utils.Response "Cart item not found"
+// @Router /cart/{id} [delete]
 func (s *Server) RemoveCartItemHandler(ctx *gin.Context) {
 	userID := ctx.GetUint("user_id")
 
@@ -83,11 +118,22 @@ func (s *Server) RemoveCartItemHandler(ctx *gin.Context) {
 			utils.InternalServerError(ctx, "Failed to add item to cart", err)
 			return
 		}
+		return
 	}
 
 	utils.SuccessResponse(ctx, "Item removed from cart successfully", nil)
 }
 
+// @Summary Clear user's cart
+// @Description Remove all items from the current user's shopping cart
+// @Tags Cart
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Success 200 {object} utils.Response "Cart cleared successfully"
+// @Failure 401 {object} utils.Response "Unauthorized"
+// @Failure 404 {object} utils.Response "Cart not found"
+// @Router /cart/clear [delete]
 func (s *Server) ClearCartHandler(ctx *gin.Context) {
 	userID := ctx.GetUint("user_id")
 
@@ -100,11 +146,21 @@ func (s *Server) ClearCartHandler(ctx *gin.Context) {
 			utils.InternalServerError(ctx, "Failed to add item to cart", err)
 			return
 		}
+		return
 	}
 
 	utils.SuccessResponse(ctx, "Cart cleared successfully", nil)
 }
 
+// @Summary Get user's cart
+// @Description Retrieve current user's shopping cart with all items
+// @Tags Cart
+// @Produce json
+// @Security BearerAuth
+// @Success 200 {object} utils.Response{data=dto.CartResponse} "Cart retrieved successfully"
+// @Failure 401 {object} utils.Response "Unauthorized"
+// @Failure 404 {object} utils.Response "Cart not found"
+// @Router /cart [get]
 func (s *Server) GetUserCart(ctx *gin.Context) {
 	userID := ctx.GetUint("user_id")
 

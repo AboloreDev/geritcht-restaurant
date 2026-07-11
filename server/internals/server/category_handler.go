@@ -10,6 +10,21 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+// @Summary Create a category
+// @Description Create a new product category with a name, description, and image: admin only
+// @Tags Categories
+// @Accept multipart/form-data
+// @Produce json
+// @Param name formData string true "Category name"
+// @Param description formData string false "Category description"
+// @Param image formData file true "Category image"
+// @Security BearerAuth
+// @Success 201 {object} utils.Response{data=dto.CategoryResponse} "Category created successfully"
+// @Failure 400 {object} utils.Response "Invalid request data or image upload failed"
+// @Failure 401 {object} utils.Response "Unauthorized"
+// @Failure 409 {object} utils.Response "Category already exists"
+// @Failure 500 {object} utils.Response "Internal server error"
+// @Router /categories [post]
 func (s *Server) CreateCategoryHandler(ctx *gin.Context) {
 	c := ctx.Request.Context()
 
@@ -46,6 +61,23 @@ func (s *Server) CreateCategoryHandler(ctx *gin.Context) {
 	utils.CreatedResponse(ctx, "Category created successfully", response)
 }
 
+// @Summary Update a category
+// @Description Update an existing product category's name, description, and/or image admin only
+// @Tags Categories
+// @Accept multipart/form-data
+// @Produce json
+// @Param id path string true "Category ID"
+// @Param name formData string false "Category name"
+// @Param description formData string false "Category description"
+// @Param image formData file false "Category image"
+// @Security BearerAuth
+// @Success 200 {object} utils.Response{data=dto.CategoryResponse} "Category updated successfully"
+// @Failure 400 {object} utils.Response "Invalid request data or image upload failed"
+// @Failure 401 {object} utils.Response "Unauthorized"
+// @Failure 404 {object} utils.Response "Category not found"
+// @Failure 409 {object} utils.Response "Category name already exists"
+// @Failure 500 {object} utils.Response "Internal server error"
+// @Router /categories/{id} [put]
 func (s *Server) UpdateCategoryHandler(ctx *gin.Context) {
 	c := ctx.Request.Context()
 
@@ -80,6 +112,17 @@ func (s *Server) UpdateCategoryHandler(ctx *gin.Context) {
 	utils.SuccessResponse(ctx, "Category updated successfully", response)
 }
 
+// @Summary Get a category by ID
+// @Description Retrieve details of a specific product category by its ID
+// @Tags Categories
+// @Accept json
+// @Produce json
+// @Param id path string true "Category ID"
+// @Success 200 {object} utils.Response{data=dto.CategoryResponse} "Category fetched successfully"
+// @Failure 400 {object} utils.Response "Invalid category ID"
+// @Failure 404 {object} utils.Response "Category not found"
+// @Failure 500 {object} utils.Response "Internal server error"
+// @Router /categories/{id} [get]
 func (s *Server) GetCategory(ctx *gin.Context) {
 	c := ctx.Request.Context()
 
@@ -105,6 +148,19 @@ func (s *Server) GetCategory(ctx *gin.Context) {
 	utils.SuccessResponse(ctx, "Category fetched successfully", response)
 }
 
+// @Summary Delete a category
+// @Description Remove a product category by its ID. Admin only
+// @Tags Categories
+// @Accept json
+// @Produce json
+// @Param id path string true "Category ID"
+// @Security BearerAuth
+// @Success 200 {object} utils.Response "Category deleted successfully"
+// @Failure 400 {object} utils.Response "Invalid category ID"
+// @Failure 404 {object} utils.Response "Category not found"
+// @Failure 409 {object} utils.Response "Category is associated with products"
+// @Failure 500 {object} utils.Response "Internal server error"
+// @Router /categories/{id} [delete]
 func (s *Server) DeleteCategory(ctx *gin.Context) {
 	c := ctx.Request.Context()
 
@@ -130,6 +186,16 @@ func (s *Server) DeleteCategory(ctx *gin.Context) {
 	utils.SuccessResponse(ctx, "Category deleted successfully", nil)
 }
 
+// @Summary Get all categories
+// @Description Retrieve a paginated list of all product categories
+// @Tags Categories
+// @Accept json
+// @Produce json
+// @Param page query int false "Page number"
+// @Param pageSize query int false "Number of items per page"
+// @Success 200 {object} utils.Response{data=[]dto.CategoryResponse, meta=utils.Meta} "Categories fetched successfully"
+// @Failure 500 {object} utils.Response "Internal server error"
+// @Router /categories [get]
 func (s *Server) GetCategoriesHandler(ctx *gin.Context) {
 	c := ctx.Request.Context()
 
@@ -148,6 +214,19 @@ func (s *Server) GetCategoriesHandler(ctx *gin.Context) {
 	utils.PaginatedSuccessResponse(ctx, "Categories fetched successfully", response, *meta)
 }
 
+// @Summary Search categories
+// @Description Search for categories by name or description
+// @Tags Categories
+// @Accept json
+// @Produce json
+// @Param q query string false "Search query"
+// @Param page query int false "Page number"
+// @Param pageSize query int false "Number of items per page"
+// @Success 200 {object} utils.Response{data=[]dto.CategoryResponse, meta=utils.Meta} "Categories retrieved successfully"
+// @Failure 400 {object} utils.Response "Invalid search parameters"
+// @Failure 404 {object} utils.Response "No categories found matching the search criteria"
+// @Failure 500 {object} utils.Response "Internal server error"
+// @Router /categories/search [get]
 func (s *Server) SearchCategoryHandler(ctx *gin.Context) {
 	var req dto.CategorySearchRequest
 

@@ -10,6 +10,17 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+// @Summary Get user profile
+// @Description Retrieve the authenticated user's profile.
+// @Tags Users
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Success 200 {object} utils.Response{data=dto.UserResponse} "User profile retrieved successfully"
+// @Failure 401 {object} utils.Response "Unauthorized"
+// @Failure 404 {object} utils.Response "User not found"
+// @Failure 500 {object} utils.Response "Internal server error"
+// @Router /users/profile [get]
 func (s *Server) GetUserProfileHandler(ctx *gin.Context) {
 	userID := ctx.GetUint("user_id")
 
@@ -27,6 +38,17 @@ func (s *Server) GetUserProfileHandler(ctx *gin.Context) {
 	utils.SuccessResponse(ctx, "User fetched successfully", response)
 }
 
+// @Summary Get staff profile
+// @Description Retrieve the authenticated staff member's profile.
+// @Tags Staff
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Success 200 {object} utils.Response{data=dto.StaffResponse} "Staff profile retrieved successfully"
+// @Failure 401 {object} utils.Response "Unauthorized"
+// @Failure 404 {object} utils.Response "Staff not found"
+// @Failure 500 {object} utils.Response "Internal server error"
+// @Router /staff/profile [get]
 func (s *Server) GetStaffProfileHandler(ctx *gin.Context) {
 	userID := ctx.GetUint("user_id")
 
@@ -44,6 +66,19 @@ func (s *Server) GetStaffProfileHandler(ctx *gin.Context) {
 	utils.SuccessResponse(ctx, "Staff fetched successfully", response)
 }
 
+// @Summary List users
+// @Description Retrieve a paginated list of all registered users. Admin access required.
+// @Tags Users
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param page query int false "Page number" default(1)
+// @Param pageSize query int false "Number of items per page" default(10)
+// @Success 200 {object} utils.PaginatedResponse{data=[]dto.UserResponse} "Users retrieved successfully"
+// @Failure 401 {object} utils.Response "Unauthorized"
+// @Failure 403 {object} utils.Response "Forbidden"
+// @Failure 500 {object} utils.Response "Internal server error"
+// @Router /users [get]
 func (s *Server) GetAllUserHandler(ctx *gin.Context) {
 	pageStr := ctx.DefaultQuery("page", "1")
 	pageSizeStr := ctx.DefaultQuery("pageSize", "10")
@@ -60,6 +95,19 @@ func (s *Server) GetAllUserHandler(ctx *gin.Context) {
 	utils.PaginatedSuccessResponse(ctx, "Users fetched successfully", response, *meta)
 }
 
+// @Summary List staff
+// @Description Retrieve a paginated list of all staff members. Admin access required.
+// @Tags Staff
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param page query int false "Page number" default(1)
+// @Param pageSize query int false "Number of items per page" default(10)
+// @Success 200 {object} utils.PaginatedResponse{data=[]dto.StaffResponse} "Staff retrieved successfully"
+// @Failure 401 {object} utils.Response "Unauthorized"
+// @Failure 403 {object} utils.Response "Forbidden"
+// @Failure 500 {object} utils.Response "Internal server error"
+// @Router /staff [get]
 func (s *Server) GetAllStaffsHandler(ctx *gin.Context) {
 	pageStr := ctx.DefaultQuery("page", "1")
 	pageSizeStr := ctx.DefaultQuery("pageSize", "10")
@@ -76,6 +124,19 @@ func (s *Server) GetAllStaffsHandler(ctx *gin.Context) {
 	utils.PaginatedSuccessResponse(ctx, "Users fetched successfully", response, *meta)
 }
 
+// @Summary Deactivate user
+// @Description Deactivate a user account. Admin access required.
+// @Tags Users
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param id path int true "User ID"
+// @Success 200 {object} utils.Response "User deactivated successfully"
+// @Failure 401 {object} utils.Response "Unauthorized"
+// @Failure 403 {object} utils.Response "Forbidden"
+// @Failure 404 {object} utils.Response "User not found"
+// @Failure 500 {object} utils.Response "Internal server error"
+// @Router /users/profile/deactivate [patch]
 func (s *Server) DeactivateUserHandler(ctx *gin.Context) {
 	idStr := ctx.Param("id")
 	id, err := strconv.ParseUint(idStr, 10, 32)
@@ -90,6 +151,19 @@ func (s *Server) DeactivateUserHandler(ctx *gin.Context) {
 	utils.SuccessResponse(ctx, "User deactivated successfully", nil)
 }
 
+// @Summary Deactivate staff
+// @Description Deactivate a staff account. Admin access required.
+// @Tags Staff
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param id path int true "Staff ID"
+// @Success 200 {object} utils.Response "Staff deactivated successfully"
+// @Failure 401 {object} utils.Response "Unauthorized"
+// @Failure 403 {object} utils.Response "Forbidden"
+// @Failure 404 {object} utils.Response "Staff not found"
+// @Failure 500 {object} utils.Response "Internal server error"
+// @Router /staff/profile/deactivate [patch]
 func (s *Server) DeactivateStaffHandler(ctx *gin.Context) {
 	idStr := ctx.Param("id")
 	id, err := strconv.ParseUint(idStr, 10, 32)
@@ -104,6 +178,19 @@ func (s *Server) DeactivateStaffHandler(ctx *gin.Context) {
 	utils.SuccessResponse(ctx, "Staff deactivated successfully", nil)
 }
 
+// @Summary Activate staff
+// @Description Activate a staff account. Admin access required.
+// @Tags Staff
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param id path int true "Staff ID"
+// @Success 200 {object} utils.Response "Staff activated successfully"
+// @Failure 401 {object} utils.Response "Unauthorized"
+// @Failure 403 {object} utils.Response "Forbidden"
+// @Failure 404 {object} utils.Response "Staff not found"
+// @Failure 500 {object} utils.Response "Internal server error"
+// @Router /staff/profile/activate [patch]
 func (s *Server) ActivateStaffHandler(ctx *gin.Context) {
 	idStr := ctx.Param("id")
 	id, err := strconv.ParseUint(idStr, 10, 32)
@@ -118,6 +205,19 @@ func (s *Server) ActivateStaffHandler(ctx *gin.Context) {
 	utils.SuccessResponse(ctx, "staff activate successfully", nil)
 }
 
+// @Summary Activate user
+// @Description Activate a user account. Admin access required.
+// @Tags Users
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param id path int true "User ID"
+// @Success 200 {object} utils.Response "User activated successfully"
+// @Failure 401 {object} utils.Response "Unauthorized"
+// @Failure 403 {object} utils.Response "Forbidden"
+// @Failure 404 {object} utils.Response "User not found"
+// @Failure 500 {object} utils.Response "Internal server error"
+// @Router /users/profile/activate [patch]
 func (s *Server) ActivateUserHandler(ctx *gin.Context) {
 	idStr := ctx.Param("id")
 	id, err := strconv.ParseUint(idStr, 10, 32)
@@ -132,6 +232,19 @@ func (s *Server) ActivateUserHandler(ctx *gin.Context) {
 	utils.SuccessResponse(ctx, "User activated successfully", nil)
 }
 
+// @Summary Update user profile
+// @Description Update the authenticated user's profile information.
+// @Tags Users
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param input body dto.UpdateProfileRequest true "Updated profile details"
+// @Success 200 {object} utils.Response{data=dto.UserResponse} "Profile updated successfully"
+// @Failure 400 {object} utils.Response "Invalid request data"
+// @Failure 401 {object} utils.Response "Unauthorized"
+// @Failure 404 {object} utils.Response "User not found"
+// @Failure 500 {object} utils.Response "Internal server error"
+// @Router /users/profile [patch]
 func (s *Server) UpdateUserProfileHandler(ctx *gin.Context) {
 	userID := ctx.GetUint("user_id")
 	var req dto.UpdateProfileRequest
@@ -156,6 +269,19 @@ func (s *Server) UpdateUserProfileHandler(ctx *gin.Context) {
 	utils.SuccessResponse(ctx, "User updated successfully", response)
 }
 
+// @Summary Update staff profile
+// @Description Update the authenticated staff member's profile information.
+// @Tags Staff
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param input body dto.UpdateProfileRequest true "Updated profile details"
+// @Success 200 {object} utils.Response{data=dto.StaffResponse} "Profile updated successfully"
+// @Failure 400 {object} utils.Response "Invalid request data"
+// @Failure 401 {object} utils.Response "Unauthorized"
+// @Failure 404 {object} utils.Response "Staff not found"
+// @Failure 500 {object} utils.Response "Internal server error"
+// @Router /staff/profile [patch]
 func (s *Server) UpdateStaffProfileHandler(ctx *gin.Context) {
 	userID := ctx.GetUint("user_id")
 	var req dto.UpdateProfileRequest
@@ -180,6 +306,22 @@ func (s *Server) UpdateStaffProfileHandler(ctx *gin.Context) {
 	utils.SuccessResponse(ctx, "Staff updated successfully", response)
 }
 
+// @Summary Search users
+// @Description Search users using supported filter parameters. Admin access required.
+// @Tags Users
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param query query string false "Search keyword"
+// @Param page query int false "Page number" default(1)
+// @Param pageSize query int false "Number of items per page" default(10)
+// @Success 200 {object} utils.PaginatedResponse{data=[]dto.UserResponse} "Users retrieved successfully"
+// @Failure 400 {object} utils.Response "Invalid search parameters"
+// @Failure 401 {object} utils.Response "Unauthorized"
+// @Failure 403 {object} utils.Response "Forbidden"
+// @Failure 404 {object} utils.Response "No users found"
+// @Failure 500 {object} utils.Response "Internal server error"
+// @Router /users/search [get]
 func (s *Server) SearchUserHandler(ctx *gin.Context) {
 	var req dto.UserSearchRequest
 

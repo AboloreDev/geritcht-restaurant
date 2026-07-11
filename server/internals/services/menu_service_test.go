@@ -21,7 +21,7 @@ type MockMenuRepository struct {
 	category    *models.MenuCategory
 	allergens   []models.Allergen
 	dietaryTags []models.DietaryTag
-	searchRank []models.MenuWithRank
+	searchRank  []models.MenuWithRank
 	menu        *models.Menu
 	menus       []models.Menu
 	total       int64

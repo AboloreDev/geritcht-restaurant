@@ -7,6 +7,16 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+// @Summary Register a new user
+// @Description Create a new user account with email,firstname, lastname and password
+// @Tags Authentication
+// @Accept json
+// @Produce json
+// @Param request body dto.RegisterRequest true "User registration data"
+// @Success 201 {object} utils.Response{data=dto.AuthResponse} "User registered successfully"
+// @Failure 400 {object} utils.Response "Invalid request data or user already exists"
+// @Failure 429 {object} utils.Response "Too many requests"
+// @Router /auth/register [post]
 func (s *Server) RegisterUserHandler(ctx *gin.Context) {
 	var req dto.RegisterRequest
 
@@ -30,6 +40,16 @@ func (s *Server) RegisterUserHandler(ctx *gin.Context) {
 	utils.CreatedResponse(ctx, "User created successfully", response)
 }
 
+// @Summary User login
+// @Description Authenticate user with email and password
+// @Tags Authentication
+// @Accept json
+// @Produce json
+// @Param request body dto.LoginRequest true "User login credentials"
+// @Success 200 {object} utils.Response{data=dto.AuthResponse} "Login successful"
+// @Failure 401 {object} utils.Response "Invalid credentials"
+// @Failure 429 {object} utils.Response "Too many requests"
+// @Router /auth/login [post]
 func (s *Server) LoginUserHandler(ctx *gin.Context) {
 	var req dto.LoginRequest
 
@@ -69,6 +89,15 @@ func (s *Server) LoginUserHandler(ctx *gin.Context) {
 	utils.SuccessResponse(ctx, "User loggedIn successfully", response)
 }
 
+// @Summary Refresh access token
+// @Description Generate a new access token using a valid refresh token
+// @Tags Authentication
+// @Accept json
+// @Produce json
+// @Param refresh_token cookie string true "Refresh token"
+// @Success 200 {object} utils.Response{data=dto.AuthResponse} "New access token generated"
+// @Failure 401 {object} utils.Response "Invalid or expired refresh token"
+// @Router /auth/refresh [post]
 func (s *Server) RefreshTokenHandler(ctx *gin.Context) {
 	token, err := ctx.Cookie("refresh_token")
 	if err != nil {
@@ -102,6 +131,15 @@ func (s *Server) RefreshTokenHandler(ctx *gin.Context) {
 	utils.SuccessResponse(ctx, "Success", response)
 }
 
+// @Summary User logout
+// @Description Invalidate refresh token and logout user
+// @Tags Authentication
+// @Accept json
+// @Produce json
+// @Param request body dto.RefreshTokenRequest true "Refresh token to invalidate"
+// @Success 200 {object} utils.Response "Logout successful"
+// @Failure 400 {object} utils.Response "Invalid request data"
+// @Router /auth/logout [post]
 func (s *Server) LogoutHandler(ctx *gin.Context) {
 	token, err := ctx.Cookie("refresh_token")
 	if err != nil {
@@ -125,6 +163,16 @@ func (s *Server) LogoutHandler(ctx *gin.Context) {
 	utils.SuccessResponse(ctx, "User LoggedOut successfully", nil)
 }
 
+// @Summary User verify email
+// @Description Verify user email with token
+// @Tags Authentication
+// @Accept json
+// @Produce json
+// @Param request body dto.VerifyEmailRequest true token to invalidate"
+// @Success 200 {object} utils.Response "verification successful"
+// @Failure 400 {object} utils.Response "Invalid or expired token"
+// @Failure 429 {object} utils.Response "Too many requests"
+// @Router /auth/verify-email [post]
 func (s *Server) VerifyEmailHandler(ctx *gin.Context) {
 	var req dto.VerifyEmailRequest
 
@@ -152,6 +200,16 @@ func (s *Server) VerifyEmailHandler(ctx *gin.Context) {
 	utils.SuccessResponse(ctx, "Verification Success", response)
 }
 
+// @Summary User forgot password
+// @Description Send password reset code to user email
+// @Tags Authentication
+// @Accept json
+// @Produce json
+// @Param request body dto.ForgotPasswordRequest
+// @Success 200 {object} utils.Response "successful"
+// @Failure 400 {object} utils.Response "Invalid request data"
+// @Failure 429 {object} utils.Response "Too many requests"
+// @Router /auth/forgot-password [post]
 func (s *Server) ForgotPasswordHandler(ctx *gin.Context) {
 	var req dto.ForgotPasswordRequest
 
@@ -170,6 +228,16 @@ func (s *Server) ForgotPasswordHandler(ctx *gin.Context) {
 	utils.SuccessResponse(ctx, "Password reset code send to Mail, Check Your Inbox", nil)
 }
 
+// @Summary User verify reset password token
+// @Description Verify user reset token
+// @Tags Authentication
+// @Accept json
+// @Produce json
+// @Param request body dto.VerifyResetToken true token to invalidate"
+// @Success 200 {object} utils.Response "verification successful"
+// @Failure 400 {object} utils.Response "Invalid or expired token"
+// @Failure 429 {object} utils.Response "Too many requests"
+// @Router /auth/verify-reset-token [post]
 func (s *Server) VerifyResetOTPHandler(ctx *gin.Context) {
 	var req dto.VerifyResetToken
 
@@ -195,6 +263,16 @@ func (s *Server) VerifyResetOTPHandler(ctx *gin.Context) {
 	utils.SuccessResponse(ctx, "Verification Success", nil)
 }
 
+// @Summary User reset password
+// @Description Reset user password with reset token
+// @Tags Authentication
+// @Accept json
+// @Produce json
+// @Param request body dto.ResetPasswordRequest true "Reset password data"
+// @Success 200 {object} utils.Response "Password reset successful"
+// @Failure 400 {object} utils.Response "Invalid request data or token expired"
+// @Failure 429 {object} utils.Response "Too many requests"
+// @Router /auth/reset-password [post]
 func (s *Server) ResetPasswordHandler(ctx *gin.Context) {
 	var req dto.ResetPasswordRequest
 
@@ -222,6 +300,16 @@ func (s *Server) ResetPasswordHandler(ctx *gin.Context) {
 	utils.SuccessResponse(ctx, "Success", nil)
 }
 
+// @Summary User change password
+// @Description Change user password
+// @Tags Authentication
+// @Accept json
+// @Produce json
+// @Param request body dto.ChangePasswordRequest true "Change password data"
+// @Success 200 {object} utils.Response "Password changed successfully"
+// @Failure 400 {object} utils.Response "Invalid request data or current password is incorrect"
+// @Security BearerAuth
+// @Router /auth/change-password [post]
 func (s *Server) ChangePasswordHandler(ctx *gin.Context) {
 	userID := ctx.GetUint("user_id")
 	var req dto.ChangePasswordRequest

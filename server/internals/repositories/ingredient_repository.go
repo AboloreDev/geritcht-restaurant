@@ -20,7 +20,6 @@ func NewIngredientRepository(db *gorm.DB) *IngredientRepository {
 	}
 }
 
-
 func (r *IngredientRepository) GetIngredientByName(ctx context.Context, name string) (*models.Ingredient, error) {
 	var ingredient models.Ingredient
 
@@ -131,7 +130,7 @@ func (r *IngredientRepository) TsvectorSearchIngredients(ctx context.Context, re
 	if req.Limit <= 0 {
 		req.Limit = 20
 	}
-	
+
 	offset := utils.Pagination(req.Page, req.Limit)
 
 	// build query
@@ -151,8 +150,8 @@ func (r *IngredientRepository) TsvectorSearchIngredients(ctx context.Context, re
 	query.Count(&count)
 
 	// Execute query with ranking
-	// Crreate rank struct 
-	
+	// Crreate rank struct
+
 	var rows []models.IngredientWithRank
 	err :=
 		query.Order("rank DESC, created_at DESC").

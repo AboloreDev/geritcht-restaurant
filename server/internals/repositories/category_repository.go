@@ -89,7 +89,7 @@ func (r *CategoryRepository) CountMenuItems(ctx context.Context, categoryID uint
 
 // TSvector search
 func (r *CategoryRepository) TsvectorSearchCategories(ctx context.Context, req *dto.CategorySearchRequest) ([]models.MenuCategoryWithRank, int64, error) {
-	
+
 	if req.Page <= 0 {
 		req.Page = 1
 	}
@@ -97,7 +97,6 @@ func (r *CategoryRepository) TsvectorSearchCategories(ctx context.Context, req *
 		req.Limit = 20
 	}
 	offset := utils.Pagination(req.Page, req.Limit)
-	
 
 	// build query
 	query := r.db.Model(&models.MenuCategory{}).
