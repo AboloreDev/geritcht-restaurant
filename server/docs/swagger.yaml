@@ -921,34 +921,6 @@ paths:
       summary: Update an allergen
       tags:
       - Allergens
-  /auth/change-password:
-    post:
-      consumes:
-      - application/json
-      description: Change user password
-      parameters:
-      - description: Change password data
-        in: body
-        name: request
-        required: true
-        schema:
-          $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_dto.ChangePasswordRequest'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: Password changed successfully
-          schema:
-            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
-        "400":
-          description: Invalid request data or current password is incorrect
-          schema:
-            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
-      security:
-      - BearerAuth: []
-      summary: User change password
-      tags:
-      - Authentication
   /auth/forgot-password:
     post:
       consumes:
@@ -1038,6 +1010,34 @@ paths:
           schema:
             $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
       summary: User logout
+      tags:
+      - Authentication
+  /auth/password-change:
+    post:
+      consumes:
+      - application/json
+      description: Change user password
+      parameters:
+      - description: Change password data
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_dto.ChangePasswordRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Password changed successfully
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+        "400":
+          description: Invalid request data or current password is incorrect
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+      security:
+      - BearerAuth: []
+      summary: User change password
       tags:
       - Authentication
   /auth/refresh:
@@ -1331,7 +1331,7 @@ paths:
       summary: Remove item from cart
       tags:
       - Cart
-    put:
+    patch:
       consumes:
       - application/json
       description: Update the quantity of a specific item in the current user's shopping
@@ -1564,7 +1564,7 @@ paths:
       summary: Get a category by ID
       tags:
       - Categories
-    put:
+    patch:
       consumes:
       - multipart/form-data
       description: Update an existing product category's name, description, and/or
@@ -1961,7 +1961,7 @@ paths:
       tags:
       - Ingredients
   /ingredients/{id}/limit:
-    put:
+    patch:
       consumes:
       - application/json
       description: Set the threshold limit for an ingredient. Admin access required.
@@ -2924,7 +2924,7 @@ paths:
       tags:
       - Payments
   /payments/verify/{ref}:
-    post:
+    get:
       consumes:
       - application/json
       description: Verify the status of a payment using its transaction reference.

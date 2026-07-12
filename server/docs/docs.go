@@ -345,51 +345,6 @@ const docTemplate = `{
                 }
             }
         },
-        "/auth/change-password": {
-            "post": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "Change user password",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Authentication"
-                ],
-                "summary": "User change password",
-                "parameters": [
-                    {
-                        "description": "Change password data",
-                        "name": "request",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_dto.ChangePasswordRequest"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Password changed successfully",
-                        "schema": {
-                            "$ref": "#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response"
-                        }
-                    },
-                    "400": {
-                        "description": "Invalid request data or current password is incorrect",
-                        "schema": {
-                            "$ref": "#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response"
-                        }
-                    }
-                }
-            }
-        },
         "/auth/forgot-password": {
             "post": {
                 "description": "Send a password reset code to the user's registered email address.",
@@ -527,6 +482,51 @@ const docTemplate = `{
                     },
                     "400": {
                         "description": "Invalid request data",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/auth/password-change": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Change user password",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Authentication"
+                ],
+                "summary": "User change password",
+                "parameters": [
+                    {
+                        "description": "Change password data",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_dto.ChangePasswordRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Password changed successfully",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request data or current password is incorrect",
                         "schema": {
                             "$ref": "#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response"
                         }
@@ -995,7 +995,54 @@ const docTemplate = `{
             }
         },
         "/cart/{id}": {
-            "put": {
+            "delete": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Remove a specific item from the current user's shopping cart",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Cart"
+                ],
+                "summary": "Remove item from cart",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Cart Item ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Item removed from cart successfully",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response"
+                        }
+                    },
+                    "404": {
+                        "description": "Cart item not found",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response"
+                        }
+                    }
+                }
+            },
+            "patch": {
                 "security": [
                     {
                         "BearerAuth": []
@@ -1057,53 +1104,6 @@ const docTemplate = `{
                     },
                     "404": {
                         "description": "Cart item not found or menu item not found",
-                        "schema": {
-                            "$ref": "#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response"
-                        }
-                    }
-                }
-            },
-            "delete": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "Remove a specific item from the current user's shopping cart",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Cart"
-                ],
-                "summary": "Remove item from cart",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Cart Item ID",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Item removed from cart successfully",
-                        "schema": {
-                            "$ref": "#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response"
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "$ref": "#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response"
-                        }
-                    },
-                    "404": {
-                        "description": "Cart item not found",
                         "schema": {
                             "$ref": "#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response"
                         }
@@ -1396,7 +1396,66 @@ const docTemplate = `{
                     }
                 }
             },
-            "put": {
+            "delete": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Remove a product category by its ID. Admin only",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Categories"
+                ],
+                "summary": "Delete a category",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Category ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Category deleted successfully",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid category ID",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response"
+                        }
+                    },
+                    "404": {
+                        "description": "Category not found",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response"
+                        }
+                    },
+                    "409": {
+                        "description": "Category is associated with products",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response"
+                        }
+                    }
+                }
+            },
+            "patch": {
                 "security": [
                     {
                         "BearerAuth": []
@@ -1479,65 +1538,6 @@ const docTemplate = `{
                     },
                     "409": {
                         "description": "Category name already exists",
-                        "schema": {
-                            "$ref": "#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal server error",
-                        "schema": {
-                            "$ref": "#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response"
-                        }
-                    }
-                }
-            },
-            "delete": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "Remove a product category by its ID. Admin only",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Categories"
-                ],
-                "summary": "Delete a category",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Category ID",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Category deleted successfully",
-                        "schema": {
-                            "$ref": "#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response"
-                        }
-                    },
-                    "400": {
-                        "description": "Invalid category ID",
-                        "schema": {
-                            "$ref": "#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response"
-                        }
-                    },
-                    "404": {
-                        "description": "Category not found",
-                        "schema": {
-                            "$ref": "#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response"
-                        }
-                    },
-                    "409": {
-                        "description": "Category is associated with products",
                         "schema": {
                             "$ref": "#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response"
                         }
@@ -2172,7 +2172,7 @@ const docTemplate = `{
             }
         },
         "/ingredients/{id}/limit": {
-            "put": {
+            "patch": {
                 "security": [
                     {
                         "BearerAuth": []
@@ -3489,7 +3489,7 @@ const docTemplate = `{
             }
         },
         "/payments/verify/{ref}": {
-            "post": {
+            "get": {
                 "description": "Verify the status of a payment using its transaction reference.",
                 "consumes": [
                     "application/json"
