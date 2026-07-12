@@ -99,6 +99,7 @@ func (s *Server) VerifyPaymentHandler(ctx *gin.Context) {
 // @Failure 500 {object} utils.Response "Internal server error"
 // @Router /payments/webhook [post]
 func (s *Server) WebhookHandler(ctx *gin.Context) {
+	s.log.Info().Msg("webhook handler hit")
 	body, err := io.ReadAll(ctx.Request.Body)
 	if err != nil {
 		utils.BadRequest(ctx, "Failed to read body", err)

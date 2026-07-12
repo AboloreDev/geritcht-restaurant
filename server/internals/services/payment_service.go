@@ -114,9 +114,9 @@ func (s *PaymentService) callPaystackInitialize(email string, amount int64, refe
 	payload := map[string]interface{}{
 		"email":  email,
 		"amount": amount,
+		 "reference": reference,
 		"metadata": map[string]interface{}{
 			"order_id":  orderID,
-			"reference": reference,
 		},
 	}
 	// Convert the payload from Go struct to json
@@ -155,7 +155,7 @@ func (s *PaymentService) callPaystackInitialize(email string, amount int64, refe
 	}
 
 	if !result.Status {
-		return nil, err
+    return nil, fmt.Errorf("paystack initialization failed: %s", result.Message)
 	}
 
 	return &result, nil
@@ -429,13 +429,7 @@ func (s *PaymentService) HandlePaystackWebhook(ctx context.Context, body []byte,
 		return nil
 	}
 
-	// amount verification
-	expectedAmount := int64(payment.Amount * 100)
-	if payload.Data.Amount != expectedAmount {
-		return domain.ErrPaymentAmountMismatch
-	}
-
-	err = s.confirmSuccessfulPayment(ctx, payment, expectedAmount)
+	err = s.confirmSuccessfulPayment(ctx, payment, payload.Data.Amount)
 	if err != nil {
 		return err
 	}
