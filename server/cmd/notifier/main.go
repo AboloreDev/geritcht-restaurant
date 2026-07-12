@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"log"
+	"net/http"
 	"os"
 	"os/signal"
 	"syscall"
@@ -59,6 +60,18 @@ func main() {
 	if err := sub.Start(ctx, emailClient); err != nil {
 		log.Fatal().Err(err).Msg("failed to start subscriber")
 	}
+
+	 // dummy HTTP server just to satisfy Render's Web Service port requirement
+    port := os.Getenv("PORT")
+    if port == "" {
+        port = "8080"
+    }
+    http.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
+        w.WriteHeader(http.StatusOK)
+        w.Write([]byte("ok"))
+    })
+    log.Info().Msgf("notifier health server listening on :%s", port)
+    http.ListenAndServe(":"+port, nil)
 
 	log.Info().Msg("notification micro-service started")
 
