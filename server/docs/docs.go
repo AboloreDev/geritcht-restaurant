@@ -3488,9 +3488,14 @@ const docTemplate = `{
                 }
             }
         },
-        "/payments/verify/{ref}": {
+        "/payments/verify/{reference}": {
             "get": {
-                "description": "Verify the status of a payment using its transaction reference.",
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Verify the status of a payment using its Paystack transaction reference.",
                 "consumes": [
                     "application/json"
                 ],
@@ -3503,13 +3508,11 @@ const docTemplate = `{
                 "summary": "Verify payment",
                 "parameters": [
                     {
-                        "description": "Payment verification request",
-                        "name": "input",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_dto.VerifyPaymentRequest"
-                        }
+                        "type": "string",
+                        "description": "Payment reference",
+                        "name": "reference",
+                        "in": "path",
+                        "required": true
                     }
                 ],
                 "responses": {
@@ -3531,8 +3534,8 @@ const docTemplate = `{
                             ]
                         }
                     },
-                    "400": {
-                        "description": "Invalid request data or payment not found",
+                    "404": {
+                        "description": "Payment not found",
                         "schema": {
                             "$ref": "#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response"
                         }
@@ -4043,7 +4046,7 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Retrieve all reservations belonging to the authenticated user.",
+                "description": "Retrieve all reservations. Admin access required.",
                 "consumes": [
                     "application/json"
                 ],
@@ -4053,7 +4056,7 @@ const docTemplate = `{
                 "tags": [
                     "Reservations"
                 ],
-                "summary": "Get my reservations",
+                "summary": "List all reservations",
                 "parameters": [
                     {
                         "type": "string",
@@ -4104,6 +4107,12 @@ const docTemplate = `{
                     },
                     "401": {
                         "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
                         "schema": {
                             "$ref": "#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response"
                         }
@@ -4216,93 +4225,6 @@ const docTemplate = `{
                 }
             }
         },
-        "/reservations/admin": {
-            "get": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "Retrieve all reservations. Admin access required.",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Reservations"
-                ],
-                "summary": "List all reservations",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Reservation status",
-                        "name": "status",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "Start date (YYYY-MM-DD)",
-                        "name": "from",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "End date (YYYY-MM-DD)",
-                        "name": "to",
-                        "in": "query"
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Reservations retrieved successfully",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "type": "array",
-                                            "items": {
-                                                "$ref": "#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_dto.ReservationResponse"
-                                            }
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    },
-                    "400": {
-                        "description": "Invalid request data",
-                        "schema": {
-                            "$ref": "#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response"
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "$ref": "#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response"
-                        }
-                    },
-                    "403": {
-                        "description": "Forbidden",
-                        "schema": {
-                            "$ref": "#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal server error",
-                        "schema": {
-                            "$ref": "#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response"
-                        }
-                    }
-                }
-            }
-        },
         "/reservations/today": {
             "get": {
                 "security": [
@@ -4365,6 +4287,87 @@ const docTemplate = `{
                     },
                     "403": {
                         "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/reservations/user": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Retrieve all reservations belonging to the authenticated user.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Reservations"
+                ],
+                "summary": "Get my reservations",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Reservation status",
+                        "name": "status",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Start date (YYYY-MM-DD)",
+                        "name": "from",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "End date (YYYY-MM-DD)",
+                        "name": "to",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Reservations retrieved successfully",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_dto.ReservationResponse"
+                                            }
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request data",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
                         "schema": {
                             "$ref": "#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response"
                         }
@@ -7304,17 +7307,6 @@ const docTemplate = `{
             ],
             "properties": {
                 "token": {
-                    "type": "string"
-                }
-            }
-        },
-        "github_com_AboloreDev_geritcht-restaurant_internals_dto.VerifyPaymentRequest": {
-            "type": "object",
-            "required": [
-                "reference"
-            ],
-            "properties": {
-                "reference": {
                     "type": "string"
                 }
             }

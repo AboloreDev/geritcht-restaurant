@@ -234,7 +234,7 @@ func (s *Server) SetUpRoutes() *gin.Engine {
 			{
 				// Payment Protected Routes
 				payment.POST("/initialize", s.RateLimiter(10, time.Minute), s.InitilaisePaymentHandler)
-				payment.GET("/verify/:ref", s.RateLimiter(20, time.Minute), s.VerifyPaymentHandler)
+				payment.GET("/verify/:reference", s.RateLimiter(20, time.Minute), s.VerifyPaymentHandler)
 				payment.GET("/history", s.GetAllPaymentHistory)
 				payment.GET("/:id", s.GetPaymentDetailsHandler)
 				payment.GET("/refund/:id", s.GetRefundDetailsHandler)

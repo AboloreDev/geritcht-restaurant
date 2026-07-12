@@ -638,13 +638,6 @@ definitions:
     required:
     - token
     type: object
-  github_com_AboloreDev_geritcht-restaurant_internals_dto.VerifyPaymentRequest:
-    properties:
-      reference:
-        type: string
-    required:
-    - reference
-    type: object
   github_com_AboloreDev_geritcht-restaurant_internals_dto.VerifyResetToken:
     properties:
       token:
@@ -2923,18 +2916,17 @@ paths:
       summary: Get payment by reference
       tags:
       - Payments
-  /payments/verify/{ref}:
+  /payments/verify/{reference}:
     get:
       consumes:
       - application/json
-      description: Verify the status of a payment using its transaction reference.
+      description: Verify the status of a payment using its Paystack transaction reference.
       parameters:
-      - description: Payment verification request
-        in: body
-        name: input
+      - description: Payment reference
+        in: path
+        name: reference
         required: true
-        schema:
-          $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_dto.VerifyPaymentRequest'
+        type: string
       produces:
       - application/json
       responses:
@@ -2947,14 +2939,16 @@ paths:
                 data:
                   $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_dto.PaymentResponse'
               type: object
-        "400":
-          description: Invalid request data or payment not found
+        "404":
+          description: Payment not found
           schema:
             $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
         "500":
           description: Internal server error
           schema:
             $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+      security:
+      - BearerAuth: []
       summary: Verify payment
       tags:
       - Payments
@@ -3226,7 +3220,7 @@ paths:
     get:
       consumes:
       - application/json
-      description: Retrieve all reservations belonging to the authenticated user.
+      description: Retrieve all reservations. Admin access required.
       parameters:
       - description: Reservation status
         in: query
@@ -3262,13 +3256,17 @@ paths:
           description: Unauthorized
           schema:
             $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
         "500":
           description: Internal server error
           schema:
             $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
       security:
       - BearerAuth: []
-      summary: Get my reservations
+      summary: List all reservations
       tags:
       - Reservations
     post:
@@ -3510,59 +3508,6 @@ paths:
       summary: Check in reservation
       tags:
       - Reservations
-  /reservations/admin:
-    get:
-      consumes:
-      - application/json
-      description: Retrieve all reservations. Admin access required.
-      parameters:
-      - description: Reservation status
-        in: query
-        name: status
-        type: string
-      - description: Start date (YYYY-MM-DD)
-        in: query
-        name: from
-        type: string
-      - description: End date (YYYY-MM-DD)
-        in: query
-        name: to
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: Reservations retrieved successfully
-          schema:
-            allOf:
-            - $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
-            - properties:
-                data:
-                  items:
-                    $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_dto.ReservationResponse'
-                  type: array
-              type: object
-        "400":
-          description: Invalid request data
-          schema:
-            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
-        "401":
-          description: Unauthorized
-          schema:
-            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
-        "403":
-          description: Forbidden
-          schema:
-            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
-        "500":
-          description: Internal server error
-          schema:
-            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
-      security:
-      - BearerAuth: []
-      summary: List all reservations
-      tags:
-      - Reservations
   /reservations/today:
     get:
       consumes:
@@ -3606,6 +3551,55 @@ paths:
       security:
       - BearerAuth: []
       summary: Get today's reservations
+      tags:
+      - Reservations
+  /reservations/user:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve all reservations belonging to the authenticated user.
+      parameters:
+      - description: Reservation status
+        in: query
+        name: status
+        type: string
+      - description: Start date (YYYY-MM-DD)
+        in: query
+        name: from
+        type: string
+      - description: End date (YYYY-MM-DD)
+        in: query
+        name: to
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Reservations retrieved successfully
+          schema:
+            allOf:
+            - $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_dto.ReservationResponse'
+                  type: array
+              type: object
+        "400":
+          description: Invalid request data
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+      security:
+      - BearerAuth: []
+      summary: Get my reservations
       tags:
       - Reservations
   /staff:

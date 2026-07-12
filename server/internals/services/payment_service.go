@@ -244,6 +244,86 @@ func (s *PaymentService) verifySignature(body []byte, signature string) bool {
 	return hmac.Equal([]byte(expectedMac), []byte(signature))
 }
 
+func (s *PaymentService) confirmSuccessfulPayment(ctx context.Context, payment *models.Payment,amount int64) error {
+	// idempotency
+    if payment.Status == models.PaymentStatusPaid {
+        return nil
+    }
+
+    // distributed lock
+    lockKey := fmt.Sprintf("lock:payment:%s", payment.Reference)
+    lockValue := []byte(payment.Reference)
+
+    if err := s.redisStore.Hold(ctx, lockKey, lockValue, redis.SetArgs{
+        Mode: "NX",
+        TTL:  30 * time.Second,
+    }); err != nil {
+        return nil
+    }
+    defer s.redisStore.Delete(ctx, lockKey)
+
+    expectedAmount := int64(payment.Amount * 100)
+    if amount != expectedAmount {
+        return domain.ErrPaymentAmountMismatch
+    }
+
+	return s.db.Transaction(func(tx *gorm.DB) error {
+		now := time.Now()
+
+		if err := s.paymentRepo.UpdatePayment(ctx, tx, payment, map[string]interface{}{
+			"status":  models.PaymentStatusPaid,
+			"paid_at": &now,
+		}); err != nil {
+			return err
+		}
+
+		if err := s.paymentRepo.UpdateOrderStatus(ctx, tx, payment.OrderID, map[string]interface{}{
+			"payment_status": models.PaymentStatusPaid,
+			"status":         models.OrderStatusConfirmed,
+		}); err != nil {
+			return err
+		}
+
+		order, err := s.paymentRepo.GetOrderByID(ctx, tx, payment.OrderID)
+		if err != nil {
+			return err
+		}
+
+		if err := s.inventory.DeductStock(ctx, tx, order.OrderItems, payment.OrderID, payment.UserID); err != nil {
+			return err
+		}
+
+		if err := s.paymentRepo.ClearCartByUserID(ctx, tx, payment.UserID); err != nil {
+			return err
+		}
+
+		var items []events.OrderItemPayload
+		for _, item := range order.OrderItems {
+			items = append(items, events.OrderItemPayload{
+				Name:     item.Menu.Name,
+				Quantity: item.Quantity,
+				Price:    item.Price,
+			})
+		}
+
+		payload, _ := json.Marshal(events.OrderConfirmationPayload{
+			UserID:    payment.UserID,
+			Email:     order.User.Email,
+			FirstName: order.User.FirstName,
+			OrderID:   payment.OrderID,
+			Amount:    int64(payment.Amount),
+			Reference: payment.Reference,
+			Items:     items,
+		})
+
+		return s.paymentRepo.CreateOutboxEvent(ctx, tx, &models.OutboxEvent{
+			EventType: events.ChannelOrderConfirmation,
+			Payload:   string(payload),
+			Status:    "pending",
+		})
+	})
+}
+
 func (s *PaymentService) InitialisePayment(ctx context.Context, userID uint, req *dto.InitializePaymentRequest) (*dto.InitializePaymentResponse, error) {
 	order, err := s.paymentRepo.GetOrderByIDAndUser(ctx, nil, req.OrderID, userID)
 	if err != nil {
@@ -289,26 +369,32 @@ func (s *PaymentService) InitialisePayment(ctx context.Context, userID uint, req
 }
 
 func (s *PaymentService) VerifyPayment(ctx context.Context, req *dto.VerifyPaymentRequest) (*dto.PaymentResponse, error) {
-	payment, err := s.paymentRepo.GetPaymentByReference(ctx, req.Reference)
-	if err != nil {
-		return nil, domain.ErrPaymentNotFound
-	}
 
-	response, err := s.callPaystackVerify(req.Reference)
-	if err != nil {
-		return nil, err
-	}
+    payment, err := s.paymentRepo.GetPaymentByReference(ctx, req.Reference)
+    if err != nil {
+        return nil, domain.ErrPaymentNotFound
+    }
 
-	return &dto.PaymentResponse{
-		ID:        payment.ID,
-		OrderID:   payment.OrderID,
-		Reference: payment.Reference,
-		Amount:    payment.Amount,
-		Status:    response.Data.Status,
-		Currency:  payment.Currency,
-	}, nil
+    response, err := s.callPaystackVerify(req.Reference)
+    if err != nil {
+        return nil, err
+    }
+
+    if response.Data.Status == "success" {
+        if err := s.confirmSuccessfulPayment(ctx, payment, response.Data.Amount); err != nil {
+            return nil, err
+        }
+    }
+
+    return &dto.PaymentResponse{
+        ID:        payment.ID,
+        OrderID:   payment.OrderID,
+        Reference: payment.Reference,
+        Amount:    payment.Amount,
+        Status:    response.Data.Status,
+        Currency:  payment.Currency,
+    }, nil
 }
-
 func (s *PaymentService) HandlePaystackWebhook(ctx context.Context, body []byte, signature string) error {
 	
 	if !s.verifySignature(body, signature) {
@@ -336,17 +422,6 @@ func (s *PaymentService) HandlePaystackWebhook(ctx context.Context, body []byte,
 		return nil
 	}
 
-	// distributed lock
-	lockKey := fmt.Sprintf("lock:webhook:payment:%s", reference)
-	lockValue, _ := json.Marshal(reference)
-	if err := s.redisStore.Hold(ctx, lockKey, lockValue, redis.SetArgs{
-		Mode: "NX",
-		TTL:  30 * time.Second,
-	}); err != nil {
-		return nil
-	}
-	defer s.redisStore.Delete(ctx, lockKey)
-
 	// Check again, to avoid double order confirmation, double cart deletion
 	// if the payment is paid, return nil
 	err = s.paymentRepo.RecheckPaymentWithReference(ctx, reference)
@@ -360,68 +435,7 @@ func (s *PaymentService) HandlePaystackWebhook(ctx context.Context, body []byte,
 		return domain.ErrPaymentAmountMismatch
 	}
 
-	err = s.db.Transaction(func(tx *gorm.DB) error {
-		now := time.Now()
-
-		// update payment
-		if err := s.paymentRepo.UpdatePayment(ctx, tx, payment, map[string]interface{}{
-			"status":    models.PaymentStatusPaid,
-			"reference": payload.Data.Reference,
-			"paid_at":   &now,
-		}); err != nil {
-			return err
-		}
-
-		// confirm order
-		if err := s.paymentRepo.UpdateOrderStatus(ctx, tx, payment.OrderID, map[string]interface{}{
-			"payment_status": models.PaymentStatusPaid,
-			"status":         models.OrderStatusConfirmed,
-		}); err != nil {
-			return err
-		}
-
-		// deduct stock
-		fullOrder, err := s.paymentRepo.GetOrderByID(ctx, tx, payment.OrderID)
-		if err != nil {
-			return err
-		}
-
-		err = s.inventory.DeductStock(ctx, tx, fullOrder.OrderItems, payment.OrderID, payment.UserID)
-		if err != nil {
-			return err
-		}
-
-		// clear cart
-		if err := s.paymentRepo.ClearCartByUserID(ctx, tx, payment.UserID); err != nil {
-			return err
-		}
-
-		var itemsOrdered []events.OrderItemPayload
-		for _, item := range fullOrder.OrderItems {
-			itemsOrdered = append(itemsOrdered, events.OrderItemPayload{
-				Name:     item.Menu.Name,
-				Quantity: item.Quantity,
-				Price:    item.Price,
-			})
-		}
-
-		// write outbox
-		orderConfirmation, _ := json.Marshal(events.OrderConfirmationPayload{
-			UserID:    payment.UserID,
-			Email:     fullOrder.User.Email,
-			FirstName: fullOrder.User.FirstName,
-			OrderID:   payment.OrderID,
-			Amount:    int64(payment.Amount),
-			Reference: payment.Reference,
-			Items:     itemsOrdered,
-		})
-
-		return s.paymentRepo.CreateOutboxEvent(ctx, tx, &models.OutboxEvent{
-			EventType: events.ChannelOrderConfirmation,
-			Payload:   string(orderConfirmation),
-			Status:    "pending",
-		})
-	})
+	err = s.confirmSuccessfulPayment(ctx, payment, expectedAmount)
 	if err != nil {
 		return err
 	}

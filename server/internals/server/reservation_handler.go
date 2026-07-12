@@ -107,7 +107,7 @@ func (s *Server) CheckAvailabilityHandler(ctx *gin.Context) {
 // @Failure 400 {object} utils.Response "Invalid request data"
 // @Failure 401 {object} utils.Response "Unauthorized"
 // @Failure 500 {object} utils.Response "Internal server error"
-// @Router /reservations [get]
+// @Router /reservations/user [get]
 func (s *Server) GetAllUserReservationsHandler(ctx *gin.Context) {
 	userID := ctx.GetUint("user_id")
 	var reservationFiler dto.ReservationFilterRequest
@@ -187,7 +187,7 @@ func (s *Server) GetUserReservationHandler(ctx *gin.Context) {
 // @Failure 401 {object} utils.Response "Unauthorized"
 // @Failure 403 {object} utils.Response "Forbidden"
 // @Failure 500 {object} utils.Response "Internal server error"
-// @Router /reservations/admin [get]
+// @Router /reservations [get]
 func (s *Server) GetAllReservationsHandler(ctx *gin.Context) {
 	var reservationFiler dto.ReservationFilterRequest
 

@@ -56,36 +56,36 @@ func (s *Server) InitilaisePaymentHandler(ctx *gin.Context) {
 }
 
 // @Summary Verify payment
-// @Description Verify the status of a payment using its transaction reference.
+// @Description Verify the status of a payment using its Paystack transaction reference.
 // @Tags Payments
 // @Accept json
 // @Produce json
-// @Param input body dto.VerifyPaymentRequest true "Payment verification request"
+// @Param reference path string true "Payment reference"
+// @Security BearerAuth
 // @Success 200 {object} utils.Response{data=dto.PaymentResponse} "Payment verified successfully"
-// @Failure 400 {object} utils.Response "Invalid request data or payment not found"
+// @Failure 404 {object} utils.Response "Payment not found"
 // @Failure 500 {object} utils.Response "Internal server error"
-// @Router /payments/verify/{ref} [get]
+// @Router /payments/verify/{reference} [get]
 func (s *Server) VerifyPaymentHandler(ctx *gin.Context) {
-	var req dto.VerifyPaymentRequest
-	err := ctx.ShouldBindJSON(&req)
-	if err != nil {
-		utils.BadRequest(ctx, "Invalid request data", err)
-		return
-	}
+    reference := ctx.Param("reference")
 
-	response, err := s.paymentService.VerifyPayment(ctx.Request.Context(), &req)
-	if err != nil {
-		switch err {
-		case domain.ErrPaymentNotFound:
-			utils.NotFound(ctx, "Payment not found", err)
-		default:
-			utils.InternalServerError(ctx, "Failed to verify payment", err)
-			return
-		}
-		return
-	}
+    response, err := s.paymentService.VerifyPayment(
+        ctx.Request.Context(),
+        &dto.VerifyPaymentRequest{
+            Reference: reference,
+        },
+    )
+    if err != nil {
+        switch err {
+        case domain.ErrPaymentNotFound:
+            utils.NotFound(ctx, "Payment not found", err)
+        default:
+            utils.InternalServerError(ctx, "Failed to verify payment", err)
+        }
+        return
+    }
 
-	utils.SuccessResponse(ctx, "Payment verified successfully", response)
+    utils.SuccessResponse(ctx, "Payment verified successfully", response)
 }
 
 // @Summary Handle Paystack webhook
