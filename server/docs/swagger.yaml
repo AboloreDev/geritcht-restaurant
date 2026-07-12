@@ -708,7 +708,7 @@ definitions:
       status:
         type: boolean
     type: object
-host: localhost:9090
+host: https://geritcht-restaurant.onrender.com
 info:
   contact:
     email: alabifathiu@yahoo.com

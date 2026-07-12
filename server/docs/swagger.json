@@ -15,7 +15,7 @@
         },
         "version": "1.0"
     },
-    "host": "localhost:9090",
+    "host": "https://geritcht-restaurant.onrender.com",
     "basePath": "/api/v1",
     "paths": {
         "/allergens": {
