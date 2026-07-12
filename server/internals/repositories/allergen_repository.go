@@ -47,6 +47,7 @@ func (r *AllergenRepository) GetAll(ctx context.Context, page, pageSize int) ([]
 	var count int64
 
 	offset := utils.Pagination(page, pageSize)
+	pageSize = utils.ClampPageSize(pageSize)
 
 	r.db.WithContext(ctx).Model(&models.Allergen{}).Count(&count)
 

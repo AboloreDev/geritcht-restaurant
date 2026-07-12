@@ -50,7 +50,7 @@ func (s *Server) AddToCartHandler(ctx *gin.Context) {
 // @Success 200 {object} utils.Response{data=dto.CartResponse} "Cart updated successfully"
 // @Failure 401 {object} utils.Response "Unauthorized"
 // @Failure 404 {object} utils.Response "Cart item not found or menu item not found"
-// @Router /cart/{id} [put]
+// @Router /cart/{id} [patch]
 func (s *Server) UpdateCartItemHandler(ctx *gin.Context) {
 	userID := ctx.GetUint("user_id")
 

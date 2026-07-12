@@ -17,3 +17,13 @@ func Pagination(page int, pageSize int) int {
 
 	return offset
 }
+
+func ClampPageSize(pageSize int) int {
+	if pageSize <= 0 {
+		return 10
+	}
+	if pageSize > 100 {
+		return 100
+	}
+	return pageSize
+}

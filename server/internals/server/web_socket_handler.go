@@ -33,7 +33,6 @@ var upgrader = websocket.Upgrader{
 // @Failure 500 {object} utils.Response "Failed to upgrade WebSocket connection"
 // @Router /ws/orders/{id} [get]
 
-
 // @Description Upgrade the connection to a WebSocket to receive real-time updates for an order's status.
 // @Description
 // @Description Example messages:

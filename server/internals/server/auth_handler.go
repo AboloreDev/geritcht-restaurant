@@ -308,7 +308,7 @@ func (s *Server) ResetPasswordHandler(ctx *gin.Context) {
 // @Success 200 {object} utils.Response "Password changed successfully"
 // @Failure 400 {object} utils.Response "Invalid request data or current password is incorrect"
 // @Security BearerAuth
-// @Router /auth/change-password [post]
+// @Router /auth/password-change [post]
 func (s *Server) ChangePasswordHandler(ctx *gin.Context) {
 	userID := ctx.GetUint("user_id")
 	var req dto.ChangePasswordRequest

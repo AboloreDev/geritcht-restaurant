@@ -161,12 +161,14 @@ func main() {
 	waitlistServices := services.NewWaitlistService(waitlistRepo)
 	tableServices := services.NewTableService(tableRepo, redisStore)
 	inventoryService := services.NewInventoryService(db, eventPublisher, redisStore, inventoryRepo)
-	paymentService := services.NewPaymentService(db, redisStore, eventPublisher, &config.Config{
-		Paystack: config.PaystackConfig{
-			PaystackSecretKey: cfg.Paystack.PaystackSecretKey,
-			PaystackPublicKey: cfg.Paystack.PaystackPublicKey,
-		},
-	}, inventoryRepo, &http.Client{Timeout: 10 * time.Second}, paymentRepo, *inventoryService)
+	paymentService := services.NewPaymentService(db, redisStore, eventPublisher,
+		&config.Config{
+			Paystack: config.PaystackConfig{
+				PaystackSecretKey: cfg.Paystack.PaystackSecretKey,
+				PaystackPublicKey: cfg.Paystack.PaystackPublicKey,
+				PaystackURL:       cfg.Paystack.PaystackURL,
+			},
+		}, inventoryRepo, &http.Client{Timeout: 10 * time.Second}, paymentRepo, *inventoryService, log)
 	orderService := services.NewOrderService(db, orderRepo, paymentRepo, cartRepo, redisStore)
 	cartService := services.NewCartService(cartRepo, menuRepo)
 	ingredientService := services.NewIngredientService(redisStore, eventPublisher, ingredientRepo, userRepo, paymentRepo)

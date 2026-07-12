@@ -18,6 +18,7 @@ import (
 	"github.com/AboloreDev/geritcht-restaurant/internals/redis"
 	redisStore "github.com/AboloreDev/geritcht-restaurant/internals/redis"
 	"github.com/DATA-DOG/go-sqlmock"
+	"github.com/rs/zerolog"
 	"github.com/stretchr/testify/assert"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
@@ -145,7 +146,7 @@ func Test_CallPaystackInitialize(t *testing.T) {
 				PaystackSecretKey: "sk_test_fake",
 				PaystackURL:       "https://api.paystack.co/transaction/initialize",
 			},
-		}, nil, mockHTTPClient, nil, InventoryService{},
+		}, nil, mockHTTPClient, nil, InventoryService{}, zerolog.Nop().With().Logger(),
 	)
 
 	resp, err := fakeService.callPaystackInitialize(
@@ -190,7 +191,7 @@ func Test_CallPaystackVerify(t *testing.T) {
 				PaystackSecretKey: "sk_test_fake",
 				PaystackURL:       "https://api.paystack.co/transaction/verify/test_ref_123",
 			},
-		}, nil, mockHTTPClient, &MockPaymentRepository{}, InventoryService{},
+		}, nil, mockHTTPClient, &MockPaymentRepository{}, InventoryService{}, zerolog.Nop().With().Logger(),
 	)
 
 	response, err := fakeService.callPaystackVerify("test_ref_123")
@@ -229,7 +230,7 @@ func Test_CallPaystackRefund(t *testing.T) {
 				PaystackSecretKey: "sk_test_fake",
 				PaystackURL:       "https://api.paystack.co/refund",
 			},
-		}, nil, mockHTTPClient, &MockPaymentRepository{}, InventoryService{},
+		}, nil, mockHTTPClient, &MockPaymentRepository{}, InventoryService{}, zerolog.Nop().With().Logger(),
 	)
 
 	response, err := fakeService.callPaystackRefund("test_ref_123", 5000)
@@ -307,7 +308,7 @@ func Test_VerifySignature(t *testing.T) {
 					Paystack: config.PaystackConfig{
 						PaystackSecretKey: secretKey,
 					},
-				}, nil, mockHTTPClient, nil, InventoryService{},
+				}, nil, mockHTTPClient, nil, InventoryService{}, zerolog.Nop().With().Logger(),
 			)
 
 			result := fakeService.verifySignature([]byte(tc.body), tc.signature)

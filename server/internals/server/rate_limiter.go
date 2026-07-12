@@ -40,7 +40,6 @@ func (s *Server) RateLimiter(limit int, window time.Duration) gin.HandlerFunc {
 			return
 		}
 
-		
 		ctx.Header("X-RateLimit-Limit", strconv.Itoa(limit))
 		ctx.Header("X-RateLimit-Remaining", strconv.Itoa(limit-int(count)))
 		ctx.Next()

@@ -244,7 +244,7 @@ func (s *Server) GetLowStockIngredientsHandler(ctx *gin.Context) {
 // @Failure 403 {object} utils.Response "Forbidden"
 // @Failure 404 {object} utils.Response "Ingredient not found"
 // @Failure 500 {object} utils.Response "Internal server error"
-// @Router /ingredients/{id}/limit [put]
+// @Router /ingredients/{id}/limit [patch]
 func (s *Server) SetThresholdLimitHandler(ctx *gin.Context) {
 	idStr := ctx.Param("id")
 	id, err := strconv.ParseUint(idStr, 10, 32)

@@ -115,7 +115,7 @@ func (s *Server) SetUpRoutes() *gin.Engine {
 			auth.POST("/login", s.RateLimiter(5, time.Minute), s.LoginUserHandler)
 			auth.POST("/logout", s.LogoutHandler)
 			auth.POST("/refresh", s.RefreshTokenHandler)
-			auth.POST("/forgot", s.RateLimiter(3, time.Minute), s.ForgotPasswordHandler)
+			auth.POST("/forgot-password", s.RateLimiter(3, time.Minute), s.ForgotPasswordHandler)
 			auth.POST("/reset-password", s.RateLimiter(5, time.Minute), s.ResetPasswordHandler)
 			auth.POST("/verify-email", s.RateLimiter(5, time.Minute), s.VerifyEmailHandler)
 			auth.POST("/verify-reset-otp", s.RateLimiter(20, time.Minute), s.VerifyResetOTPHandler)
@@ -226,7 +226,7 @@ func (s *Server) SetUpRoutes() *gin.Engine {
 				order.POST("/takeout", s.RateLimiter(20, time.Minute), s.CreateTakeoutOrderHandler)
 				order.GET("/takeout/:id", s.GetTakeoutOrderHandler)
 				order.GET("/takeout/all", s.GetAllUserTakeoutOrdersHandler)
-				order.GET("/all", s.GetAllOrdersHandler)
+				order.GET("/all", s.AdminMiddleware(), s.GetAllOrdersHandler)
 				order.PATCH("/takeout/:id/cancel", s.RateLimiter(10, time.Minute), s.CancelReservationHandler)
 			}
 

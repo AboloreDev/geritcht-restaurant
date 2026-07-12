@@ -23,6 +23,7 @@ import (
 	"github.com/AboloreDev/geritcht-restaurant/internals/utils"
 	"github.com/google/uuid"
 	"github.com/redis/go-redis/v9"
+	"github.com/rs/zerolog"
 	"gorm.io/gorm"
 )
 
@@ -81,6 +82,7 @@ type PaymentService struct {
 	HTTPClient     HTTPClient
 	paymentRepo    repositories.PaymentRepositoryInterface
 	inventory      InventoryService
+	log            zerolog.Logger
 }
 
 func NewPaymentService(
@@ -92,6 +94,7 @@ func NewPaymentService(
 	HTTPClient HTTPClient,
 	paymentRepo repositories.PaymentRepositoryInterface,
 	inventory InventoryService,
+	log zerolog.Logger,
 ) *PaymentService {
 	return &PaymentService{
 		db:             db,
@@ -125,6 +128,8 @@ func (s *PaymentService) callPaystackInitialize(email string, amount int64, refe
 	// Call Paystck endpoint
 	req, err := http.NewRequest("POST", url, bytes.NewBuffer(body))
 	if err != nil {
+
+		s.log.Error().Err(err).Msg("operation failed")
 		return nil, err
 	}
 
@@ -134,6 +139,7 @@ func (s *PaymentService) callPaystackInitialize(email string, amount int64, refe
 
 	response, err := s.HTTPClient.Do(req)
 	if err != nil {
+		s.log.Error().Err(err).Msg("operation failed")
 		return nil, err
 	}
 	defer response.Body.Close()
@@ -144,6 +150,7 @@ func (s *PaymentService) callPaystackInitialize(email string, amount int64, refe
 
 	err = json.NewDecoder(response.Body).Decode(&result)
 	if err != nil {
+		s.log.Error().Err(err).Msg("operation failed")
 		return nil, err
 	}
 
@@ -257,12 +264,15 @@ func (s *PaymentService) InitialisePayment(ctx context.Context, userID uint, req
 		order.ID,
 	)
 	if err != nil {
+		s.log.Error().Err(err).Msg("operation failed")
 		return nil, fmt.Errorf("paystack initialization failed: %w", err)
 	}
 
 	if err := s.paymentRepo.UpdatePayment(ctx, nil, payment, map[string]interface{}{
 		"status": models.PaymentStatusPending,
 	}); err != nil {
+		s.log.Error().Err(err).Msg("operation failed")
+
 		return nil, err
 	}
 

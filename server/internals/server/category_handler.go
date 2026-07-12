@@ -77,7 +77,7 @@ func (s *Server) CreateCategoryHandler(ctx *gin.Context) {
 // @Failure 404 {object} utils.Response "Category not found"
 // @Failure 409 {object} utils.Response "Category name already exists"
 // @Failure 500 {object} utils.Response "Internal server error"
-// @Router /categories/{id} [put]
+// @Router /categories/{id} [patch]
 func (s *Server) UpdateCategoryHandler(ctx *gin.Context) {
 	c := ctx.Request.Context()
 

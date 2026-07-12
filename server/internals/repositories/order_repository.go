@@ -53,6 +53,7 @@ func (r *OrderRepository) GetAllByUser(ctx context.Context, userID uint, page, p
 	var orders []models.Order
 	var total int64
 	offset := utils.Pagination(page, pageSize)
+	pageSize = utils.ClampPageSize(pageSize)
 
 	r.db.WithContext(ctx).Model(&models.Order{}).
 		Where("user_id = ? AND type = ?", userID, models.OrderTypeTakeout).
@@ -75,6 +76,7 @@ func (r *OrderRepository) GetAll(ctx context.Context, page, pageSize int) ([]mod
 	var orders []models.Order
 	var total int64
 	offset := utils.Pagination(page, pageSize)
+	pageSize = utils.ClampPageSize(pageSize)
 
 	r.db.WithContext(ctx).Model(&models.Order{}).Count(&total)
 
