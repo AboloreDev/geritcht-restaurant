@@ -64,7 +64,7 @@ func (s *Server) InitilaisePaymentHandler(ctx *gin.Context) {
 // @Success 200 {object} utils.Response{data=dto.PaymentResponse} "Payment verified successfully"
 // @Failure 400 {object} utils.Response "Invalid request data or payment not found"
 // @Failure 500 {object} utils.Response "Internal server error"
-// @Router /payments/verify/{ref} [post]
+// @Router /payments/verify/{ref} [get]
 func (s *Server) VerifyPaymentHandler(ctx *gin.Context) {
 	var req dto.VerifyPaymentRequest
 	err := ctx.ShouldBindJSON(&req)

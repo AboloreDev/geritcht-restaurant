@@ -236,6 +236,11 @@ func (s *PaymentService) verifySignature(body []byte, signature string) bool {
 	mac := hmac.New(sha512.New, []byte(s.config.Paystack.PaystackSecretKey))
 	mac.Write(body)
 	expectedMac := hex.EncodeToString(mac.Sum(nil))
+
+	fmt.Println("Received :", signature)
+	fmt.Println("Expected :", expectedMac)
+	fmt.Println("Equal    :", hmac.Equal([]byte(expectedMac), []byte(signature)))
+
 	return hmac.Equal([]byte(expectedMac), []byte(signature))
 }
 
@@ -305,6 +310,7 @@ func (s *PaymentService) VerifyPayment(ctx context.Context, req *dto.VerifyPayme
 }
 
 func (s *PaymentService) HandlePaystackWebhook(ctx context.Context, body []byte, signature string) error {
+	
 	if !s.verifySignature(body, signature) {
 		return domain.ErrInvalidSignature
 	}
@@ -382,7 +388,7 @@ func (s *PaymentService) HandlePaystackWebhook(ctx context.Context, body []byte,
 
 		err = s.inventory.DeductStock(ctx, tx, fullOrder.OrderItems, payment.OrderID, payment.UserID)
 		if err != nil {
-			return nil
+			return err
 		}
 
 		// clear cart
