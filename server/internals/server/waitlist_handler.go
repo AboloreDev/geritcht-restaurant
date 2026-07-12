@@ -60,7 +60,7 @@ func (s *Server) JoinWaitlistHandler(ctx *gin.Context) {
 // @Param date query string true "Reservation date (YYYY-MM-DD)"
 // @Param time_slot query string true "Reservation time slot"
 // @Security BearerAuth
-// @Success 200 {object} utils.Response{data=dto.WaitlistPositionResponse} "Waitlist position retrieved successfully"
+// @Success 200 {object} utils.Response{data=dto.WaitlistResponse} "Waitlist position retrieved successfully"
 // @Failure 400 {object} utils.Response "Invalid request or user is not on the waitlist"
 // @Failure 401 {object} utils.Response "Unauthorized"
 // @Failure 500 {object} utils.Response "Internal server error"

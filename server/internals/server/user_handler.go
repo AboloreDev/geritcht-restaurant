@@ -44,7 +44,7 @@ func (s *Server) GetUserProfileHandler(ctx *gin.Context) {
 // @Accept json
 // @Produce json
 // @Security BearerAuth
-// @Success 200 {object} utils.Response{data=dto.StaffResponse} "Staff profile retrieved successfully"
+// @Success 200 {object} utils.Response{data=dto.UserResponse} "Staff profile retrieved successfully"
 // @Failure 401 {object} utils.Response "Unauthorized"
 // @Failure 404 {object} utils.Response "Staff not found"
 // @Failure 500 {object} utils.Response "Internal server error"
@@ -103,7 +103,7 @@ func (s *Server) GetAllUserHandler(ctx *gin.Context) {
 // @Security BearerAuth
 // @Param page query int false "Page number" default(1)
 // @Param pageSize query int false "Number of items per page" default(10)
-// @Success 200 {object} utils.PaginatedResponse{data=[]dto.StaffResponse} "Staff retrieved successfully"
+// @Success 200 {object} utils.PaginatedResponse{data=[]dto.UserResponse} "Staff retrieved successfully"
 // @Failure 401 {object} utils.Response "Unauthorized"
 // @Failure 403 {object} utils.Response "Forbidden"
 // @Failure 500 {object} utils.Response "Internal server error"
@@ -276,7 +276,7 @@ func (s *Server) UpdateUserProfileHandler(ctx *gin.Context) {
 // @Produce json
 // @Security BearerAuth
 // @Param input body dto.UpdateProfileRequest true "Updated profile details"
-// @Success 200 {object} utils.Response{data=dto.StaffResponse} "Profile updated successfully"
+// @Success 200 {object} utils.Response{data=dto.UserResponse} "Profile updated successfully"
 // @Failure 400 {object} utils.Response "Invalid request data"
 // @Failure 401 {object} utils.Response "Unauthorized"
 // @Failure 404 {object} utils.Response "Staff not found"

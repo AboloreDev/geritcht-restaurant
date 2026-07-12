@@ -94,7 +94,6 @@ func (s *Server) LoginUserHandler(ctx *gin.Context) {
 // @Tags Authentication
 // @Accept json
 // @Produce json
-// @Param refresh_token cookie string true "Refresh token"
 // @Success 200 {object} utils.Response{data=dto.AuthResponse} "New access token generated"
 // @Failure 401 {object} utils.Response "Invalid or expired refresh token"
 // @Router /auth/refresh [post]
@@ -163,14 +162,14 @@ func (s *Server) LogoutHandler(ctx *gin.Context) {
 	utils.SuccessResponse(ctx, "User LoggedOut successfully", nil)
 }
 
-// @Summary User verify email
-// @Description Verify user email with token
+// @Summary Verify email
+// @Description Verify a user's email address using the verification token or OTP.
 // @Tags Authentication
 // @Accept json
 // @Produce json
-// @Param request body dto.VerifyEmailRequest true token to invalidate"
-// @Success 200 {object} utils.Response "verification successful"
-// @Failure 400 {object} utils.Response "Invalid or expired token"
+// @Param input body dto.VerifyEmailRequest true "Email verification request"
+// @Success 200 {object} utils.Response "Email verified successfully"
+// @Failure 400 {object} utils.Response "Invalid or expired verification token"
 // @Failure 429 {object} utils.Response "Too many requests"
 // @Router /auth/verify-email [post]
 func (s *Server) VerifyEmailHandler(ctx *gin.Context) {
@@ -200,13 +199,13 @@ func (s *Server) VerifyEmailHandler(ctx *gin.Context) {
 	utils.SuccessResponse(ctx, "Verification Success", response)
 }
 
-// @Summary User forgot password
-// @Description Send password reset code to user email
+// @Summary Forgot password
+// @Description Send a password reset code to the user's registered email address.
 // @Tags Authentication
 // @Accept json
 // @Produce json
-// @Param request body dto.ForgotPasswordRequest
-// @Success 200 {object} utils.Response "successful"
+// @Param input body dto.ForgotPasswordRequest true "Forgot password request"
+// @Success 200 {object} utils.Response "Password reset code sent successfully"
 // @Failure 400 {object} utils.Response "Invalid request data"
 // @Failure 429 {object} utils.Response "Too many requests"
 // @Router /auth/forgot-password [post]
@@ -228,14 +227,14 @@ func (s *Server) ForgotPasswordHandler(ctx *gin.Context) {
 	utils.SuccessResponse(ctx, "Password reset code send to Mail, Check Your Inbox", nil)
 }
 
-// @Summary User verify reset password token
-// @Description Verify user reset token
+// @Summary Verify password reset token
+// @Description Verify that a password reset token or OTP is valid before allowing the user to reset their password.
 // @Tags Authentication
 // @Accept json
 // @Produce json
-// @Param request body dto.VerifyResetToken true token to invalidate"
-// @Success 200 {object} utils.Response "verification successful"
-// @Failure 400 {object} utils.Response "Invalid or expired token"
+// @Param input body dto.VerifyResetToken true "Password reset token verification request"
+// @Success 200 {object} utils.Response "Password reset token verified successfully"
+// @Failure 400 {object} utils.Response "Invalid or expired password reset token"
 // @Failure 429 {object} utils.Response "Too many requests"
 // @Router /auth/verify-reset-token [post]
 func (s *Server) VerifyResetOTPHandler(ctx *gin.Context) {

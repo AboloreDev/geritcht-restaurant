@@ -18,7 +18,7 @@ import (
 // @Produce json
 // @Param input body dto.InitializePaymentRequest true "Payment initialization request"
 // @Security BearerAuth
-// @Success 200 {object} utils.Response{data=dto.InitializePaymentResponse} "Payment initialized successfully"
+// @Success 200 {object} utils.Response{data=dto.PaymentResponse} "Payment initialized successfully"
 // @Failure 400 {object} utils.Response "Invalid request data, invalid order status, or order already paid"
 // @Failure 401 {object} utils.Response "Unauthorized"
 // @Failure 404 {object} utils.Response "Order or payment not found"
@@ -61,7 +61,7 @@ func (s *Server) InitilaisePaymentHandler(ctx *gin.Context) {
 // @Accept json
 // @Produce json
 // @Param input body dto.VerifyPaymentRequest true "Payment verification request"
-// @Success 200 {object} utils.Response{data=dto.VerifyPaymentResponse} "Payment verified successfully"
+// @Success 200 {object} utils.Response{data=dto.PaymentResponse} "Payment verified successfully"
 // @Failure 400 {object} utils.Response "Invalid request data or payment not found"
 // @Failure 500 {object} utils.Response "Internal server error"
 // @Router /payments/verify/{ref} [post]
@@ -93,7 +93,7 @@ func (s *Server) VerifyPaymentHandler(ctx *gin.Context) {
 // @Tags Payments
 // @Accept json
 // @Produce json
-// @Param payload body dto.WebhookPayload true "Webhook payload"
+
 // @Success 200 "Webhook processed successfully"
 // @Failure 400 {object} utils.Response "Invalid signature or payment not found"
 // @Failure 500 {object} utils.Response "Internal server error"
@@ -195,7 +195,7 @@ func (s *Server) GetPaymentByReferenceHandler(ctx *gin.Context) {
 // @Produce json
 // @Param id path string true "Payment ID"
 // @Security BearerAuth
-// @Success 200 {object} utils.Response{data=dto.PaymentWithOrderResponse} "Payment retrieved successfully"
+// @Success 200 {object} utils.Response{data=dto.PaymentResponse} "Payment retrieved successfully"
 // @Failure 401 {object} utils.Response "Unauthorized"
 // @Failure 404 {object} utils.Response "Payment not found"
 // @Failure 500 {object} utils.Response "Internal server error"

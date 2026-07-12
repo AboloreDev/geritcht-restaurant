@@ -1,4 +1,713 @@
 basePath: /api/v1
+definitions:
+  github_com_AboloreDev_geritcht-restaurant_internals_dto.AddToCartRequest:
+    properties:
+      menu_item_id:
+        type: integer
+      quantity:
+        type: integer
+      special_instructions:
+        type: string
+    required:
+    - menu_item_id
+    - quantity
+    type: object
+  github_com_AboloreDev_geritcht-restaurant_internals_dto.AllergenResponse:
+    properties:
+      id:
+        type: integer
+      name:
+        type: string
+    type: object
+  github_com_AboloreDev_geritcht-restaurant_internals_dto.AuthResponse:
+    properties:
+      access_token:
+        type: string
+      refresh_token:
+        type: string
+      user:
+        $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_dto.UserResponse'
+    type: object
+  github_com_AboloreDev_geritcht-restaurant_internals_dto.CartItemResponse:
+    properties:
+      created_at:
+        type: string
+      id:
+        type: integer
+      menu_item:
+        $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_dto.MenuResponse'
+      menu_item_id:
+        type: integer
+      quantity:
+        type: integer
+      special_instructions:
+        type: string
+      subtotal:
+        type: number
+    type: object
+  github_com_AboloreDev_geritcht-restaurant_internals_dto.CartResponse:
+    properties:
+      cart_items:
+        items:
+          $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_dto.CartItemResponse'
+        type: array
+      created_at:
+        type: string
+      id:
+        type: integer
+      item_count:
+        type: integer
+      total:
+        type: number
+      user_id:
+        type: integer
+    type: object
+  github_com_AboloreDev_geritcht-restaurant_internals_dto.ChangePasswordRequest:
+    properties:
+      current_password:
+        type: string
+      new_password:
+        minLength: 8
+        type: string
+    required:
+    - current_password
+    - new_password
+    type: object
+  github_com_AboloreDev_geritcht-restaurant_internals_dto.CreateAllergenRequest:
+    properties:
+      name:
+        type: string
+    required:
+    - name
+    type: object
+  github_com_AboloreDev_geritcht-restaurant_internals_dto.CreateDietaryTagRequest:
+    properties:
+      name:
+        type: string
+    required:
+    - name
+    type: object
+  github_com_AboloreDev_geritcht-restaurant_internals_dto.CreateIngredientRequest:
+    properties:
+      current_stock:
+        type: number
+      min_threshold:
+        type: number
+      name:
+        type: string
+      unit:
+        type: string
+    required:
+    - min_threshold
+    - name
+    - unit
+    type: object
+  github_com_AboloreDev_geritcht-restaurant_internals_dto.CreateMenuRequest:
+    properties:
+      allergen_ids:
+        items:
+          type: integer
+        type: array
+      category_id:
+        type: integer
+      description:
+        type: string
+      dietary_tag_ids:
+        items:
+          type: integer
+        type: array
+      display_order:
+        type: integer
+      name:
+        type: string
+      prep_time_minutes:
+        type: integer
+      price:
+        type: number
+      spice_level:
+        type: integer
+    required:
+    - category_id
+    - name
+    - price
+    type: object
+  github_com_AboloreDev_geritcht-restaurant_internals_dto.CreateReservationRequest:
+    properties:
+      date:
+        type: string
+      party_size:
+        type: integer
+      special_requests:
+        type: string
+      table_id:
+        type: integer
+      time_slot:
+        type: string
+    required:
+    - date
+    - party_size
+    - table_id
+    - time_slot
+    type: object
+  github_com_AboloreDev_geritcht-restaurant_internals_dto.CreateTableRequest:
+    properties:
+      capacity:
+        type: integer
+      location:
+        type: string
+      name:
+        type: string
+    required:
+    - capacity
+    - name
+    type: object
+  github_com_AboloreDev_geritcht-restaurant_internals_dto.CreateTakeoutOrderRequest:
+    properties:
+      notes:
+        type: string
+    type: object
+  github_com_AboloreDev_geritcht-restaurant_internals_dto.DietaryTagResponse:
+    properties:
+      id:
+        type: integer
+      name:
+        type: string
+    type: object
+  github_com_AboloreDev_geritcht-restaurant_internals_dto.ForgotPasswordRequest:
+    properties:
+      email:
+        type: string
+    required:
+    - email
+    type: object
+  github_com_AboloreDev_geritcht-restaurant_internals_dto.IngredientResponse:
+    properties:
+      created_at:
+        type: string
+      current_stock:
+        type: number
+      id:
+        type: integer
+      is_low:
+        type: boolean
+      min_threshold:
+        type: number
+      name:
+        type: string
+      unit:
+        type: string
+      updated_at:
+        type: string
+    type: object
+  github_com_AboloreDev_geritcht-restaurant_internals_dto.InitializePaymentRequest:
+    properties:
+      order_id:
+        type: integer
+    required:
+    - order_id
+    type: object
+  github_com_AboloreDev_geritcht-restaurant_internals_dto.JoinWaitlistRequest:
+    properties:
+      date:
+        type: string
+      party_size:
+        type: integer
+      time_slot:
+        type: string
+    required:
+    - date
+    - party_size
+    - time_slot
+    type: object
+  github_com_AboloreDev_geritcht-restaurant_internals_dto.LinkIngredientRequest:
+    properties:
+      ingredient_id:
+        type: integer
+      quantity:
+        type: number
+    required:
+    - ingredient_id
+    - quantity
+    type: object
+  github_com_AboloreDev_geritcht-restaurant_internals_dto.LoginRequest:
+    properties:
+      email:
+        type: string
+      password:
+        type: string
+    required:
+    - email
+    - password
+    type: object
+  github_com_AboloreDev_geritcht-restaurant_internals_dto.MenuCategoryResponse:
+    properties:
+      created_at:
+        type: string
+      description:
+        type: string
+      display_order:
+        type: integer
+      id:
+        type: integer
+      image_url:
+        type: string
+      is_active:
+        type: boolean
+      menu_items:
+        items:
+          $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_dto.MenuResponse'
+        type: array
+      name:
+        type: string
+    type: object
+  github_com_AboloreDev_geritcht-restaurant_internals_dto.MenuImageResponse:
+    properties:
+      alt_text:
+        type: string
+      created_at:
+        type: string
+      id:
+        type: integer
+      is_primary:
+        type: boolean
+      url:
+        type: string
+    type: object
+  github_com_AboloreDev_geritcht-restaurant_internals_dto.MenuItemIngredientResponse:
+    properties:
+      ingredient:
+        $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_dto.IngredientResponse'
+      ingredient_id:
+        type: integer
+      quantity:
+        type: number
+    type: object
+  github_com_AboloreDev_geritcht-restaurant_internals_dto.MenuResponse:
+    properties:
+      allergens:
+        items:
+          $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_dto.AllergenResponse'
+        type: array
+      category:
+        $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_dto.MenuCategoryResponse'
+      category_id:
+        type: integer
+      created_at:
+        type: string
+      description:
+        type: string
+      dietary_tags:
+        items:
+          $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_dto.DietaryTagResponse'
+        type: array
+      display_order:
+        type: integer
+      id:
+        type: integer
+      image_url:
+        type: string
+      images:
+        items:
+          $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_dto.MenuImageResponse'
+        type: array
+      is_available:
+        type: boolean
+      name:
+        type: string
+      prep_time_minutes:
+        type: integer
+      price:
+        type: number
+      spice_level:
+        type: integer
+      updated_at:
+        type: string
+    type: object
+  github_com_AboloreDev_geritcht-restaurant_internals_dto.OrderItemResponse:
+    properties:
+      id:
+        type: integer
+      menu_item:
+        $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_dto.MenuResponse'
+      menu_item_id:
+        type: integer
+      price:
+        type: number
+      quantity:
+        type: integer
+      special_instructions:
+        type: string
+      subtotal:
+        type: number
+    type: object
+  github_com_AboloreDev_geritcht-restaurant_internals_dto.OrderResponse:
+    properties:
+      created_at:
+        type: string
+      id:
+        type: integer
+      notes:
+        type: string
+      order_items:
+        items:
+          $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_dto.OrderItemResponse'
+        type: array
+      payment:
+        $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_dto.PaymentResponse'
+      payment_status:
+        type: string
+      reservation_id:
+        type: integer
+      status:
+        type: string
+      table_id:
+        type: integer
+      total_amount:
+        type: number
+      type:
+        type: string
+      updated_at:
+        type: string
+      user:
+        $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_dto.UserResponse'
+      user_id:
+        type: integer
+    type: object
+  github_com_AboloreDev_geritcht-restaurant_internals_dto.PaymentResponse:
+    properties:
+      amount:
+        type: number
+      created_at:
+        type: string
+      currency:
+        type: string
+      failure_reason:
+        type: string
+      id:
+        type: integer
+      order_id:
+        type: integer
+      paid_at:
+        type: string
+      provider:
+        type: string
+      provider_reference:
+        type: string
+      reference:
+        type: string
+      status:
+        type: string
+    type: object
+  github_com_AboloreDev_geritcht-restaurant_internals_dto.RefreshTokenRequest:
+    properties:
+      refresh_token:
+        type: string
+    required:
+    - refresh_token
+    type: object
+  github_com_AboloreDev_geritcht-restaurant_internals_dto.RefundResponse:
+    properties:
+      amount:
+        type: number
+      created_at:
+        type: string
+      currency:
+        type: string
+      id:
+        type: integer
+      order:
+        $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_dto.OrderResponse'
+      order_id:
+        type: integer
+      payment:
+        $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_dto.PaymentResponse'
+      payment_id:
+        type: integer
+      processed_at:
+        type: string
+      reason:
+        type: string
+      reference:
+        type: string
+      status:
+        type: string
+    type: object
+  github_com_AboloreDev_geritcht-restaurant_internals_dto.RegisterRequest:
+    properties:
+      email:
+        type: string
+      first_name:
+        type: string
+      last_name:
+        type: string
+      password:
+        minLength: 8
+        type: string
+      phone_number:
+        type: string
+    required:
+    - email
+    - first_name
+    - last_name
+    - password
+    type: object
+  github_com_AboloreDev_geritcht-restaurant_internals_dto.ReservationResponse:
+    properties:
+      checked_in_at:
+        type: string
+      created_at:
+        type: string
+      date:
+        type: string
+      id:
+        type: integer
+      party_size:
+        type: integer
+      special_requests:
+        type: string
+      status:
+        type: string
+      table:
+        $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_dto.TableResponse'
+      table_id:
+        type: integer
+      time_slot:
+        type: string
+      user:
+        $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_dto.UserResponse'
+      user_id:
+        type: integer
+    type: object
+  github_com_AboloreDev_geritcht-restaurant_internals_dto.ResetPasswordRequest:
+    properties:
+      new_password:
+        minLength: 8
+        type: string
+      token:
+        type: string
+    required:
+    - new_password
+    - token
+    type: object
+  github_com_AboloreDev_geritcht-restaurant_internals_dto.TableResponse:
+    properties:
+      capacity:
+        type: integer
+      id:
+        type: integer
+      location:
+        type: string
+      name:
+        type: string
+      qr_code:
+        type: string
+      status:
+        type: string
+    type: object
+  github_com_AboloreDev_geritcht-restaurant_internals_dto.ThresholdRequest:
+    properties:
+      min_threshold:
+        type: number
+    required:
+    - min_threshold
+    type: object
+  github_com_AboloreDev_geritcht-restaurant_internals_dto.UpdateAllergenRequest:
+    properties:
+      name:
+        type: string
+    required:
+    - name
+    type: object
+  github_com_AboloreDev_geritcht-restaurant_internals_dto.UpdateCartItemRequest:
+    properties:
+      quantity:
+        type: integer
+      special_instructions:
+        type: string
+    required:
+    - quantity
+    type: object
+  github_com_AboloreDev_geritcht-restaurant_internals_dto.UpdateDietaryTagRequest:
+    properties:
+      name:
+        type: string
+    required:
+    - name
+    type: object
+  github_com_AboloreDev_geritcht-restaurant_internals_dto.UpdateIngredientRequest:
+    properties:
+      min_threshold:
+        type: number
+      name:
+        type: string
+      unit:
+        type: string
+    type: object
+  github_com_AboloreDev_geritcht-restaurant_internals_dto.UpdateLinkItemRequest:
+    properties:
+      quantity:
+        type: number
+    required:
+    - quantity
+    type: object
+  github_com_AboloreDev_geritcht-restaurant_internals_dto.UpdateMenuRequest:
+    properties:
+      allergen_ids:
+        items:
+          type: integer
+        type: array
+      category_id:
+        type: integer
+      description:
+        type: string
+      dietary_tag_ids:
+        items:
+          type: integer
+        type: array
+      display_order:
+        type: integer
+      is_available:
+        type: boolean
+      name:
+        type: string
+      prep_time_minutes:
+        type: integer
+      price:
+        type: number
+      spice_level:
+        type: integer
+    required:
+    - category_id
+    type: object
+  github_com_AboloreDev_geritcht-restaurant_internals_dto.UpdateProfileRequest:
+    properties:
+      first_name:
+        type: string
+      last_name:
+        type: string
+      phone_number:
+        type: string
+    type: object
+  github_com_AboloreDev_geritcht-restaurant_internals_dto.UpdateTableRequest:
+    properties:
+      capacity:
+        type: integer
+      location:
+        type: string
+      name:
+        type: string
+      status:
+        type: string
+    type: object
+  github_com_AboloreDev_geritcht-restaurant_internals_dto.UpdateTableStatusRequest:
+    properties:
+      status:
+        enum:
+        - available
+        - occupied
+        - reserved
+        type: string
+    required:
+    - status
+    type: object
+  github_com_AboloreDev_geritcht-restaurant_internals_dto.UserResponse:
+    properties:
+      created_at:
+        type: string
+      email:
+        type: string
+      email_verified:
+        type: boolean
+      first_name:
+        type: string
+      id:
+        type: integer
+      is_active:
+        type: boolean
+      last_name:
+        type: string
+      phone_number:
+        type: string
+      role:
+        type: string
+    type: object
+  github_com_AboloreDev_geritcht-restaurant_internals_dto.VerifyEmailRequest:
+    properties:
+      token:
+        type: string
+    required:
+    - token
+    type: object
+  github_com_AboloreDev_geritcht-restaurant_internals_dto.VerifyPaymentRequest:
+    properties:
+      reference:
+        type: string
+    required:
+    - reference
+    type: object
+  github_com_AboloreDev_geritcht-restaurant_internals_dto.VerifyResetToken:
+    properties:
+      token:
+        type: string
+    required:
+    - token
+    type: object
+  github_com_AboloreDev_geritcht-restaurant_internals_dto.WaitlistResponse:
+    properties:
+      created_at:
+        type: string
+      date:
+        type: string
+      expires_at:
+        type: string
+      id:
+        type: integer
+      notified_at:
+        type: string
+      party_size:
+        type: integer
+      position:
+        type: integer
+      status:
+        type: string
+      time_slot:
+        type: string
+      user_id:
+        type: integer
+    type: object
+  github_com_AboloreDev_geritcht-restaurant_internals_utils.PaginatedMeta:
+    properties:
+      limit:
+        type: integer
+      page:
+        type: integer
+      total:
+        type: integer
+      total_pages:
+        type: integer
+    type: object
+  github_com_AboloreDev_geritcht-restaurant_internals_utils.PaginatedResponse:
+    properties:
+      data: {}
+      error:
+        type: string
+      message:
+        type: string
+      meta:
+        $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.PaginatedMeta'
+      status:
+        type: boolean
+    type: object
+  github_com_AboloreDev_geritcht-restaurant_internals_utils.Response:
+    properties:
+      data: {}
+      error:
+        type: string
+      message:
+        type: string
+      status:
+        type: boolean
+    type: object
 host: localhost:9090
 info:
   contact:
@@ -12,7 +721,3930 @@ info:
   termsOfService: http://swagger.io/terms/
   title: Geritcht Restaurant API
   version: "1.0"
-paths: {}
+paths:
+  /allergens:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve a paginated list of all allergens.
+      parameters:
+      - default: 1
+        description: Page number
+        in: query
+        name: page
+        type: integer
+      - default: 10
+        description: Number of items per page
+        in: query
+        name: pageSize
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Allergens retrieved successfully
+          schema:
+            allOf:
+            - $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.PaginatedResponse'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_dto.AllergenResponse'
+                  type: array
+              type: object
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+      security:
+      - BearerAuth: []
+      summary: List allergens
+      tags:
+      - Allergens
+    post:
+      consumes:
+      - application/json
+      description: Create a new allergen. Admin access required.
+      parameters:
+      - description: Allergen details
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_dto.CreateAllergenRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Allergen created successfully
+          schema:
+            allOf:
+            - $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_dto.AllergenResponse'
+              type: object
+        "400":
+          description: Invalid request data
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+        "409":
+          description: Allergen already exists
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+      security:
+      - BearerAuth: []
+      summary: Create an allergen
+      tags:
+      - Allergens
+  /allergens/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Delete an allergen by its ID. Admin access required.
+      parameters:
+      - description: Allergen ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Allergen deleted successfully
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+        "400":
+          description: Invalid allergen ID
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+        "404":
+          description: Allergen not found
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+        "409":
+          description: Allergen cannot be deleted because it is in use
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+      security:
+      - BearerAuth: []
+      summary: Delete an allergen
+      tags:
+      - Allergens
+    patch:
+      consumes:
+      - application/json
+      description: Update an existing allergen. Admin access required.
+      parameters:
+      - description: Allergen ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Updated allergen details
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_dto.UpdateAllergenRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Allergen updated successfully
+          schema:
+            allOf:
+            - $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_dto.AllergenResponse'
+              type: object
+        "400":
+          description: Invalid request data or allergen ID
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+        "404":
+          description: Allergen not found
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+        "409":
+          description: Allergen name already exists
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+      security:
+      - BearerAuth: []
+      summary: Update an allergen
+      tags:
+      - Allergens
+  /auth/change-password:
+    post:
+      consumes:
+      - application/json
+      description: Change user password
+      parameters:
+      - description: Change password data
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_dto.ChangePasswordRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Password changed successfully
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+        "400":
+          description: Invalid request data or current password is incorrect
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+      security:
+      - BearerAuth: []
+      summary: User change password
+      tags:
+      - Authentication
+  /auth/forgot-password:
+    post:
+      consumes:
+      - application/json
+      description: Send a password reset code to the user's registered email address.
+      parameters:
+      - description: Forgot password request
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_dto.ForgotPasswordRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Password reset code sent successfully
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+        "400":
+          description: Invalid request data
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+        "429":
+          description: Too many requests
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+      summary: Forgot password
+      tags:
+      - Authentication
+  /auth/login:
+    post:
+      consumes:
+      - application/json
+      description: Authenticate user with email and password
+      parameters:
+      - description: User login credentials
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_dto.LoginRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Login successful
+          schema:
+            allOf:
+            - $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_dto.AuthResponse'
+              type: object
+        "401":
+          description: Invalid credentials
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+        "429":
+          description: Too many requests
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+      summary: User login
+      tags:
+      - Authentication
+  /auth/logout:
+    post:
+      consumes:
+      - application/json
+      description: Invalidate refresh token and logout user
+      parameters:
+      - description: Refresh token to invalidate
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_dto.RefreshTokenRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Logout successful
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+        "400":
+          description: Invalid request data
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+      summary: User logout
+      tags:
+      - Authentication
+  /auth/refresh:
+    post:
+      consumes:
+      - application/json
+      description: Generate a new access token using a valid refresh token
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: New access token generated
+          schema:
+            allOf:
+            - $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_dto.AuthResponse'
+              type: object
+        "401":
+          description: Invalid or expired refresh token
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+      summary: Refresh access token
+      tags:
+      - Authentication
+  /auth/register:
+    post:
+      consumes:
+      - application/json
+      description: Create a new user account with email,firstname, lastname and password
+      parameters:
+      - description: User registration data
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_dto.RegisterRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: User registered successfully
+          schema:
+            allOf:
+            - $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_dto.AuthResponse'
+              type: object
+        "400":
+          description: Invalid request data or user already exists
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+        "429":
+          description: Too many requests
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+      summary: Register a new user
+      tags:
+      - Authentication
+  /auth/reset-password:
+    post:
+      consumes:
+      - application/json
+      description: Reset user password with reset token
+      parameters:
+      - description: Reset password data
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_dto.ResetPasswordRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Password reset successful
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+        "400":
+          description: Invalid request data or token expired
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+        "429":
+          description: Too many requests
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+      summary: User reset password
+      tags:
+      - Authentication
+  /auth/verify-email:
+    post:
+      consumes:
+      - application/json
+      description: Verify a user's email address using the verification token or OTP.
+      parameters:
+      - description: Email verification request
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_dto.VerifyEmailRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Email verified successfully
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+        "400":
+          description: Invalid or expired verification token
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+        "429":
+          description: Too many requests
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+      summary: Verify email
+      tags:
+      - Authentication
+  /auth/verify-reset-token:
+    post:
+      consumes:
+      - application/json
+      description: Verify that a password reset token or OTP is valid before allowing
+        the user to reset their password.
+      parameters:
+      - description: Password reset token verification request
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_dto.VerifyResetToken'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Password reset token verified successfully
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+        "400":
+          description: Invalid or expired password reset token
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+        "429":
+          description: Too many requests
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+      summary: Verify password reset token
+      tags:
+      - Authentication
+  /availability:
+    get:
+      consumes:
+      - application/json
+      description: Check available tables for a specified date, time, and party size.
+      parameters:
+      - description: Reservation date (YYYY-MM-DD)
+        in: query
+        name: date
+        required: true
+        type: string
+      - description: Reservation time (HH:MM)
+        in: query
+        name: time
+        required: true
+        type: string
+      - description: Number of guests
+        in: query
+        name: guests
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Availability retrieved successfully
+          schema:
+            allOf:
+            - $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_dto.TableResponse'
+                  type: array
+              type: object
+        "400":
+          description: Invalid request data or time slot
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+      summary: Check table availability
+      tags:
+      - Reservations
+  /cart:
+    get:
+      description: Retrieve current user's shopping cart with all items
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Cart retrieved successfully
+          schema:
+            allOf:
+            - $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_dto.CartResponse'
+              type: object
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+        "404":
+          description: Cart not found
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+      security:
+      - BearerAuth: []
+      summary: Get user's cart
+      tags:
+      - Cart
+    post:
+      consumes:
+      - application/json
+      description: Add a menu item to the current user's shopping cart
+      parameters:
+      - description: Menu item and quantity to add
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_dto.AddToCartRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Item added to cart successfully
+          schema:
+            allOf:
+            - $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_dto.CartResponse'
+              type: object
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+        "404":
+          description: Menu item not found
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+      security:
+      - BearerAuth: []
+      summary: Add item to cart
+      tags:
+      - Cart
+  /cart/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Remove a specific item from the current user's shopping cart
+      parameters:
+      - description: Cart Item ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Item removed from cart successfully
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+        "404":
+          description: Cart item not found
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+      security:
+      - BearerAuth: []
+      summary: Remove item from cart
+      tags:
+      - Cart
+    put:
+      consumes:
+      - application/json
+      description: Update the quantity of a specific item in the current user's shopping
+        cart
+      parameters:
+      - description: Cart Item ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Updated cart item details
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_dto.UpdateCartItemRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Cart updated successfully
+          schema:
+            allOf:
+            - $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_dto.CartResponse'
+              type: object
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+        "404":
+          description: Cart item not found or menu item not found
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+      security:
+      - BearerAuth: []
+      summary: Update cart item
+      tags:
+      - Cart
+  /cart/clear:
+    delete:
+      consumes:
+      - application/json
+      description: Remove all items from the current user's shopping cart
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Cart cleared successfully
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+        "404":
+          description: Cart not found
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+      security:
+      - BearerAuth: []
+      summary: Clear user's cart
+      tags:
+      - Cart
+  /categories:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve a paginated list of all product categories
+      parameters:
+      - description: Page number
+        in: query
+        name: page
+        type: integer
+      - description: Number of items per page
+        in: query
+        name: pageSize
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Categories fetched successfully
+          schema:
+            allOf:
+            - $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+            - properties:
+                ' meta':
+                  $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.PaginatedMeta'
+                data:
+                  items:
+                    $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_dto.MenuCategoryResponse'
+                  type: array
+              type: object
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+      summary: Get all categories
+      tags:
+      - Categories
+    post:
+      consumes:
+      - multipart/form-data
+      description: 'Create a new product category with a name, description, and image:
+        admin only'
+      parameters:
+      - description: Category name
+        in: formData
+        name: name
+        required: true
+        type: string
+      - description: Category description
+        in: formData
+        name: description
+        type: string
+      - description: Category image
+        in: formData
+        name: image
+        required: true
+        type: file
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Category created successfully
+          schema:
+            allOf:
+            - $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_dto.MenuCategoryResponse'
+              type: object
+        "400":
+          description: Invalid request data or image upload failed
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+        "409":
+          description: Category already exists
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+      security:
+      - BearerAuth: []
+      summary: Create a category
+      tags:
+      - Categories
+  /categories/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Remove a product category by its ID. Admin only
+      parameters:
+      - description: Category ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Category deleted successfully
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+        "400":
+          description: Invalid category ID
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+        "404":
+          description: Category not found
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+        "409":
+          description: Category is associated with products
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+      security:
+      - BearerAuth: []
+      summary: Delete a category
+      tags:
+      - Categories
+    get:
+      consumes:
+      - application/json
+      description: Retrieve details of a specific product category by its ID
+      parameters:
+      - description: Category ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Category fetched successfully
+          schema:
+            allOf:
+            - $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_dto.MenuCategoryResponse'
+              type: object
+        "400":
+          description: Invalid category ID
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+        "404":
+          description: Category not found
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+      summary: Get a category by ID
+      tags:
+      - Categories
+    put:
+      consumes:
+      - multipart/form-data
+      description: Update an existing product category's name, description, and/or
+        image admin only
+      parameters:
+      - description: Category ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Category name
+        in: formData
+        name: name
+        type: string
+      - description: Category description
+        in: formData
+        name: description
+        type: string
+      - description: Category image
+        in: formData
+        name: image
+        type: file
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Category updated successfully
+          schema:
+            allOf:
+            - $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_dto.MenuCategoryResponse'
+              type: object
+        "400":
+          description: Invalid request data or image upload failed
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+        "404":
+          description: Category not found
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+        "409":
+          description: Category name already exists
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+      security:
+      - BearerAuth: []
+      summary: Update a category
+      tags:
+      - Categories
+  /categories/search:
+    get:
+      consumes:
+      - application/json
+      description: Search for categories by name or description
+      parameters:
+      - description: Search query
+        in: query
+        name: q
+        type: string
+      - description: Page number
+        in: query
+        name: page
+        type: integer
+      - description: Number of items per page
+        in: query
+        name: pageSize
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Categories retrieved successfully
+          schema:
+            allOf:
+            - $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+            - properties:
+                ' meta':
+                  $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.PaginatedMeta'
+                data:
+                  items:
+                    $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_dto.MenuCategoryResponse'
+                  type: array
+              type: object
+        "400":
+          description: Invalid search parameters
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+        "404":
+          description: No categories found matching the search criteria
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+      summary: Search categories
+      tags:
+      - Categories
+  /ingredients:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve a list of all ingredients with pagination.Admin access
+        required.
+      parameters:
+      - description: Page number
+        in: query
+        name: page
+        type: integer
+      - description: Number of items per page
+        in: query
+        name: pageSize
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Ingredients retrieved successfully
+          schema:
+            allOf:
+            - $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+            - properties:
+                ' meta':
+                  $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.PaginatedMeta'
+                data:
+                  items:
+                    $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_dto.IngredientResponse'
+                  type: array
+              type: object
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+        "404":
+          description: Ingredient not found
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+      security:
+      - BearerAuth: []
+      summary: Get all ingredients
+      tags:
+      - Ingredients
+    post:
+      consumes:
+      - application/json
+      description: Create a new ingredient. Admin access required.
+      parameters:
+      - description: Ingredient details
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_dto.CreateIngredientRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Ingredient created successfully
+          schema:
+            allOf:
+            - $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_dto.IngredientResponse'
+              type: object
+        "400":
+          description: Invalid request data
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+        "409":
+          description: Ingredient already exists
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+      security:
+      - BearerAuth: []
+      summary: Create an ingredient
+      tags:
+      - Ingredients
+  /ingredients/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Delete an ingredient by ID. Admin access required.
+      parameters:
+      - description: Ingredient ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Ingredient deleted successfully
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+        "400":
+          description: Invalid ID
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+        "404":
+          description: Ingredient not found
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+      security:
+      - BearerAuth: []
+      summary: Delete an ingredient
+      tags:
+      - Ingredients
+    get:
+      consumes:
+      - application/json
+      description: Retrieve an ingredient by its ID Admin access required.
+      parameters:
+      - description: Ingredient ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Ingredient retrieved successfully
+          schema:
+            allOf:
+            - $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_dto.IngredientResponse'
+              type: object
+        "400":
+          description: Invalid ingredient ID
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+        "404":
+          description: Ingredient not found
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+      security:
+      - BearerAuth: []
+      summary: Get an ingredient
+      tags:
+      - Ingredients
+    patch:
+      consumes:
+      - application/json
+      description: Update an existing ingredient by ID. Admin access required.
+      parameters:
+      - description: Ingredient ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Updated ingredient details
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_dto.UpdateIngredientRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Ingredient updated successfully
+          schema:
+            allOf:
+            - $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_dto.IngredientResponse'
+              type: object
+        "400":
+          description: Invalid request data or ID
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+        "404":
+          description: Ingredient not found
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+      security:
+      - BearerAuth: []
+      summary: Update an ingredient
+      tags:
+      - Ingredients
+  /ingredients/{id}/check-low-stock:
+    post:
+      consumes:
+      - application/json
+      description: Check whether an ingredient has fallen below its configured stock
+        threshold and notify the authenticated user if necessary
+      parameters:
+      - description: Ingredient ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Low stock check completed successfully
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+        "400":
+          description: Invalid ingredient ID
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+        "404":
+          description: Ingredient or user not found
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+      security:
+      - BearerAuth: []
+      summary: Check ingredient stock
+      tags:
+      - Ingredients
+  /ingredients/{id}/limit:
+    put:
+      consumes:
+      - application/json
+      description: Set the threshold limit for an ingredient. Admin access required.
+      parameters:
+      - description: Ingredient ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Threshold limit
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_dto.ThresholdRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Threshold limit set successfully
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+        "400":
+          description: Invalid request data or ID
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+        "404":
+          description: Ingredient not found
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+      security:
+      - BearerAuth: []
+      summary: Set threshold limit
+      tags:
+      - Ingredients
+  /ingredients/low-stock:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve a list of ingredients with stock below their threshold
+        Admin access required.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Low stock ingredients retrieved successfully
+          schema:
+            allOf:
+            - $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_dto.IngredientResponse'
+                  type: array
+              type: object
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+        "404":
+          description: Ingredient not found
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+      security:
+      - BearerAuth: []
+      summary: Get low stock ingredients
+      tags:
+      - Ingredients
+  /ingredients/search:
+    get:
+      consumes:
+      - application/json
+      description: Search ingredients by name with pagination
+      parameters:
+      - description: Ingredient name
+        in: query
+        name: query
+        type: string
+      - description: Page number
+        in: query
+        name: page
+        type: integer
+      - description: Number of items per page
+        in: query
+        name: pageSize
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Ingredients retrieved successfully
+          schema:
+            allOf:
+            - $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.PaginatedResponse'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_dto.IngredientResponse'
+                  type: array
+              type: object
+        "400":
+          description: Invalid search parameters
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+        "404":
+          description: No ingredients found
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+      security:
+      - BearerAuth: []
+      summary: Search ingredients
+      tags:
+      - Ingredients
+  /menu:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve menu items with optional filtering by category, dietary
+        tags, and ingredients, along with pagination. Admin access required.
+      parameters:
+      - description: Page number
+        in: query
+        name: page
+        type: integer
+      - description: Number of items per page
+        in: query
+        name: limit
+        type: integer
+      - description: Category name
+        in: query
+        name: category
+        type: string
+      - description: Comma-separated list of dietary tags
+        in: query
+        name: dietary_tags
+        type: string
+      - description: Comma-separated list of ingredient names
+        in: query
+        name: ingredients
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Menu items retrieved successfully
+          schema:
+            allOf:
+            - $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+            - properties:
+                ' meta':
+                  $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.PaginatedMeta'
+                data:
+                  items:
+                    $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_dto.MenuResponse'
+                  type: array
+              type: object
+        "400":
+          description: Invalid filter params
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+      summary: Get all menu items with filtering and pagination
+      tags:
+      - Menu
+    post:
+      consumes:
+      - application/json
+      description: Create a new menu item. The referenced category, dietary tags,
+        and ingredients must already exist. Admin access required.
+      parameters:
+      - description: Menu item details
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_dto.CreateMenuRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Menu item created successfully
+          schema:
+            allOf:
+            - $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_dto.MenuResponse'
+              type: object
+        "400":
+          description: Invalid request data
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+        "404":
+          description: Related resource not found
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+      security:
+      - BearerAuth: []
+      summary: Create a menu item
+      tags:
+      - Menu
+  /menu/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Delete an existing menu item by ID. Admin access required.
+      parameters:
+      - description: Menu Item ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Menu item deleted successfully
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+        "400":
+          description: Invalid menu ID
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+        "404":
+          description: Menu item not found
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+      security:
+      - BearerAuth: []
+      summary: Delete a menu item
+      tags:
+      - Menu
+    get:
+      consumes:
+      - application/json
+      description: Retrieve an existing menu item by ID. Admin access required.
+      parameters:
+      - description: Menu Item ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Menu item retrieved successfully
+          schema:
+            allOf:
+            - $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_dto.MenuResponse'
+              type: object
+        "400":
+          description: Invalid menu ID
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+        "404":
+          description: Menu item not found
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+      summary: Get a menu item
+      tags:
+      - Menu
+    patch:
+      consumes:
+      - application/json
+      description: Update an existing menu item by ID. The referenced category, dietary
+        tags, and ingredients must already exist. Admin access required.
+      parameters:
+      - description: Menu Item ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Updated menu item details
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_dto.UpdateMenuRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Menu item updated successfully
+          schema:
+            allOf:
+            - $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_dto.MenuResponse'
+              type: object
+        "400":
+          description: Invalid request data or menu ID
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+        "404":
+          description: Menu item not found
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+      security:
+      - BearerAuth: []
+      summary: Update a menu item
+      tags:
+      - Menu
+  /menu/{id}/image:
+    delete:
+      consumes:
+      - application/json
+      description: Delete the image associated with a menu item. Admin access required.
+      parameters:
+      - description: Menu ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Image deleted successfully
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+        "400":
+          description: Invalid menu ID or delete failed
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+        "404":
+          description: Menu not found
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+      security:
+      - BearerAuth: []
+      summary: Delete a menu item image
+      tags:
+      - Menu
+    post:
+      consumes:
+      - multipart/form-data
+      description: Upload an image for an existing menu item. Admin access required.
+      parameters:
+      - description: Menu ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Menu image
+        in: formData
+        name: image
+        required: true
+        type: file
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Image uploaded successfully
+          schema:
+            allOf:
+            - $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+            - properties:
+                data:
+                  additionalProperties:
+                    type: string
+                  type: object
+              type: object
+        "400":
+          description: Invalid menu ID, missing image, or upload failed
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+        "404":
+          description: Menu not found
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+      security:
+      - BearerAuth: []
+      summary: Upload a menu item image
+      tags:
+      - Menu
+  /menu/{id}/toggle:
+    patch:
+      consumes:
+      - application/json
+      description: Toggle the availability status of a menu item. Admin access required.
+      parameters:
+      - description: Menu ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Menu availability toggled successfully
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+        "400":
+          description: Invalid menu ID or missing is_available field
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+        "404":
+          description: Menu not found
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+      security:
+      - BearerAuth: []
+      summary: Toggle menu item availability
+      tags:
+      - Menu
+  /menu/search:
+    get:
+      consumes:
+      - application/json
+      description: Search menu items by name, category, dietary tags, or ingredients
+        with pagination.
+      parameters:
+      - description: Search query
+        in: query
+        name: q
+        type: string
+      - description: Page number
+        in: query
+        name: page
+        type: integer
+      - description: Number of items per page
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Menus retrieved successfully
+          schema:
+            allOf:
+            - $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+            - properties:
+                ' meta':
+                  $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.PaginatedMeta'
+                data:
+                  items:
+                    $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_dto.MenuResponse'
+                  type: array
+              type: object
+        "400":
+          description: Invalid search parameters
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+        "404":
+          description: No results found
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+      summary: Search menu items
+      tags:
+      - Menu
+  /orders/all:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve a paginated list of all orders placed by the authenticated
+        user.
+      parameters:
+      - default: 1
+        description: Page number
+        in: query
+        name: page
+        type: integer
+      - default: 10
+        description: Number of items per page
+        in: query
+        name: pageSize
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Orders retrieved successfully
+          schema:
+            allOf:
+            - $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.PaginatedResponse'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_dto.OrderResponse'
+                  type: array
+              type: object
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+      security:
+      - BearerAuth: []
+      summary: Get my takeout orders
+      tags:
+      - Orders
+  /orders/takeout:
+    post:
+      consumes:
+      - application/json
+      description: Create a new takeout order from the authenticated user's cart.
+      parameters:
+      - description: Takeout order details
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_dto.CreateTakeoutOrderRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Order created successfully
+          schema:
+            allOf:
+            - $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_dto.OrderResponse'
+              type: object
+        "400":
+          description: Invalid request data, cart is empty, or menu item unavailable
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+        "404":
+          description: Cart not found
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+      security:
+      - BearerAuth: []
+      summary: Create a takeout order
+      tags:
+      - Orders
+  /orders/takeout/{id}:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve the details of a specific takeout order placed by the
+        authenticated user.
+      parameters:
+      - description: Order ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Order retrieved successfully
+          schema:
+            allOf:
+            - $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_dto.OrderResponse'
+              type: object
+        "400":
+          description: Invalid order ID
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+        "404":
+          description: Order not found
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+      security:
+      - BearerAuth: []
+      summary: Get a takeout order
+      tags:
+      - Orders
+  /orders/takeout/{id}/cancel:
+    patch:
+      consumes:
+      - application/json
+      description: Cancel a takeout order placed by the authenticated user if it's
+        eligible for cancellation.
+      parameters:
+      - description: Order ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Order cancelled successfully
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+        "400":
+          description: Invalid order ID or order cannot be cancelled
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+        "404":
+          description: Order not found
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+      security:
+      - BearerAuth: []
+      summary: Cancel a takeout order
+      tags:
+      - Orders
+  /orders/takeout/all:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve a paginated list of all takeout orders placed by the authenticated
+        user.
+      parameters:
+      - default: 1
+        description: Page number
+        in: query
+        name: page
+        type: integer
+      - default: 10
+        description: Number of items per page
+        in: query
+        name: pageSize
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Orders retrieved successfully
+          schema:
+            allOf:
+            - $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.PaginatedResponse'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_dto.OrderResponse'
+                  type: array
+              type: object
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+      security:
+      - BearerAuth: []
+      summary: Get my takeout orders
+      tags:
+      - Orders
+  /payments/{id}:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve the details of a payment using its unique ID.
+      parameters:
+      - description: Payment ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Payment retrieved successfully
+          schema:
+            allOf:
+            - $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_dto.PaymentResponse'
+              type: object
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+        "404":
+          description: Payment not found
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+      security:
+      - BearerAuth: []
+      summary: Get payment details
+      tags:
+      - Payments
+  /payments/history:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve a paginated list of all payments made by the authenticated
+        user.
+      parameters:
+      - default: 1
+        description: Page number
+        in: query
+        name: page
+        type: integer
+      - default: 10
+        description: Number of items per page
+        in: query
+        name: pageSize
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Payment history retrieved successfully
+          schema:
+            allOf:
+            - $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.PaginatedResponse'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_dto.PaymentResponse'
+                  type: array
+              type: object
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+      security:
+      - BearerAuth: []
+      summary: Get payment history
+      tags:
+      - Payments
+  /payments/initialize:
+    post:
+      consumes:
+      - application/json
+      description: Initialize a payment for an existing order and return the payment
+        authorization details.
+      parameters:
+      - description: Payment initialization request
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_dto.InitializePaymentRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Payment initialized successfully
+          schema:
+            allOf:
+            - $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_dto.PaymentResponse'
+              type: object
+        "400":
+          description: Invalid request data, invalid order status, or order already
+            paid
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+        "404":
+          description: Order or payment not found
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+      security:
+      - BearerAuth: []
+      summary: Initialize payment
+      tags:
+      - Payments
+  /payments/ref/{reference}:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve the details of a payment using its unique payment reference.
+      parameters:
+      - description: Payment reference
+        in: path
+        name: reference
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Payment retrieved successfully
+          schema:
+            allOf:
+            - $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_dto.PaymentResponse'
+              type: object
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+        "404":
+          description: Payment not found
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+      security:
+      - BearerAuth: []
+      summary: Get payment by reference
+      tags:
+      - Payments
+  /payments/verify/{ref}:
+    post:
+      consumes:
+      - application/json
+      description: Verify the status of a payment using its transaction reference.
+      parameters:
+      - description: Payment verification request
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_dto.VerifyPaymentRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Payment verified successfully
+          schema:
+            allOf:
+            - $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_dto.PaymentResponse'
+              type: object
+        "400":
+          description: Invalid request data or payment not found
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+      summary: Verify payment
+      tags:
+      - Payments
+  /payments/webhook:
+    post:
+      responses:
+        "200":
+          description: Webhook processed successfully
+        "400":
+          description: Invalid signature or payment not found
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+  /recipes/{id}:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve all ingredients linked to a menu item's recipe.
+      parameters:
+      - description: Menu ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Recipe retrieved successfully
+          schema:
+            allOf:
+            - $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_dto.MenuItemIngredientResponse'
+                  type: array
+              type: object
+        "400":
+          description: Invalid menu ID
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+        "404":
+          description: Menu not found
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+      security:
+      - BearerAuth: []
+      summary: Get recipe
+      tags:
+      - Recipes
+    post:
+      consumes:
+      - application/json
+      description: Link an ingredient to a menu item's recipe with the specified quantity.
+        Admin access required.
+      parameters:
+      - description: Menu ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Recipe ingredient details
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_dto.LinkIngredientRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Ingredient added to recipe successfully
+          schema:
+            allOf:
+            - $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_dto.MenuItemIngredientResponse'
+              type: object
+        "400":
+          description: Invalid request data, ingredient ID, or quantity
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+        "404":
+          description: Ingredient not found
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+        "409":
+          description: Ingredient already linked to this recipe
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+      security:
+      - BearerAuth: []
+      summary: Add ingredient to a recipe
+      tags:
+      - Recipes
+  /recipes/{id}/{ingredientID}:
+    delete:
+      consumes:
+      - application/json
+      description: Remove an ingredient from a menu item's recipe. Admin access required.
+      parameters:
+      - description: Menu ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Ingredient ID
+        in: path
+        name: ingredientID
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Recipe deleted successfully
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+        "400":
+          description: Invalid ID
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+        "404":
+          description: Recipe or ingredient not found
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+      security:
+      - BearerAuth: []
+      summary: Remove ingredient from recipe
+      tags:
+      - Recipes
+    patch:
+      consumes:
+      - application/json
+      description: Update the quantity or details of an ingredient linked to a menu
+        item's recipe. Admin access required.
+      parameters:
+      - description: Menu ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Ingredient ID
+        in: path
+        name: ingredientID
+        required: true
+        type: integer
+      - description: Updated recipe ingredient details
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_dto.UpdateLinkItemRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Recipe updated successfully
+          schema:
+            allOf:
+            - $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_dto.MenuItemIngredientResponse'
+              type: object
+        "400":
+          description: Invalid request data
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+        "404":
+          description: Recipe or ingredient not found
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+      security:
+      - BearerAuth: []
+      summary: Update recipe ingredient
+      tags:
+      - Recipes
+  /refunds/{id}:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve the details of a refund using its unique ID.
+      parameters:
+      - description: Refund ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Refund retrieved successfully
+          schema:
+            allOf:
+            - $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_dto.RefundResponse'
+              type: object
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+        "404":
+          description: Refund not found
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+      security:
+      - BearerAuth: []
+      summary: Get refund details
+      tags:
+      - Payments
+  /reservations:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve all reservations belonging to the authenticated user.
+      parameters:
+      - description: Reservation status
+        in: query
+        name: status
+        type: string
+      - description: Start date (YYYY-MM-DD)
+        in: query
+        name: from
+        type: string
+      - description: End date (YYYY-MM-DD)
+        in: query
+        name: to
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Reservations retrieved successfully
+          schema:
+            allOf:
+            - $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_dto.ReservationResponse'
+                  type: array
+              type: object
+        "400":
+          description: Invalid request data
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+      security:
+      - BearerAuth: []
+      summary: Get my reservations
+      tags:
+      - Reservations
+    post:
+      consumes:
+      - application/json
+      description: Create a new table reservation for the authenticated user.
+      parameters:
+      - description: Reservation details
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_dto.CreateReservationRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Reservation created successfully
+          headers:
+            X-RateLimit-Limit:
+              description: Maximum requests allowed
+              type: string
+            X-RateLimit-Remaining:
+              description: Remaining requests in the current window
+              type: string
+          schema:
+            allOf:
+            - $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_dto.ReservationResponse'
+              type: object
+        "400":
+          description: Invalid request data, invalid time slot, table unavailable,
+            or invalid table capacity
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+        "404":
+          description: Table not found
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+        "429":
+          description: Too many requests
+          headers:
+            X-RateLimit-Limit:
+              description: Maximum requests allowed
+              type: string
+            X-RateLimit-Remaining:
+              description: Remaining requests (0 when limited)
+              type: string
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+      security:
+      - BearerAuth: []
+      summary: Create a reservation
+      tags:
+      - Reservations
+  /reservations/{id}:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve a reservation by its ID for the authenticated user.
+      parameters:
+      - description: Reservation ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Reservation retrieved successfully
+          schema:
+            allOf:
+            - $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_dto.ReservationResponse'
+              type: object
+        "400":
+          description: Invalid reservation ID
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+        "404":
+          description: Reservation not found
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+      security:
+      - BearerAuth: []
+      summary: Get reservation
+      tags:
+      - Reservations
+  /reservations/{id}/cancel:
+    patch:
+      consumes:
+      - application/json
+      description: Cancel an existing reservation owned by the authenticated user.
+      parameters:
+      - description: Reservation ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Reservation cancelled successfully
+          headers:
+            X-RateLimit-Limit:
+              description: Maximum requests allowed
+              type: string
+            X-RateLimit-Remaining:
+              description: Remaining requests in the current window
+              type: string
+          schema:
+            allOf:
+            - $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_dto.ReservationResponse'
+              type: object
+        "400":
+          description: Reservation cannot be cancelled
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+        "404":
+          description: Reservation or user not found
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+        "429":
+          description: Too many requests
+          headers:
+            X-RateLimit-Limit:
+              description: Maximum requests allowed
+              type: string
+            X-RateLimit-Remaining:
+              description: Remaining requests (0 when limited)
+              type: string
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+      security:
+      - BearerAuth: []
+      summary: Cancel reservation
+      tags:
+      - Reservations
+  /reservations/{id}/check-in:
+    post:
+      consumes:
+      - application/json
+      description: Check in the authenticated user for an existing reservation.
+      parameters:
+      - description: Reservation ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Checked in successfully
+          headers:
+            X-RateLimit-Limit:
+              description: Maximum requests allowed
+              type: string
+            X-RateLimit-Remaining:
+              description: Remaining requests in the current window
+              type: string
+          schema:
+            allOf:
+            - $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_dto.ReservationResponse'
+              type: object
+        "400":
+          description: Cannot check in or reservation already checked in
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+        "404":
+          description: Reservation not found
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+        "429":
+          description: Too many requests
+          headers:
+            X-RateLimit-Limit:
+              description: Maximum requests allowed
+              type: string
+            X-RateLimit-Remaining:
+              description: Remaining requests (0 when limited)
+              type: string
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+      security:
+      - BearerAuth: []
+      summary: Check in reservation
+      tags:
+      - Reservations
+  /reservations/admin:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve all reservations. Admin access required.
+      parameters:
+      - description: Reservation status
+        in: query
+        name: status
+        type: string
+      - description: Start date (YYYY-MM-DD)
+        in: query
+        name: from
+        type: string
+      - description: End date (YYYY-MM-DD)
+        in: query
+        name: to
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Reservations retrieved successfully
+          schema:
+            allOf:
+            - $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_dto.ReservationResponse'
+                  type: array
+              type: object
+        "400":
+          description: Invalid request data
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+      security:
+      - BearerAuth: []
+      summary: List all reservations
+      tags:
+      - Reservations
+  /reservations/today:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve all reservations for today. Admin access required.
+      parameters:
+      - description: Reservation status
+        in: query
+        name: status
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Reservations retrieved successfully
+          schema:
+            allOf:
+            - $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_dto.ReservationResponse'
+                  type: array
+              type: object
+        "400":
+          description: Invalid request data
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+      security:
+      - BearerAuth: []
+      summary: Get today's reservations
+      tags:
+      - Reservations
+  /staff:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve a paginated list of all staff members. Admin access required.
+      parameters:
+      - default: 1
+        description: Page number
+        in: query
+        name: page
+        type: integer
+      - default: 10
+        description: Number of items per page
+        in: query
+        name: pageSize
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Staff retrieved successfully
+          schema:
+            allOf:
+            - $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.PaginatedResponse'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_dto.UserResponse'
+                  type: array
+              type: object
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+      security:
+      - BearerAuth: []
+      summary: List staff
+      tags:
+      - Staff
+  /staff/profile:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve the authenticated staff member's profile.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Staff profile retrieved successfully
+          schema:
+            allOf:
+            - $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_dto.UserResponse'
+              type: object
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+        "404":
+          description: Staff not found
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+      security:
+      - BearerAuth: []
+      summary: Get staff profile
+      tags:
+      - Staff
+    patch:
+      consumes:
+      - application/json
+      description: Update the authenticated staff member's profile information.
+      parameters:
+      - description: Updated profile details
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_dto.UpdateProfileRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Profile updated successfully
+          schema:
+            allOf:
+            - $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_dto.UserResponse'
+              type: object
+        "400":
+          description: Invalid request data
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+        "404":
+          description: Staff not found
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+      security:
+      - BearerAuth: []
+      summary: Update staff profile
+      tags:
+      - Staff
+  /staff/profile/activate:
+    patch:
+      consumes:
+      - application/json
+      description: Activate a staff account. Admin access required.
+      parameters:
+      - description: Staff ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Staff activated successfully
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+        "404":
+          description: Staff not found
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+      security:
+      - BearerAuth: []
+      summary: Activate staff
+      tags:
+      - Staff
+  /staff/profile/deactivate:
+    patch:
+      consumes:
+      - application/json
+      description: Deactivate a staff account. Admin access required.
+      parameters:
+      - description: Staff ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Staff deactivated successfully
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+        "404":
+          description: Staff not found
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+      security:
+      - BearerAuth: []
+      summary: Deactivate staff
+      tags:
+      - Staff
+  /tables:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve a paginated list of all restaurant tables.
+      parameters:
+      - default: 1
+        description: Page number
+        in: query
+        name: page
+        type: integer
+      - default: 10
+        description: Number of items per page
+        in: query
+        name: pageSize
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Tables retrieved successfully
+          schema:
+            allOf:
+            - $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.PaginatedResponse'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_dto.TableResponse'
+                  type: array
+              type: object
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+      security:
+      - BearerAuth: []
+      summary: List tables
+      tags:
+      - Tables
+    post:
+      consumes:
+      - application/json
+      description: Create a new restaurant table. Admin access required.
+      parameters:
+      - description: Table details
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_dto.CreateTableRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Table created successfully
+          schema:
+            allOf:
+            - $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_dto.TableResponse'
+              type: object
+        "400":
+          description: Invalid request data or invalid table capacity
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+        "409":
+          description: Table name already exists
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+      security:
+      - BearerAuth: []
+      summary: Create a table
+      tags:
+      - Tables
+  /tables/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Delete a restaurant table by its ID. Admin access required.
+      parameters:
+      - description: Table ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Table deleted successfully
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+        "400":
+          description: Invalid table ID
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+        "404":
+          description: Table not found
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+      security:
+      - BearerAuth: []
+      summary: Delete a table
+      tags:
+      - Tables
+    get:
+      consumes:
+      - application/json
+      description: Retrieve a restaurant table by its ID.
+      parameters:
+      - description: Table ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Table retrieved successfully
+          schema:
+            allOf:
+            - $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_dto.TableResponse'
+              type: object
+        "400":
+          description: Invalid table ID
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+        "404":
+          description: Table not found
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+      security:
+      - BearerAuth: []
+      summary: Get a table
+      tags:
+      - Tables
+    patch:
+      consumes:
+      - application/json
+      description: Update an existing restaurant table. Admin access required.
+      parameters:
+      - description: Table ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Updated table details
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_dto.UpdateTableRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Table updated successfully
+          schema:
+            allOf:
+            - $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_dto.TableResponse'
+              type: object
+        "400":
+          description: Invalid request data or table ID
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+        "404":
+          description: Table not found
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+      security:
+      - BearerAuth: []
+      summary: Update a table
+      tags:
+      - Tables
+  /tables/{id}/status:
+    patch:
+      consumes:
+      - application/json
+      description: Update the status of a restaurant table (e.g. Available, Reserved,
+        Occupied). Admin access required.
+      parameters:
+      - description: Table ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Updated table status
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_dto.UpdateTableStatusRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Table status updated successfully
+          schema:
+            allOf:
+            - $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_dto.TableResponse'
+              type: object
+        "400":
+          description: Invalid request data or table ID
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+        "404":
+          description: Table not found
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+      security:
+      - BearerAuth: []
+      summary: Update table status
+      tags:
+      - Tables
+  /tags:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve a list of all dietary tags with pagination.
+      parameters:
+      - description: Page number
+        in: query
+        name: page
+        type: integer
+      - description: Number of items per page
+        in: query
+        name: pageSize
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Dietary tags retrieved successfully
+          schema:
+            allOf:
+            - $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+            - properties:
+                ' meta':
+                  $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.PaginatedMeta'
+                data:
+                  items:
+                    $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_dto.DietaryTagResponse'
+                  type: array
+              type: object
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+      summary: Get all dietary tags
+      tags:
+      - Dietary Tags
+    post:
+      consumes:
+      - application/json
+      description: Create a new dietary tag. Admin access required.
+      parameters:
+      - description: Dietary tag details
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_dto.CreateDietaryTagRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Dietary tag created successfully
+          schema:
+            allOf:
+            - $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_dto.DietaryTagResponse'
+              type: object
+        "400":
+          description: Invalid request data
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+        "409":
+          description: Dietary tag already exists
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+      security:
+      - BearerAuth: []
+      summary: Create a dietary tag
+      tags:
+      - Dietary Tags
+  /tags/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Delete a dietary tag by ID. Admin access required.
+      parameters:
+      - description: Dietary Tag ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Dietary tag deleted successfully
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+        "400":
+          description: Invalid dietary tag ID
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+        "404":
+          description: Dietary tag not found
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+        "409":
+          description: Cannot delete dietary tag with associated meals
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+      security:
+      - BearerAuth: []
+      summary: Delete a dietary tag
+      tags:
+      - Dietary Tags
+    patch:
+      consumes:
+      - application/json
+      description: Update an existing dietary tag by ID. Admin access required.
+      parameters:
+      - description: Dietary Tag ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Updated dietary tag details
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_dto.UpdateDietaryTagRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Dietary tag updated successfully
+          schema:
+            allOf:
+            - $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_dto.DietaryTagResponse'
+              type: object
+        "400":
+          description: Invalid request data or ID
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+        "404":
+          description: Dietary tag not found
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+        "409":
+          description: Dietary tag name already exists
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+      security:
+      - BearerAuth: []
+      summary: Update a dietary tag
+      tags:
+      - Dietary Tags
+  /users:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve a paginated list of all registered users. Admin access
+        required.
+      parameters:
+      - default: 1
+        description: Page number
+        in: query
+        name: page
+        type: integer
+      - default: 10
+        description: Number of items per page
+        in: query
+        name: pageSize
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Users retrieved successfully
+          schema:
+            allOf:
+            - $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.PaginatedResponse'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_dto.UserResponse'
+                  type: array
+              type: object
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+      security:
+      - BearerAuth: []
+      summary: List users
+      tags:
+      - Users
+  /users/profile:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve the authenticated user's profile.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: User profile retrieved successfully
+          schema:
+            allOf:
+            - $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_dto.UserResponse'
+              type: object
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+        "404":
+          description: User not found
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+      security:
+      - BearerAuth: []
+      summary: Get user profile
+      tags:
+      - Users
+    patch:
+      consumes:
+      - application/json
+      description: Update the authenticated user's profile information.
+      parameters:
+      - description: Updated profile details
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_dto.UpdateProfileRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Profile updated successfully
+          schema:
+            allOf:
+            - $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_dto.UserResponse'
+              type: object
+        "400":
+          description: Invalid request data
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+        "404":
+          description: User not found
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+      security:
+      - BearerAuth: []
+      summary: Update user profile
+      tags:
+      - Users
+  /users/profile/activate:
+    patch:
+      consumes:
+      - application/json
+      description: Activate a user account. Admin access required.
+      parameters:
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: User activated successfully
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+        "404":
+          description: User not found
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+      security:
+      - BearerAuth: []
+      summary: Activate user
+      tags:
+      - Users
+  /users/profile/deactivate:
+    patch:
+      consumes:
+      - application/json
+      description: Deactivate a user account. Admin access required.
+      parameters:
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: User deactivated successfully
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+        "404":
+          description: User not found
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+      security:
+      - BearerAuth: []
+      summary: Deactivate user
+      tags:
+      - Users
+  /users/search:
+    get:
+      consumes:
+      - application/json
+      description: Search users using supported filter parameters. Admin access required.
+      parameters:
+      - description: Search keyword
+        in: query
+        name: query
+        type: string
+      - default: 1
+        description: Page number
+        in: query
+        name: page
+        type: integer
+      - default: 10
+        description: Number of items per page
+        in: query
+        name: pageSize
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Users retrieved successfully
+          schema:
+            allOf:
+            - $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.PaginatedResponse'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_dto.UserResponse'
+                  type: array
+              type: object
+        "400":
+          description: Invalid search parameters
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+        "404":
+          description: No users found
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+      security:
+      - BearerAuth: []
+      summary: Search users
+      tags:
+      - Users
+  /waitlist:
+    post:
+      consumes:
+      - application/json
+      description: Join the reservation waitlist for a preferred date, time slot,
+        and party size when no suitable table is available.
+      parameters:
+      - description: Waitlist request
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_dto.JoinWaitlistRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Successfully joined the waitlist
+          schema:
+            allOf:
+            - $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_dto.WaitlistResponse'
+              type: object
+        "400":
+          description: Invalid request data, invalid date/time, table available, invalid
+            table capacity, or user already on the waitlist
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+      security:
+      - BearerAuth: []
+      summary: Join waitlist
+      tags:
+      - Waitlist
+  /waitlist/position:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve the authenticated user's current position on the waitlist
+        for a specific date and time slot.
+      parameters:
+      - description: Reservation date (YYYY-MM-DD)
+        in: query
+        name: date
+        required: true
+        type: string
+      - description: Reservation time slot
+        in: query
+        name: time_slot
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Waitlist position retrieved successfully
+          schema:
+            allOf:
+            - $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_dto.WaitlistResponse'
+              type: object
+        "400":
+          description: Invalid request or user is not on the waitlist
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+      security:
+      - BearerAuth: []
+      summary: Get waitlist position
+      tags:
+      - Waitlist
 securityDefinitions:
   BearerAuth:
     description: Type "Bearer" followed by a space and JWT token.

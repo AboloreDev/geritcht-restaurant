@@ -67,7 +67,7 @@ func (s *Server) CreateReservationHandler(ctx *gin.Context) {
 // @Param date query string true "Reservation date (YYYY-MM-DD)"
 // @Param time query string true "Reservation time (HH:MM)"
 // @Param guests query int true "Number of guests"
-// @Success 200 {object} utils.Response{data=[]dto.AvailableTableResponse} "Availability retrieved successfully"
+// @Success 200 {object} utils.Response{data=[]dto.TableResponse} "Availability retrieved successfully"
 // @Failure 400 {object} utils.Response "Invalid request data or time slot"
 // @Failure 500 {object} utils.Response "Internal server error"
 // @Router /availability [get]

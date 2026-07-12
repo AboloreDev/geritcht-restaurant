@@ -17,7 +17,7 @@ import (
 // @Param id path int true "Menu ID"
 // @Param input body dto.LinkIngredientRequest true "Recipe ingredient details"
 // @Security BearerAuth
-// @Success 201 {object} utils.Response{data=dto.RecipeResponse} "Ingredient added to recipe successfully"
+// @Success 201 {object} utils.Response{data=dto.MenuItemIngredientResponse} "Ingredient added to recipe successfully"
 // @Failure 400 {object} utils.Response "Invalid request data, ingredient ID, or quantity"
 // @Failure 401 {object} utils.Response "Unauthorized"
 // @Failure 403 {object} utils.Response "Forbidden"
@@ -74,7 +74,7 @@ func (s *Server) AddRecipeHandler(ctx *gin.Context) {
 // @Param ingredientID path int true "Ingredient ID"
 // @Param input body dto.UpdateLinkItemRequest true "Updated recipe ingredient details"
 // @Security BearerAuth
-// @Success 200 {object} utils.Response{data=dto.RecipeResponse} "Recipe updated successfully"
+// @Success 200 {object} utils.Response{data=dto.MenuItemIngredientResponse} "Recipe updated successfully"
 // @Failure 400 {object} utils.Response "Invalid request data"
 // @Failure 401 {object} utils.Response "Unauthorized"
 // @Failure 403 {object} utils.Response "Forbidden"
@@ -168,7 +168,7 @@ func (s *Server) DeleteRecipeHandler(ctx *gin.Context) {
 // @Produce json
 // @Param id path int true "Menu ID"
 // @Security BearerAuth
-// @Success 200 {object} utils.Response{data=[]dto.RecipeResponse} "Recipe retrieved successfully"
+// @Success 200 {object} utils.Response{data=[]dto.MenuItemIngredientResponse} "Recipe retrieved successfully"
 // @Failure 400 {object} utils.Response "Invalid menu ID"
 // @Failure 401 {object} utils.Response "Unauthorized"
 // @Failure 404 {object} utils.Response "Menu not found"

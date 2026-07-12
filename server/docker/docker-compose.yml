@@ -20,15 +20,35 @@ services:
       - redis-data:/data
     command: ["redis-server", "--appendonly", "yes"]
 
-  # geritcht:
-  #   build:
-  #     context: ..
-  #     dockerfile: docker/Dockerfile
-  #   ports:
-  #     - "6000:6000"
-  #   env_file:
-  #     - ../.env
-  #   command: ["./api"]
+  geritcht-app:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    ports:
+      - "9090:9090"
+    depends_on:
+      - postgres
+      - redis
+    environment:
+      - DATABASE_URL
+    env_file:
+      - ../.env
+    command: ["./api"]
+
+   geritcht-notifier:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    depends_on:
+      - postgres
+      - redis
+    environment:
+      - DATABASE_URL
+    command: ["./notifier"]
+    deploy:
+      replicas: 1
+
+  
 
 volumes:
   geritcht_db_data:

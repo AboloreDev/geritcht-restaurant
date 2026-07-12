@@ -19,7 +19,7 @@ import (
 // @Param description formData string false "Category description"
 // @Param image formData file true "Category image"
 // @Security BearerAuth
-// @Success 201 {object} utils.Response{data=dto.CategoryResponse} "Category created successfully"
+// @Success 201 {object} utils.Response{data=dto.MenuCategoryResponse} "Category created successfully"
 // @Failure 400 {object} utils.Response "Invalid request data or image upload failed"
 // @Failure 401 {object} utils.Response "Unauthorized"
 // @Failure 409 {object} utils.Response "Category already exists"
@@ -71,7 +71,7 @@ func (s *Server) CreateCategoryHandler(ctx *gin.Context) {
 // @Param description formData string false "Category description"
 // @Param image formData file false "Category image"
 // @Security BearerAuth
-// @Success 200 {object} utils.Response{data=dto.CategoryResponse} "Category updated successfully"
+// @Success 200 {object} utils.Response{data=dto.MenuCategoryResponse} "Category updated successfully"
 // @Failure 400 {object} utils.Response "Invalid request data or image upload failed"
 // @Failure 401 {object} utils.Response "Unauthorized"
 // @Failure 404 {object} utils.Response "Category not found"
@@ -118,7 +118,7 @@ func (s *Server) UpdateCategoryHandler(ctx *gin.Context) {
 // @Accept json
 // @Produce json
 // @Param id path string true "Category ID"
-// @Success 200 {object} utils.Response{data=dto.CategoryResponse} "Category fetched successfully"
+// @Success 200 {object} utils.Response{data=dto.MenuCategoryResponse} "Category fetched successfully"
 // @Failure 400 {object} utils.Response "Invalid category ID"
 // @Failure 404 {object} utils.Response "Category not found"
 // @Failure 500 {object} utils.Response "Internal server error"
@@ -193,7 +193,7 @@ func (s *Server) DeleteCategory(ctx *gin.Context) {
 // @Produce json
 // @Param page query int false "Page number"
 // @Param pageSize query int false "Number of items per page"
-// @Success 200 {object} utils.Response{data=[]dto.CategoryResponse, meta=utils.Meta} "Categories fetched successfully"
+// @Success 200 {object} utils.Response{data=[]dto.MenuCategoryResponse, meta=utils.PaginatedMeta} "Categories fetched successfully"
 // @Failure 500 {object} utils.Response "Internal server error"
 // @Router /categories [get]
 func (s *Server) GetCategoriesHandler(ctx *gin.Context) {
@@ -222,7 +222,7 @@ func (s *Server) GetCategoriesHandler(ctx *gin.Context) {
 // @Param q query string false "Search query"
 // @Param page query int false "Page number"
 // @Param pageSize query int false "Number of items per page"
-// @Success 200 {object} utils.Response{data=[]dto.CategoryResponse, meta=utils.Meta} "Categories retrieved successfully"
+// @Success 200 {object} utils.Response{data=[]dto.MenuCategoryResponse, meta=utils.PaginatedMeta} "Categories retrieved successfully"
 // @Failure 400 {object} utils.Response "Invalid search parameters"
 // @Failure 404 {object} utils.Response "No categories found matching the search criteria"
 // @Failure 500 {object} utils.Response "Internal server error"

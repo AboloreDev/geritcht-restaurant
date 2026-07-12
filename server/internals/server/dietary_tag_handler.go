@@ -141,7 +141,7 @@ func (s *Server) DeleteDietaryTagHandler(ctx *gin.Context) {
 // @Produce json
 // @Param page query int false "Page number"
 // @Param pageSize query int false "Number of items per page"
-// @Success 200 {object} utils.Response{data=[]dto.DietaryTagResponse, meta=utils.Meta} "Dietary tags retrieved successfully"
+// @Success 200 {object} utils.Response{data=[]dto.DietaryTagResponse, meta=utils.PaginatedMeta} "Dietary tags retrieved successfully"
 // @Failure 500 {object} utils.Response "Internal server error"
 // @Router /tags [get]
 func (s *Server) GetAllDietaryTagHandler(ctx *gin.Context) {

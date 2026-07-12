@@ -174,7 +174,7 @@ func (s *Server) GetMenuHandler(ctx *gin.Context) {
 // @Param category query string false "Category name"
 // @Param dietary_tags query string false "Comma-separated list of dietary tags"
 // @Param ingredients query string false "Comma-separated list of ingredient names"
-// @Success 200 {object} utils.Response{data=[]dto.MenuResponse, meta=utils.Meta} "Menu items retrieved successfully"
+// @Success 200 {object} utils.Response{data=[]dto.MenuResponse, meta=utils.PaginatedMeta} "Menu items retrieved successfully"
 // @Failure 400 {object} utils.Response "Invalid filter params"
 // @Failure 500 {object} utils.Response "Internal server error"
 // @Router /menu [get]
@@ -287,7 +287,6 @@ func (s *Server) DeleteMenuImageHandler(ctx *gin.Context) {
 // @Accept json
 // @Produce json
 // @Param id path int true "Menu ID"
-// @Param input body struct{ IsAvailable *bool } true "New availability status"
 // @Security BearerAuth
 // @Success 200 {object} utils.Response "Menu availability toggled successfully"
 // @Failure 400 {object} utils.Response "Invalid menu ID or missing is_available field"
@@ -337,7 +336,7 @@ func (s *Server) ToggleMenuAvailabilityHandler(ctx *gin.Context) {
 // @Param q query string false "Search query"
 // @Param page query int false "Page number"
 // @Param limit query int false "Number of items per page"
-// @Success 200 {object} utils.Response{data=[]dto.MenuResponse, meta=utils.Meta} "Menus retrieved successfully"
+// @Success 200 {object} utils.Response{data=[]dto.MenuResponse, meta=utils.PaginatedMeta} "Menus retrieved successfully"
 // @Failure 400 {object} utils.Response "Invalid search parameters"
 // @Failure 404 {object} utils.Response "No results found"
 // @Failure 500 {object} utils.Response "Internal server error"

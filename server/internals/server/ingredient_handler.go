@@ -175,7 +175,7 @@ func (s *Server) GetIngredientHandler(ctx *gin.Context) {
 // @Param page query int false "Page number"
 // @Param pageSize query int false "Number of items per page"
 // @Security BearerAuth
-// @Success 200 {object} utils.Response{data=[]dto.IngredientResponse, meta=utils.Meta} "Ingredients retrieved successfully"
+// @Success 200 {object} utils.Response{data=[]dto.IngredientResponse, meta=utils.PaginatedMeta} "Ingredients retrieved successfully"
 // @Failure 401 {object} utils.Response "Unauthorized"
 // @Failure 403 {object} utils.Response "Forbidden"
 // @Failure 404 {object} utils.Response "Ingredient not found"
