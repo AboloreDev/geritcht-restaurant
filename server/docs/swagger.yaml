@@ -80,6 +80,17 @@ definitions:
     required:
     - name
     type: object
+  github_com_AboloreDev_geritcht-restaurant_internals_dto.CreateCategoryRequest:
+    properties:
+      description:
+        type: string
+      display_order:
+        type: integer
+      name:
+        type: string
+    required:
+    - name
+    type: object
   github_com_AboloreDev_geritcht-restaurant_internals_dto.CreateDietaryTagRequest:
     properties:
       name:
@@ -1430,24 +1441,16 @@ paths:
       - Categories
     post:
       consumes:
-      - multipart/form-data
-      description: 'Create a new product category with a name, description, and image:
-        admin only'
+      - application/json
+      description: Creates a new menu category. Only administrators can perform this
+        action.
       parameters:
-      - description: Category name
-        in: formData
-        name: name
+      - description: Category details
+        in: body
+        name: input
         required: true
-        type: string
-      - description: Category description
-        in: formData
-        name: description
-        type: string
-      - description: Category image
-        in: formData
-        name: image
-        required: true
-        type: file
+        schema:
+          $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_dto.CreateCategoryRequest'
       produces:
       - application/json
       responses:
@@ -1461,11 +1464,15 @@ paths:
                   $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_dto.MenuCategoryResponse'
               type: object
         "400":
-          description: Invalid request data or image upload failed
+          description: Invalid request data
           schema:
             $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
         "401":
           description: Unauthorized
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+        "403":
+          description: Forbidden
           schema:
             $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
         "409":

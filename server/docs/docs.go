@@ -1177,9 +1177,9 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Create a new product category with a name, description, and image: admin only",
+                "description": "Creates a new menu category. Only administrators can perform this action.",
                 "consumes": [
-                    "multipart/form-data"
+                    "application/json"
                 ],
                 "produces": [
                     "application/json"
@@ -1190,24 +1190,13 @@ const docTemplate = `{
                 "summary": "Create a category",
                 "parameters": [
                     {
-                        "type": "string",
-                        "description": "Category name",
-                        "name": "name",
-                        "in": "formData",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "Category description",
-                        "name": "description",
-                        "in": "formData"
-                    },
-                    {
-                        "type": "file",
-                        "description": "Category image",
-                        "name": "image",
-                        "in": "formData",
-                        "required": true
+                        "description": "Category details",
+                        "name": "input",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_dto.CreateCategoryRequest"
+                        }
                     }
                 ],
                 "responses": {
@@ -1230,13 +1219,19 @@ const docTemplate = `{
                         }
                     },
                     "400": {
-                        "description": "Invalid request data or image upload failed",
+                        "description": "Invalid request data",
                         "schema": {
                             "$ref": "#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
                         "schema": {
                             "$ref": "#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response"
                         }
@@ -6460,6 +6455,23 @@ const docTemplate = `{
                 "name"
             ],
             "properties": {
+                "name": {
+                    "type": "string"
+                }
+            }
+        },
+        "github_com_AboloreDev_geritcht-restaurant_internals_dto.CreateCategoryRequest": {
+            "type": "object",
+            "required": [
+                "name"
+            ],
+            "properties": {
+                "description": {
+                    "type": "string"
+                },
+                "display_order": {
+                    "type": "integer"
+                },
                 "name": {
                     "type": "string"
                 }
