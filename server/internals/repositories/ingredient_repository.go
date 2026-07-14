@@ -155,8 +155,6 @@ func (r *IngredientRepository) TsvectorSearchIngredients(ctx context.Context, re
 	var rows []models.IngredientWithRank
 	err :=
 		query.Order("rank DESC, created_at DESC").
-			Preload("StockMovement").
-			Preload("MenuItemIngredients").
 			Offset(offset).Limit(req.Limit).
 			Find(&rows).Error
 
