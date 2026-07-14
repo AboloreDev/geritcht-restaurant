@@ -27,7 +27,7 @@ func NewMenuItemIngredientService(
 func (s *MenuItemIngredientService) AddMenuRecipe(ctx context.Context, menuItemID uint, req *dto.LinkIngredientRequest) (*dto.MenuItemIngredientResponse, error) {
 
 	_, err := s.recipesRepo.CheckForLinkedIngredient(ctx, menuItemID, req.IngredientID)
-	if err == nil {
+	if err != nil {
 		return nil, domain.ErrIngredientAlreadyLinked
 	}
 
