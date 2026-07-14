@@ -80,17 +80,6 @@ definitions:
     required:
     - name
     type: object
-  github_com_AboloreDev_geritcht-restaurant_internals_dto.CreateCategoryRequest:
-    properties:
-      description:
-        type: string
-      display_order:
-        type: integer
-      name:
-        type: string
-    required:
-    - name
-    type: object
   github_com_AboloreDev_geritcht-restaurant_internals_dto.CreateDietaryTagRequest:
     properties:
       name:
@@ -1441,16 +1430,28 @@ paths:
       - Categories
     post:
       consumes:
-      - application/json
-      description: Creates a new menu category. Only administrators can perform this
-        action.
+      - multipart/form-data
+      description: Creates a new menu category with an image. Only administrators
+        can perform this action.
       parameters:
-      - description: Category details
-        in: body
-        name: input
+      - description: Category name
+        in: formData
+        name: name
         required: true
-        schema:
-          $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_dto.CreateCategoryRequest'
+        type: string
+      - description: Category description
+        in: formData
+        name: description
+        type: string
+      - description: Display order
+        in: formData
+        name: display_order
+        type: integer
+      - description: Category image
+        in: formData
+        name: image
+        required: true
+        type: file
       produces:
       - application/json
       responses:
@@ -1464,7 +1465,7 @@ paths:
                   $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_dto.MenuCategoryResponse'
               type: object
         "400":
-          description: Invalid request data
+          description: Invalid request data or image upload failed
           schema:
             $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
         "401":

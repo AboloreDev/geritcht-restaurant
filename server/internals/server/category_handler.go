@@ -11,14 +11,17 @@ import (
 )
 
 // @Summary Create a category
-// @Description Creates a new menu category. Only administrators can perform this action.
+// @Description Creates a new menu category with an image. Only administrators can perform this action.
 // @Tags Categories
-// @Accept json
+// @Accept multipart/form-data
 // @Produce json
-// @Param input body dto.CreateCategoryRequest true "Category details"
+// @Param name formData string true "Category name"
+// @Param description formData string false "Category description"
+// @Param display_order formData int false "Display order"
+// @Param image formData file true "Category image"
 // @Security BearerAuth
 // @Success 201 {object} utils.Response{data=dto.MenuCategoryResponse} "Category created successfully"
-// @Failure 400 {object} utils.Response "Invalid request data"
+// @Failure 400 {object} utils.Response "Invalid request data or image upload failed"
 // @Failure 401 {object} utils.Response "Unauthorized"
 // @Failure 403 {object} utils.Response "Forbidden"
 // @Failure 409 {object} utils.Response "Category already exists"
@@ -34,7 +37,7 @@ func (s *Server) CreateCategoryHandler(ctx *gin.Context) {
 		return
 	}
 
-	err = ctx.ShouldBindJSON(&req)
+	err = ctx.ShouldBind(&req)
 	if err != nil {
 		utils.BadRequest(ctx, "Invalid Request Data", err)
 		return
