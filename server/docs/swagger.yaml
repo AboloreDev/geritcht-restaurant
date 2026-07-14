@@ -1910,7 +1910,7 @@ paths:
       tags:
       - Ingredients
   /ingredients/{id}/check-low-stock:
-    post:
+    get:
       consumes:
       - application/json
       description: Check whether an ingredient has fallen below its configured stock

@@ -136,7 +136,7 @@ func (r *IngredientRepository) TsvectorSearchIngredients(ctx context.Context, re
 	// build query
 	query := r.db.Model(&models.Ingredient{}).WithContext(ctx).
 		Select("ingredients.*, ts_rank(search_vector, plainto_tsquery('english', ?)) AS rank", req.Query).
-		Where("search_vector @@ plainto_tsquery('english', ?)", req.Query).
+		Where("search_vector @@ to_tsquery('english', ? || ':*')", req.Query).
 		Offset(offset).Limit(req.Limit)
 
 	if req.MinThreshold != nil {

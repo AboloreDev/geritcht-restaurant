@@ -35,7 +35,7 @@ func (s *Server) CreateCategoryHandler(ctx *gin.Context) {
 		return
 	}
 
-	err = ctx.ShouldBind(&req)
+	err = ctx.ShouldBindJSON(&req)
 	if err != nil {
 		utils.BadRequest(ctx, "Invalid Request Data", err)
 		return

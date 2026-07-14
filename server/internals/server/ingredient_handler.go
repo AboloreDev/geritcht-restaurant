@@ -290,7 +290,7 @@ func (s *Server) SetThresholdLimitHandler(ctx *gin.Context) {
 // @Failure 403 {object} utils.Response "Forbidden"
 // @Failure 404 {object} utils.Response "Ingredient or user not found"
 // @Failure 500 {object} utils.Response "Internal server error"
-// @Router /ingredients/{id}/check-low-stock [post]
+// @Router /ingredients/{id}/check-low-stock [get]
 func (s *Server) CheckLowStockHandler(ctx *gin.Context) {
 	userID := ctx.GetUint("user_id")
 

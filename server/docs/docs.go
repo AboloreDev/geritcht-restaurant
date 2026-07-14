@@ -2105,7 +2105,7 @@ const docTemplate = `{
             }
         },
         "/ingredients/{id}/check-low-stock": {
-            "post": {
+            "get": {
                 "security": [
                     {
                         "BearerAuth": []
