@@ -262,7 +262,7 @@ func (s *Server) SetUpRoutes() *gin.Engine {
 			recipes := protected.Group("/recipes")
 			{
 				// Recipes Protected Routes
-				recipes.POST("/", s.RateLimiter(20, time.Minute), s.AdminMiddleware(), s.AddRecipeHandler)
+				recipes.POST("/:id", s.RateLimiter(20, time.Minute), s.AdminMiddleware(), s.AddRecipeHandler)
 				recipes.GET("/:id", s.AdminMiddleware(), s.GetRecipesHandler)
 				recipes.PATCH("/:id", s.RateLimiter(20, time.Minute), s.AdminMiddleware(), s.UpdateRecipeHandler)
 				recipes.DELETE("/:id", s.AdminMiddleware(), s.DeleteRecipeHandler)
