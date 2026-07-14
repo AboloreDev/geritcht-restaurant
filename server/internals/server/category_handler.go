@@ -11,17 +11,16 @@ import (
 )
 
 // @Summary Create a category
-// @Description Create a new product category with a name, description, and image: admin only
+// @Description Creates a new menu category. Only administrators can perform this action.
 // @Tags Categories
-// @Accept multipart/form-data
+// @Accept json
 // @Produce json
-// @Param name formData string true "Category name"
-// @Param description formData string false "Category description"
-// @Param image formData file true "Category image"
+// @Param input body dto.CreateCategoryRequest true "Category details"
 // @Security BearerAuth
 // @Success 201 {object} utils.Response{data=dto.MenuCategoryResponse} "Category created successfully"
-// @Failure 400 {object} utils.Response "Invalid request data or image upload failed"
+// @Failure 400 {object} utils.Response "Invalid request data"
 // @Failure 401 {object} utils.Response "Unauthorized"
+// @Failure 403 {object} utils.Response "Forbidden"
 // @Failure 409 {object} utils.Response "Category already exists"
 // @Failure 500 {object} utils.Response "Internal server error"
 // @Router /categories [post]
