@@ -7,8 +7,11 @@ import {
   useDispatch,
   useSelector,
 } from "react-redux";
+import globalReducer from "./slices/globalSlice";
 
-const rootReducer = combineReducers({});
+const rootReducer = combineReducers({
+  global: globalReducer,
+});
 
 export const makeStore = () => {
   return configureStore({
