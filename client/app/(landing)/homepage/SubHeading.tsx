@@ -26,7 +26,7 @@ export default function Subheading({ children, className }: SubheadingProps) {
         width={42}
         height={10}
         priority
-        className="h-auto w-10"
+        className="h-auto w-10 text-primary"
       />
     </div>
   );

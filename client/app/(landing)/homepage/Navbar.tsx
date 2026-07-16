@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import Link from "next/link";
 import Image from "next/image";
+import MobileMenu from "./MobileMenu";
 
 const navLinks = [
   { label: "Home", href: "#home" },
@@ -15,6 +16,7 @@ const navLinks = [
 ];
 
 export default function Navbar() {
+  const [open, setOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
 
   useEffect(() => {
@@ -36,11 +38,11 @@ export default function Navbar() {
       className={cn(
         "fixed inset-x-0 top-0 z-50 transition-all duration-500",
         scrolled
-          ? "border-b border-border bg-background/90 shadow-lg backdrop-blur-xl"
+          ? "border-b border-border shadow-lg backdrop-blur-xl"
           : "bg-transparent",
       )}
     >
-      <div className="mx-auto flex h-24 max-w-7xl items-center justify-between px-6 lg:px-10">
+      <div className="mx-auto flex h-20 max-w-7xl items-center justify-between px-6 lg:px-10">
         {/* Logo */}
 
         <Link href="/">
@@ -95,7 +97,9 @@ export default function Navbar() {
 
         {/* Mobile */}
 
-        <div className="lg:hidden">{/* MobileMenu */}</div>
+        <div className="lg:hidden">
+          <MobileMenu open={open} onOpenChange={setOpen} navLinks={navLinks} />
+        </div>
       </div>
     </motion.header>
   );

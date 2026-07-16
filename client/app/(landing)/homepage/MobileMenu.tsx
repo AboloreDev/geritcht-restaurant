@@ -10,6 +10,7 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet";
 import { Menu } from "@mynaui/icons-react";
+import Image from "next/image";
 
 interface MobileMenuProps {
   open: boolean;
@@ -27,13 +28,13 @@ export default function MobileMenu({
 }: MobileMenuProps) {
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetTrigger asChild>
-        <button
-          className="flex h-11 w-11 items-center justify-center rounded-full border border-border bg-surface text-text-primary transition-all duration-300 hover:border-primary-deep hover:text-primary-deep"
+      <SheetTrigger>
+        <SheetTitle
+          className="flex h-11 w-11 cursor-pointer items-center justify-center text-primary transition-all duration-300 hover:border-primary-deep hover:text-primary-deep"
           aria-label="Open Menu"
         >
-          <Menu size={22} />
-        </button>
+          <Menu size={30} />
+        </SheetTitle>
       </SheetTrigger>
 
       <SheetContent
@@ -42,7 +43,14 @@ export default function MobileMenu({
       >
         <SheetHeader className="mb-10">
           <SheetTitle className="font-heading text-3xl text-primary-deep">
-            Gericht
+            <Image
+              src="/assets/gericht.png"
+              alt="Gericht"
+              width={100}
+              height={55}
+              priority
+              className="h-auto w-auto object-contain"
+            />
           </SheetTitle>
         </SheetHeader>
 
@@ -53,7 +61,7 @@ export default function MobileMenu({
                 <Link
                   href={item.href}
                   onClick={() => onOpenChange(false)}
-                  className="group relative text-2xl font-medium text-text-primary transition-colors duration-300 hover:text-primary-deep"
+                  className="group relative text-xl font-medium text-text-primary transition-colors duration-300 hover:text-primary-deep"
                 >
                   {item.label}
 

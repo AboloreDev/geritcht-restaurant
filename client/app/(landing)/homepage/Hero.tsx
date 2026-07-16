@@ -9,10 +9,7 @@ import Link from "next/link";
 
 export default function Hero() {
   return (
-    <header
-      id="home"
-      className="relative overflow-hidden bg-background pt-32 pb-20"
-    >
+    <header id="home" className="relative overflow-hidden pt-32 pb-20">
       <div className="mx-auto grid min-h-[85vh] max-w-7xl items-center gap-16 px-6 lg:grid-cols-2 lg:px-10">
         {/* Left Content */}
 
@@ -30,9 +27,9 @@ export default function Hero() {
           </h1>
 
           <p className="max-w-xl text-lg leading-8 text-text-secondary">
-            Sit tellus lobortis sed senectus vivamus molestie. Condimentum
-            volutpat morbi facilisis quam scelerisque sapien. Et, penatibus
-            aliquam amet tellus.
+            Discover an elevated dining experience inspired by culinary
+            artistry. From handcrafted dishes to signature cocktails, every
+            detail is designed to delight your senses.
           </p>
 
           <div className="flex items-center gap-4">
