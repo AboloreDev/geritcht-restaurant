@@ -6,6 +6,7 @@ import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import Subheading from "./SubHeading";
 import ItemList from "./ItemList";
+import Link from "next/link";
 
 const fadeUp = {
   hidden: { opacity: 0, y: 40 },
@@ -184,7 +185,9 @@ export default function SpecialMenu() {
           transition={{ delay: 0.35 }}
           className="mt-20"
         >
-          <Button className="rounded-full px-8">View Full Menu</Button>
+          <Link href={"/menu"} className="rounded-full px-8">
+            View Full Menu
+          </Link>
         </motion.div>
       </div>
     </section>

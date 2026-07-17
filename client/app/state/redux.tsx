@@ -8,16 +8,24 @@ import {
   useSelector,
 } from "react-redux";
 import globalReducer from "./slices/globalSlice";
+import menuReducer from "./slices/menuSlice";
+import { baseApi } from "./api/baseApi";
 
 const rootReducer = combineReducers({
   global: globalReducer,
+  menu: menuReducer,
+
+  // baseApi
+  [baseApi.reducerPath]: baseApi.reducer,
 });
 
 export const makeStore = () => {
   return configureStore({
     reducer: rootReducer,
     middleware: (getDefaultMiddleware) =>
-      getDefaultMiddleware({ serializableCheck: false }).concat(),
+      getDefaultMiddleware({ serializableCheck: false }).concat(
+        baseApi.middleware,
+      ),
   });
 };
 
