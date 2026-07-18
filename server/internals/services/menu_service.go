@@ -325,7 +325,7 @@ func (s *MenuService) ToggleMenuAvailabilityService(ctx context.Context, menuID 
 }
 
 func (s *MenuService) GetAllMenuService(ctx context.Context, filter dto.MenuFilterRequest) ([]*dto.MenuResponse, *utils.PaginatedMeta, error) {
-	cacheKey := fmt.Sprintf("menu:all:page:%d:size:%d", filter.Page, filter.PageSize)
+	cacheKey := utils.BuildMenuFetchCacheKey(filter)
 	cached, err := s.redisStore.Get(ctx, cacheKey)
 	if err == nil && cached != "" {
 		var cachedResponse struct {
@@ -361,7 +361,7 @@ func (s *MenuService) GetAllMenuService(ctx context.Context, filter dto.MenuFilt
 	}{Data: response, Meta: meta}
 
 	data, _ := json.Marshal(&cacheData)
-	s.redisStore.Set(ctx, cacheKey, string(data), 1*time.Hour)
+	s.redisStore.Set(ctx, cacheKey, string(data), utils.GetMenuCacheTTL(&filter))
 
 	return response, meta, nil
 }

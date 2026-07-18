@@ -9,11 +9,13 @@ import {
 } from "react-redux";
 import globalReducer from "./slices/globalSlice";
 import menuReducer from "./slices/menuSlice";
+import categoryReducer from "./slices/categoriesSlice";
 import { baseApi } from "./api/baseApi";
 
 const rootReducer = combineReducers({
   global: globalReducer,
   menu: menuReducer,
+  category: categoryReducer,
 
   // baseApi
   [baseApi.reducerPath]: baseApi.reducer,

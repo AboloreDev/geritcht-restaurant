@@ -77,7 +77,7 @@ const baseQueryWithReauth: BaseQueryFn<
 export const baseApi = createApi({
   reducerPath: "baseApi",
   baseQuery: baseQueryWithReauth,
-  tagTypes: [],
+  tagTypes: ["Category", "Menu"],
   endpoints: (builder) => ({
     // Logout endpoint
     logout: builder.mutation<
