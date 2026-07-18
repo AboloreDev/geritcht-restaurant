@@ -99,6 +99,7 @@ func (r *MenuRepository) GetAll(ctx context.Context, filter dto.MenuFilterReques
 	offset := utils.Pagination(filter.Page, filter.PageSize)
 
 	query := r.db.WithContext(ctx).Model(&models.Menu{}).Where("is_available = ?", true)
+	query = utils.ApplyMenuFilters(query, filter)
 
 	var count int64
 	query.Count(&count)
