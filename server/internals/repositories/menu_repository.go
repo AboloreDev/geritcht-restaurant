@@ -100,6 +100,7 @@ func (r *MenuRepository) GetAll(ctx context.Context, filter dto.MenuFilterReques
 
 	query := r.db.WithContext(ctx).Model(&models.Menu{}).Where("is_available = ?", true)
 	query = utils.ApplyMenuFilters(query, filter)
+	query = utils.ApplyMenuSorting(query, filter)
 
 	var count int64
 	query.Count(&count)

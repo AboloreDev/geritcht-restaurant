@@ -85,5 +85,5 @@ export interface GetMenusRequest {
 }
 
 export interface SearchMenuRequest {
-  query: string;
+  q: string;
 }

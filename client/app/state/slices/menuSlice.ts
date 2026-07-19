@@ -45,6 +45,7 @@ const menuSlice = createSlice({
     ) {
       state.sortBy = action.payload.sortBy;
       state.order = action.payload.order;
+      state.page = 1;
     },
 
     setPriceRange(
@@ -69,6 +70,11 @@ const menuSlice = createSlice({
       state.order = undefined;
       state.spiceLevel = undefined;
     },
+    searchAcrossAllCategories(state, action: PayloadAction<string>) {
+      state.query = action.payload;
+      state.categoryId = undefined;
+      state.page = 1;
+    },
   },
 });
 
@@ -79,6 +85,7 @@ export const {
   setSort,
   setPriceRange,
   resetFilters,
+  searchAcrossAllCategories,
 } = menuSlice.actions;
 
 export default menuSlice.reducer;

@@ -30,13 +30,13 @@ export const menuApi = baseApi.injectEndpoints({
     }),
 
     searchMenu: builder.query<GetMenusResponse, SearchMenuRequest>({
-      query: ({ query }) => ({
+      query: ({ q }) => ({
         url: "/menu/search",
-        params: { query },
+        params: { q },
       }),
       providesTags: ["Menu"],
     }),
   }),
 });
 
-export const { useGetMenusQuery } = menuApi;
+export const { useGetMenusQuery, useSearchMenuQuery } = menuApi;

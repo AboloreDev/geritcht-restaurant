@@ -2,15 +2,13 @@
 
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
-import { useAppDispatch, useAppSelector } from "@/app/state/redux";
+import { RootState, useAppDispatch, useAppSelector } from "@/app/state/redux";
 import { useGetCategoriesQuery } from "@/app/state/api/categoriesApi";
 import { setCategory } from "@/app/state/slices/menuSlice";
 
 const container = {
   hidden: {},
-  show: {
-    transition: { staggerChildren: 0.05 },
-  },
+  show: { transition: { staggerChildren: 0.05 } },
 };
 
 const pillVariant = {
@@ -24,7 +22,7 @@ const pillVariant = {
 
 export function CategoryTabs() {
   const dispatch = useAppDispatch();
-  const activeId = useAppSelector((state) => state.menu.categoryId);
+  const activeId = useAppSelector((state: RootState) => state.menu.categoryId);
   const { data, isLoading } = useGetCategoriesQuery({ page: 1, limit: 100 });
 
   if (isLoading) return <CategoryTabsSkeleton />;
@@ -36,41 +34,59 @@ export function CategoryTabs() {
       animate="show"
       className="flex gap-2 overflow-x-auto justify-center"
     >
-      {data?.data.map((cat) => {
-        const isActive = activeId === cat.id;
-        return (
-          <motion.button
-            key={cat.id}
-            // @ts-expect-error "<>"
-            variants={pillVariant}
-            onClick={() => {
-              console.log("clicked", cat.id);
-              dispatch(setCategory(cat.id));
-            }}
-            className={cn(
-              "relative rounded-full px-4 py-1.5 cursor-pointer text-sm text-primary whitespace-nowrap transition-colors",
-              isActive ? "text-white" : "text-primary-deep hover:text-white",
-            )}
-          >
-            {isActive && (
-              <motion.span
-                layoutId="active-pill"
-                className="absolute inset-0 rounded-full bg-primary"
-                transition={{ type: "spring", stiffness: 400, damping: 32 }}
-              />
-            )}
-            <span className="relative z-10">{cat.name}</span>
-          </motion.button>
-        );
-      })}
+      <Pill
+        label="All"
+        isActive={activeId === undefined}
+        onClick={() => dispatch(setCategory(undefined))}
+      />
+
+      {data?.data.map((cat) => (
+        <Pill
+          key={cat.id}
+          label={cat.name}
+          isActive={activeId === cat.id}
+          onClick={() => dispatch(setCategory(cat.id))}
+        />
+      ))}
     </motion.div>
+  );
+}
+
+function Pill({
+  label,
+  isActive,
+  onClick,
+}: {
+  label: string;
+  isActive: boolean;
+  onClick: () => void;
+}) {
+  return (
+    <motion.button
+      // @ts-expect-error "<>"
+      variants={pillVariant}
+      onClick={onClick}
+      className={cn(
+        "relative rounded-full px-4 py-1.5 cursor-pointer text-sm whitespace-nowrap transition-colors",
+        isActive ? "text-white" : "text-primary-deep hover:text-white",
+      )}
+    >
+      {isActive && (
+        <motion.span
+          layoutId="active-pill"
+          className="absolute inset-0 rounded-full bg-primary"
+          transition={{ type: "spring", stiffness: 400, damping: 32 }}
+        />
+      )}
+      <span className="relative z-10">{label}</span>
+    </motion.button>
   );
 }
 
 function CategoryTabsSkeleton() {
   return (
     <div className="flex gap-2">
-      {Array.from({ length: 5 }).map((_, i) => (
+      {Array.from({ length: 6 }).map((_, i) => (
         <div
           key={i}
           className="h-8 w-20 animate-pulse rounded-full bg-[#fefee3]"

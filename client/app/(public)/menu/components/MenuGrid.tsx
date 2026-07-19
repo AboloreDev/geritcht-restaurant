@@ -36,10 +36,10 @@ export function MenuGrid() {
   }
 
   return (
-    <div>
+    <div id="menu-grid">
       <motion.div
         layout
-        className="grid grid-cols-1 gap-10 md:grid-cols-2 xl:grid-cols-3"
+        className="grid grid-cols-2 gap-10 md:grid-cols-3 xl:grid-cols-4"
       >
         <AnimatePresence initial={false}>
           {items.map((item, i) => (
