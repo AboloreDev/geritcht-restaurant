@@ -81,7 +81,7 @@ export interface GetMenusRequest {
   spice_level?: number;
 
   sort_by?: "name" | "price" | "created_at";
-  order?: "asc" | "desc";
+  sort_order?: "asc" | "desc";
 }
 
 export interface SearchMenuRequest {

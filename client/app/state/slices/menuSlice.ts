@@ -9,7 +9,7 @@ interface MenuState {
   maxPrice?: number;
   spiceLevel?: number;
   sortBy?: "price" | "name" | "created_at";
-  order?: "asc" | "desc";
+  sortOrder?: "asc" | "desc";
 }
 
 const initialState: MenuState = {
@@ -40,11 +40,11 @@ const menuSlice = createSlice({
       state,
       action: PayloadAction<{
         sortBy: MenuState["sortBy"];
-        order: MenuState["order"];
+        order: MenuState["sortOrder"];
       }>,
     ) {
       state.sortBy = action.payload.sortBy;
-      state.order = action.payload.order;
+      state.sortOrder = action.payload.order;
       state.page = 1;
     },
 
@@ -67,7 +67,7 @@ const menuSlice = createSlice({
       state.minPrice = undefined;
       state.maxPrice = undefined;
       state.sortBy = undefined;
-      state.order = undefined;
+      state.sortOrder = undefined;
       state.spiceLevel = undefined;
     },
     searchAcrossAllCategories(state, action: PayloadAction<string>) {

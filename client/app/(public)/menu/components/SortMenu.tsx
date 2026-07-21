@@ -16,29 +16,29 @@ import { cn } from "@/lib/utils";
 type SortOption = {
   label: string;
   sortBy: "price" | "name" | "created_at";
-  order: "asc" | "desc";
+  sortOrder: "asc" | "desc";
 };
 
 const SORT_OPTIONS: SortOption[] = [
-  { label: "Newest first", sortBy: "created_at", order: "desc" },
-  { label: "Name (A–Z)", sortBy: "name", order: "asc" },
-  { label: "Name (Z–A)", sortBy: "name", order: "desc" },
-  { label: "Price (low to high)", sortBy: "price", order: "asc" },
-  { label: "Price (high to low)", sortBy: "price", order: "desc" },
+  { label: "Newest first", sortBy: "created_at", sortOrder: "desc" },
+  { label: "Name (A–Z)", sortBy: "name", sortOrder: "asc" },
+  { label: "Name (Z–A)", sortBy: "name", sortOrder: "desc" },
+  { label: "Price (low to high)", sortBy: "price", sortOrder: "asc" },
+  { label: "Price (high to low)", sortBy: "price", sortOrder: "desc" },
 ];
 
 export function SortMenu() {
   const dispatch = useAppDispatch();
   const [open, setOpen] = useState(false);
-  const { sortBy, order } = useAppSelector((s: RootState) => s.menu);
+  const { sortBy, sortOrder } = useAppSelector((s: RootState) => s.menu);
 
   const isActive = Boolean(sortBy);
   const activeLabel = SORT_OPTIONS.find(
-    (o) => o.sortBy === sortBy && o.order === order,
+    (o) => o.sortBy === sortBy && o.sortOrder === sortOrder,
   )?.label;
 
   function handleSelect(option: SortOption) {
-    dispatch(setSort({ sortBy: option.sortBy, order: option.order }));
+    dispatch(setSort({ sortBy: option.sortBy, order: option.sortOrder }));
     setOpen(false);
   }
 
@@ -73,7 +73,7 @@ export function SortMenu() {
           >
             {SORT_OPTIONS.map((option) => {
               const selected =
-                option.sortBy === sortBy && option.order === order;
+                option.sortBy === sortBy && option.sortOrder === sortOrder;
               return (
                 <button
                   key={option.label}

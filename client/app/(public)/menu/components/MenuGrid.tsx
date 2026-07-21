@@ -9,7 +9,7 @@ import { MenuCard } from "./MenuCard";
 
 export function MenuGrid() {
   const dispatch = useAppDispatch();
-  const { categoryId, page, limit, query, sortBy, order } = useAppSelector(
+  const { categoryId, page, limit, query, sortBy, sortOrder } = useAppSelector(
     (state: RootState) => state.menu,
   );
 
@@ -19,7 +19,7 @@ export function MenuGrid() {
     limit,
     query: query || undefined,
     sort_by: sortBy,
-    order,
+    sort_order: sortOrder,
   });
 
   const items = data?.data ?? [];
