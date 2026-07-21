@@ -6,6 +6,7 @@ import { motion } from "framer-motion";
 import Link from "next/link";
 import { MenuSearch } from "./MenuSearch";
 import { SortMenu } from "./SortMenu";
+import { PriceRangeFilter } from "./PriceRangeFilter";
 
 export default function MenuHeader() {
   return (
@@ -13,11 +14,11 @@ export default function MenuHeader() {
       <div className="mx-auto max-w-7xl px-6 text-center">
         <Subheading className="text-xl">Curated For Every Occasion</Subheading>
 
-        <h1 className="mt-2 text-2xl font-semibold text-primary md:text-4xl">
+        <h1 className=" text-2xl font-semibold text-primary md:text-4xl">
           Explore Our Menu
         </h1>
 
-        <div className="mt-10 flex items-center justify-between">
+        <div className="mt-5 flex items-center justify-center">
           <div className="w-10" aria-hidden />
 
           <motion.div
@@ -37,10 +38,6 @@ export default function MenuHeader() {
 
             <span className="text-primary">Menu</span>
           </motion.div>
-
-          <SortMenu />
-
-          <MenuSearch />
         </div>
       </div>
     </section>

@@ -66,6 +66,12 @@ export interface GetMenusResponse {
   data: Menu[];
   meta: Meta;
 }
+export interface GetSingleMenuResponse {
+  status: boolean;
+  error: string;
+  message: string;
+  data: Menu;
+}
 
 export interface GetMenusRequest {
   page?: number;

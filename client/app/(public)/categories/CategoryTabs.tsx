@@ -32,7 +32,7 @@ export function CategoryTabs() {
       variants={container}
       initial="hidden"
       animate="show"
-      className="flex gap-2 overflow-x-auto justify-center"
+      className="flex gap-2 overflow-x-auto justify-start px-1 sm:justify-center"
     >
       <Pill
         label="All"
@@ -67,7 +67,7 @@ function Pill({
       variants={pillVariant}
       onClick={onClick}
       className={cn(
-        "relative rounded-full px-4 py-1.5 cursor-pointer text-sm whitespace-nowrap transition-colors",
+        "relative shrink-0 rounded-full px-4 py-1.5 cursor-pointer text-sm whitespace-nowrap transition-colors",
         isActive ? "text-white" : "text-primary-deep hover:text-white",
       )}
     >

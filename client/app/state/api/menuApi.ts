@@ -1,6 +1,7 @@
 import {
   GetMenusRequest,
   GetMenusResponse,
+  GetSingleMenuResponse,
   SearchMenuRequest,
 } from "../types/menuTypes";
 import { baseApi } from "./baseApi";
@@ -29,6 +30,11 @@ export const menuApi = baseApi.injectEndpoints({
       providesTags: ["Menu"],
     }),
 
+    getSingleMenu: builder.query<GetSingleMenuResponse, { id: string }>({
+      query: ({ id }) => `/menu/${id}`,
+      providesTags: ["Menu"],
+    }),
+
     searchMenu: builder.query<GetMenusResponse, SearchMenuRequest>({
       query: ({ q }) => ({
         url: "/menu/search",
@@ -39,4 +45,5 @@ export const menuApi = baseApi.injectEndpoints({
   }),
 });
 
-export const { useGetMenusQuery, useSearchMenuQuery } = menuApi;
+export const { useGetMenusQuery, useSearchMenuQuery, useGetSingleMenuQuery } =
+  menuApi;

@@ -2,8 +2,8 @@
 
 import { useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { useMediaQuery } from "@/app/utils/useMediaQuery";
-import { useDebounce } from "@/app/utils/useDebounce";
+import { useMediaQuery } from "@/app/hooks/useMediaQuery";
+import { useDebounce } from "@/app/hooks/useDebounce";
 import { searchAcrossAllCategories } from "@/app/state/slices/menuSlice";
 import { Search, X } from "@mynaui/icons-react";
 import { Input } from "@/components/ui/input";
@@ -124,11 +124,11 @@ export function MenuSearch() {
               value={value}
               onChange={(e) => setValue(e.target.value)}
               placeholder="Search dishes…"
-              className="absolute right-0 top-0 h-10 text-white  border-white w-64 rounded-full"
+              className="absolute left-0 top-0 h-10 text-white  border-white w-64 rounded-full"
             />
           )}
           {open && hasQuery && (
-            <div className="absolute right-0 top-12 z-20 w-64 h-40 overflow-y-auto text-black bg-[#fefae0]  rounded-md shadow-md">
+            <div className="absolute left-0 top-12 z-20 w-64 h-40 overflow-y-auto text-black bg-[#fefae0]  rounded-md shadow-md">
               {resultsList}
             </div>
           )}

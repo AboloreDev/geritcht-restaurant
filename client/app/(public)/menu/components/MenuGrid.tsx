@@ -1,7 +1,9 @@
 "use client";
 
 import { motion, AnimatePresence } from "framer-motion";
+import { Spinner } from "@mynaui/icons-react";
 import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 import { RootState, useAppDispatch, useAppSelector } from "@/app/state/redux";
 import { useGetMenusQuery } from "@/app/state/api/menuApi";
 import { setPage } from "@/app/state/slices/menuSlice";
@@ -9,9 +11,16 @@ import { MenuCard } from "./MenuCard";
 
 export function MenuGrid() {
   const dispatch = useAppDispatch();
-  const { categoryId, page, limit, query, sortBy, sortOrder } = useAppSelector(
-    (state: RootState) => state.menu,
-  );
+  const {
+    categoryId,
+    page,
+    limit,
+    query,
+    sortBy,
+    sortOrder,
+    maxPrice,
+    minPrice,
+  } = useAppSelector((state: RootState) => state.menu);
 
   const { data, isFetching, isLoading } = useGetMenusQuery({
     category_id: categoryId,
@@ -20,14 +29,21 @@ export function MenuGrid() {
     query: query || undefined,
     sort_by: sortBy,
     sort_order: sortOrder,
+    max_price: maxPrice,
+    min_price: minPrice,
   });
 
   const items = data?.data ?? [];
   const hasMore = data ? page < data.meta.total_pages : false;
 
+  // true only on this component's very first ever fetch
   if (isLoading) return <MenuGridSkeleton />;
 
-  if (!isLoading && items.length === 0) {
+  // refetching due to category/sort/price/search change — always resets
+  // to page 1, so this never fires for a load-more (page > 1) fetch
+  const isRefetchingFilters = isFetching && page === 1;
+
+  if (!isLoading && !isFetching && items.length === 0) {
     return (
       <div className="py-16 text-center text-sm text-muted-foreground">
         No dishes match that. Try another category or search.
@@ -36,10 +52,32 @@ export function MenuGrid() {
   }
 
   return (
-    <div id="menu-grid">
+    <div id="menu-grid" className="relative">
+      {/* dims existing grid + shows a status pill while filters refetch,
+          instead of flashing back to a skeleton or empty state */}
+      <AnimatePresence>
+        {isRefetchingFilters && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.15 }}
+            className="absolute inset-0 z-10 flex items-start justify-center  pt-16"
+          >
+            <div className="flex items-center gap-2 rounded-full bg-[#fefae0] px-4 py-2 text-sm shadow-sm">
+              <Spinner className="h-4 w-4 animate-spin " />
+              Updating menu…
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       <motion.div
         layout
-        className="grid grid-cols-2 gap-10 md:grid-cols-3 xl:grid-cols-4"
+        className={cn(
+          "grid grid-cols-2 gap-10 md:grid-cols-3 xl:grid-cols-4 transition-opacity",
+          isRefetchingFilters && "opacity-50",
+        )}
       >
         <AnimatePresence initial={false}>
           {items.map((item, i) => (
@@ -51,8 +89,6 @@ export function MenuGrid() {
               transition={{
                 duration: 0.4,
                 ease: [0.16, 1, 0.3, 1],
-                // only the newest page's cards stagger in; cards already
-                // on screen don't replay their entrance on re-render
                 delay: (i % limit) * 0.03,
               }}
             >
@@ -69,7 +105,7 @@ export function MenuGrid() {
             disabled={isFetching}
             onClick={() => dispatch(setPage(page + 1))}
           >
-            {isFetching ? "Loading…" : "Load more"}
+            {isFetching && page > 1 ? "Loading…" : "Load more"}
           </Button>
         </div>
       )}
