@@ -19,7 +19,9 @@ export function MenuCard({ menu }: { menu: Menu }) {
   const { visible: badges, overflowCount } = getVisibleBadges(menu);
   const { isAuthenticated } = useAuth();
 
-  function handleAddToCart() {
+  function handleAddToCart(e: React.MouseEvent) {
+    e.preventDefault();
+    e.stopPropagation();
     if (!isAuthenticated) {
       router.push("/login");
       return;

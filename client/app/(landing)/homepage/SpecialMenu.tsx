@@ -185,7 +185,10 @@ export default function SpecialMenu() {
           transition={{ delay: 0.35 }}
           className="mt-20"
         >
-          <Link href={"/menu"} className="rounded-full px-8">
+          <Link
+            href={"/menu"}
+            className="rounded-full bg-primary text-black px-4 py-4"
+          >
             View Full Menu
           </Link>
         </motion.div>

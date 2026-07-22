@@ -1,6 +1,7 @@
 import React from "react";
 import Navbar from "./homepage/Navbar";
 import Footer from "./homepage/Footer";
+import { BookTableModal } from "../(public)/reservations/components/TableBookingModal";
 
 interface Children {
   children: React.ReactNode;
@@ -12,6 +13,9 @@ const HomepageLayout = ({ children }: Children) => {
       <Navbar />
       <main>{children}</main>
       <Footer />
+
+      {/* Booking Modal */}
+      <BookTableModal />
     </div>
   );
 };

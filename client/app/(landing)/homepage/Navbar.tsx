@@ -6,6 +6,9 @@ import { motion } from "framer-motion";
 import Link from "next/link";
 import Image from "next/image";
 import MobileMenu from "./MobileMenu";
+import { useAppDispatch } from "@/app/state/redux";
+import { openBookingModal } from "@/app/state/slices/reservationSlice";
+import { Button } from "@/components/ui/button";
 
 const navLinks = [
   { label: "Home", href: "#home" },
@@ -18,6 +21,7 @@ const navLinks = [
 export default function Navbar() {
   const [open, setOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const dispatch = useAppDispatch();
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 20);
@@ -87,12 +91,12 @@ export default function Navbar() {
             Log In
           </Link>
 
-          <Link
-            href="#"
+          <Button
+            onClick={() => dispatch(openBookingModal())}
             className="bg-[#1b2021] cursor-pointer rounded-2xl px-6 py-2 text-base font-semibold text-primary shadow-md transition-all duration-300 hover:shadow-xl"
           >
             Book Table
-          </Link>
+          </Button>
         </div>
 
         {/* Mobile */}

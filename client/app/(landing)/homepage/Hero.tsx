@@ -6,8 +6,11 @@ import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import Subheading from "./SubHeading";
 import Link from "next/link";
+import { useAppDispatch } from "@/app/state/redux";
+import { openBookingModal } from "@/app/state/slices/reservationSlice";
 
 export default function Hero() {
+  const dispatch = useAppDispatch();
   return (
     <header id="home" className="relative overflow-hidden pt-32 pb-20">
       <div className="mx-auto grid min-h-[85vh] max-w-7xl items-center gap-16 px-6 lg:grid-cols-2 lg:px-10">
@@ -34,18 +37,18 @@ export default function Hero() {
 
           <div className="flex items-center gap-4">
             <Link
-              href={"/"}
+              href={"/menu"}
               className="rounded-full bg-primary-deep px-6 py-3 text-base font-semibold text-black transition-all duration-300 hover:-translate-y-1 hover:bg-primary hover:shadow-xl"
             >
               Explore Menu
             </Link>
 
-            <Link
-              href={"/"}
-              className="rounded-full border border-border px-6 py-3 text-text-primary hover:border-primary-deep hover:text-primary-deep"
+            <button
+              onClick={() => dispatch(openBookingModal())}
+              className="rounded-full border border-primary cursor-pointer px-6 py-3 text-primary hover:border-primary-deep hover:text-primary-deep"
             >
               Book Table
-            </Link>
+            </button>
           </div>
         </motion.div>
 

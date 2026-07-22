@@ -11,6 +11,9 @@ import {
 } from "@/components/ui/sheet";
 import { Menu } from "@mynaui/icons-react";
 import Image from "next/image";
+import { Button } from "@/components/ui/button";
+import { openBookingModal } from "@/app/state/slices/reservationSlice";
+import { useAppDispatch } from "@/app/state/redux";
 
 interface MobileMenuProps {
   open: boolean;
@@ -26,6 +29,13 @@ export default function MobileMenu({
   onOpenChange,
   navLinks,
 }: MobileMenuProps) {
+  const dispatch = useAppDispatch();
+
+  const handleOpenBookingModal = () => {
+    dispatch(openBookingModal());
+    onOpenChange(false);
+  };
+
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetTrigger>
@@ -80,13 +90,12 @@ export default function MobileMenu({
               Log In
             </Link>
 
-            <Link
-              href="#"
-              onClick={() => onOpenChange(false)}
+            <Button
+              onClick={handleOpenBookingModal}
               className="rounded-full bg-primary-deep py-3 text-center font-semibold text-black transition-all duration-300 hover:bg-primary"
             >
               Book Table
-            </Link>
+            </Button>
           </div>
         </nav>
       </SheetContent>

@@ -6,6 +6,8 @@ import { motion } from "framer-motion";
 import SubHeading from "./SubHeading";
 import { Button } from "@/components/ui/button";
 import { Mail, MapPin, Clock3, Telephone } from "@mynaui/icons-react";
+import { useAppDispatch } from "@/app/state/redux";
+import { openBookingModal } from "@/app/state/slices/reservationSlice";
 
 const fadeLeft = {
   hidden: { opacity: 0, x: -60 },
@@ -32,6 +34,7 @@ const fadeRight = {
 };
 
 export default function Contact() {
+  const dispatch = useAppDispatch();
   return (
     <section id="contact" className="py-24 lg:py-36">
       <div className="mx-auto grid max-w-7xl items-center gap-20 px-6 lg:grid-cols-2 lg:px-10">
@@ -103,7 +106,12 @@ export default function Contact() {
             </div>
           </div>
 
-          <Button className="mt-10 rounded-full px-8">Reserve a Table</Button>
+          <Button
+            onClick={() => dispatch(openBookingModal())}
+            className="mt-10 rounded-full px-8"
+          >
+            Reserve a Table
+          </Button>
         </motion.div>
 
         {/* Right */}

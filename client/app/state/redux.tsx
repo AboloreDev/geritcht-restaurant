@@ -10,12 +10,14 @@ import {
 import globalReducer from "./slices/globalSlice";
 import menuReducer from "./slices/menuSlice";
 import categoryReducer from "./slices/categoriesSlice";
+import reservationReducer from "./slices/reservationSlice";
 import { baseApi } from "./api/baseApi";
 
 const rootReducer = combineReducers({
   global: globalReducer,
   menu: menuReducer,
   category: categoryReducer,
+  reservation: reservationReducer,
 
   // baseApi
   [baseApi.reducerPath]: baseApi.reducer,
