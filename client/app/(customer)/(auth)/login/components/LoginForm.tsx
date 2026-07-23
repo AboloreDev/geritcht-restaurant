@@ -14,18 +14,23 @@ import { Controller, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { LoginFormData, loginSchema } from "@/schema/authSchema";
 import { useAppDispatch, useAppSelector } from "@/app/state/redux";
-import { EyeOff } from "@hugeicons/core-free-icons";
 import { Eye, EyeOffSolid } from "@mynaui/icons-react";
 import { setShowPassword } from "@/app/state/slices/globalSlice";
+import { useLoginMutation } from "@/app/state/api/authApi";
+import { toast } from "sonner";
+import { getApiError } from "@/app/utils/apiError";
 
 export function LoginForm() {
   const router = useRouter();
   const showPassword = useAppSelector((state) => state.global.showPassword);
   const dispatch = useAppDispatch();
-  //   const [login, { isLoading, error }] = useLoginMutation();
+  const [login, { isLoading, error }] = useLoginMutation();
 
   const { control, handleSubmit } = useForm<LoginFormData>({
-    resolver: zodResolver(loginSchema),
+    resolver: zodResolver(
+      // @ts-expect-error "<>"
+      loginSchema,
+    ),
     defaultValues: {
       email: "",
       password: "",
@@ -33,12 +38,14 @@ export function LoginForm() {
   });
 
   async function onSubmit(data: LoginFormData) {
-    // try {
-    //   await login(data).unwrap();
-    //   router.push("/menu");
-    // } catch {
-    //   // error state is already surfaced via the `error` variable below
-    // }
+    try {
+      const response = await login(data).unwrap();
+      localStorage.setItem("token", response.data.access_token);
+      toast.success("Logged in successfully");
+    } catch (err) {
+      console.error(err);
+      toast.error(getApiError(err));
+    }
   }
 
   const handlePasswordToggle = () => {
@@ -107,20 +114,14 @@ export function LoginForm() {
             </Field>
           )}
         />
-        {/* {error && (
-          <p className="text-sm text-red-400">
-            {"data" in error &&
-            typeof error.data === "object" &&
-            error.data &&
-            "message" in error.data
-              ? String((error.data as { message: string }).message)
-              : "Couldn't log you in. Check your details and try again."}
-          </p>
-        )}
 
-        <Button type="submit" className="w-full" disabled={isLoading}>
+        <Button
+          type="submit"
+          className="w-full bg-black text-primary hover:bg-black/90"
+          disabled={isLoading}
+        >
           {isLoading ? "Logging in…" : "Log in"}
-        </Button> */}
+        </Button>
       </FieldGroup>
     </form>
   );

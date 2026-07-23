@@ -18,6 +18,7 @@ export const registerSchema = z
       .string()
       .min(1, "Email is required")
       .email("Enter a valid email address"),
+    phoneNumber: z.string().optional(),
     password: z
       .string()
       .min(1, "Password is required")
