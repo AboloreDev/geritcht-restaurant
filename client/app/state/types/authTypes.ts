@@ -75,6 +75,7 @@ export interface AuthResponse {
 }
 
 export interface MessageResponse {
+  status: boolean;
   message: string;
 }
 
@@ -89,4 +90,10 @@ export interface UserSearchRequest {
 
 export interface UserSearchResponse extends UserResponse {
   rank: number;
+}
+
+export interface ForgotPasswordResponse {
+  status: boolean;
+  message: string;
+  token: string;
 }

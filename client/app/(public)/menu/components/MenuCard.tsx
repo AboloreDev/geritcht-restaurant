@@ -9,7 +9,7 @@ import { Menu } from "@/app/state/types/menuTypes";
 import { formatNaira } from "@/app/utils/formatNaira";
 import { getVisibleBadges } from "@/app/utils/badges";
 import { useAuth } from "@/app/hooks/isAuthenticated";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import Link from "next/link";
 import { resolveImageSrc } from "@/app/utils/resolveImage";
 
@@ -18,12 +18,13 @@ export function MenuCard({ menu }: { menu: Menu }) {
   const imageSrc = resolveImageSrc(menu);
   const { visible: badges, overflowCount } = getVisibleBadges(menu);
   const { isAuthenticated } = useAuth();
+  const pathname = usePathname();
 
   function handleAddToCart(e: React.MouseEvent) {
     e.preventDefault();
     e.stopPropagation();
     if (!isAuthenticated) {
-      router.push("/login");
+      router.push(`/login?redirect=${encodeURIComponent(pathname)}`);
       return;
     }
   }

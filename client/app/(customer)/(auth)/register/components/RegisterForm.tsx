@@ -16,6 +16,7 @@ import { useRegisterMutation } from "@/app/state/api/authApi";
 import { RegisterFormData, registerSchema } from "@/schema/authSchema";
 import { toast } from "sonner";
 import { getApiError } from "@/app/utils/apiError";
+import { ro } from "zod/v4/locales";
 
 export function RegisterForm() {
   const router = useRouter();
@@ -47,6 +48,7 @@ export function RegisterForm() {
       }).unwrap();
       localStorage.setItem("token", response.data.access_token);
       toast.success("Logged in successfully");
+      router.push("/verify-email");
     } catch (err) {
       console.error(err);
       toast.error(getApiError(err));

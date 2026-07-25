@@ -4,10 +4,15 @@ import type {
   FetchArgs,
   FetchBaseQueryError,
 } from "@reduxjs/toolkit/query";
+import { Mutex } from "async-mutex";
+
+// ensures only one refresh request fires at a time, even if several
+// requests 401 simultaneously — others wait for the in-flight refresh
+const mutex = new Mutex();
 
 const baseQuery = fetchBaseQuery({
   baseUrl: process.env.NEXT_PUBLIC_API_BASE_URL,
-  credentials: "include",
+  credentials: "include", // sends the httpOnly refresh-token cookie automatically
   prepareHeaders: (headers) => {
     if (typeof window !== "undefined") {
       const token = localStorage.getItem("accessToken");
@@ -15,59 +20,62 @@ const baseQuery = fetchBaseQuery({
         headers.set("Authorization", `Bearer ${token}`);
       }
     }
-
     return headers;
   },
 });
+
+function clearAuthAndRedirect() {
+  if (typeof window !== "undefined") {
+    localStorage.removeItem("accessToken");
+    localStorage.removeItem("user");
+    window.location.href = "/login";
+  }
+}
 
 const baseQueryWithReauth: BaseQueryFn<
   string | FetchArgs,
   unknown,
   FetchBaseQueryError
 > = async (args, api, extraOptions) => {
+  // wait if another request is already refreshing
+  await mutex.waitForUnlock();
+
   let result = await baseQuery(args, api, extraOptions);
 
-  // Handle 401 Unauthorized errors
   if (result.error && result.error.status === 401) {
-    // Get refresh token from localStorage
-    const refreshToken =
-      typeof window !== "undefined"
-        ? localStorage.getItem("refreshToken")
-        : null;
+    if (!mutex.isLocked()) {
+      const release = await mutex.acquire();
 
-    if (refreshToken) {
-      const refreshResult = await baseQuery(
-        {
-          url: "/auth/refresh-token",
-          method: "POST",
-          body: { refreshToken },
-        },
-        api,
-        extraOptions,
-      );
+      try {
+        // re-check: another request might have already refreshed
+        // while we were acquiring the lock
+        const refreshResult = await baseQuery(
+          { url: "/auth/refresh-token", method: "POST" },
+          api,
+          extraOptions,
+        );
 
-      if (refreshResult.data) {
-        const data = refreshResult.data as any;
+        if (refreshResult.data) {
+          const data = refreshResult.data as any;
+          const newAccessToken = data?.data?.token?.accessToken;
 
-        const newAccessToken = data?.data?.token?.accessToken;
-        const newRefreshToken = data?.data?.token?.refreshToken;
-
-        if (newAccessToken && typeof window !== "undefined") {
-          localStorage.setItem("accessToken", newAccessToken);
-          if (newRefreshToken) {
-            localStorage.setItem("refreshToken", newRefreshToken);
+          if (newAccessToken && typeof window !== "undefined") {
+            localStorage.setItem("accessToken", newAccessToken);
+            result = await baseQuery(args, api, extraOptions);
+          } else {
+            clearAuthAndRedirect();
           }
-
-          // Retry the original request with new token
-          result = await baseQuery(args, api, extraOptions);
         } else {
-          //   api.dispatch(logoutAction());
+          clearAuthAndRedirect();
         }
-      } else {
-        // api.dispatch(logoutAction());
+      } finally {
+        release();
       }
     } else {
-      //   api.dispatch(logoutAction());
+      // someone else is already refreshing — wait, then retry with
+      // whatever token they end up setting
+      await mutex.waitForUnlock();
+      result = await baseQuery(args, api, extraOptions);
     }
   }
 
@@ -77,9 +85,8 @@ const baseQueryWithReauth: BaseQueryFn<
 export const baseApi = createApi({
   reducerPath: "baseApi",
   baseQuery: baseQueryWithReauth,
-  tagTypes: ["Category", "Menu", "Reservation"],
+  tagTypes: ["Category", "Menu", "Reservation", "Auth"],
   endpoints: (builder) => ({
-    // Logout endpoint
     logout: builder.mutation<
       {
         status: boolean;
@@ -93,17 +100,12 @@ export const baseApi = createApi({
         url: "/auth/logout",
         method: "DELETE",
       }),
-      // Clear all cache when logging out
-      invalidatesTags: ["Category", "Menu", "Reservation"],
-      async onQueryStarted(_, { dispatch, queryFulfilled }) {
+      invalidatesTags: ["Category", "Menu", "Reservation", "Auth"],
+      async onQueryStarted(_, { queryFulfilled }) {
         try {
           await queryFulfilled;
-
-          console.log("logout successful");
-        } catch (error) {
-          console.error("logout failed, but logging out locally");
         } finally {
-          //   dispatch(logoutAction());
+          clearAuthAndRedirect();
         }
       },
     }),

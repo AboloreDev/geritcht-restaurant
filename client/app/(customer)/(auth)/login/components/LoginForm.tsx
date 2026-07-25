@@ -1,6 +1,6 @@
 "use client";
 
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import {
   Field,
@@ -22,9 +22,11 @@ import { getApiError } from "@/app/utils/apiError";
 
 export function LoginForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const showPassword = useAppSelector((state) => state.global.showPassword);
   const dispatch = useAppDispatch();
   const [login, { isLoading, error }] = useLoginMutation();
+  const redirectTo = searchParams.get("redirect") || "/menu";
 
   const { control, handleSubmit } = useForm<LoginFormData>({
     resolver: zodResolver(
@@ -42,6 +44,7 @@ export function LoginForm() {
       const response = await login(data).unwrap();
       localStorage.setItem("token", response.data.access_token);
       toast.success("Logged in successfully");
+      router.push(redirectTo);
     } catch (err) {
       console.error(err);
       toast.error(getApiError(err));

@@ -1,5 +1,7 @@
 "use client";
 
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 
 import {
@@ -9,11 +11,13 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
-import { Menu } from "@mynaui/icons-react";
+import { Menu, ShoppingBag } from "@mynaui/icons-react";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { openBookingModal } from "@/app/state/slices/reservationSlice";
 import { useAppDispatch } from "@/app/state/redux";
+import { useLogoutMutation } from "@/app/state/api/baseApi";
+import { useAuth } from "@/app/hooks/isAuthenticated";
 
 interface MobileMenuProps {
   open: boolean;
@@ -24,17 +28,39 @@ interface MobileMenuProps {
   }[];
 }
 
+const accountLinks = [
+  { label: "My Orders", href: "/account/orders" },
+  { label: "My Reservations", href: "/account/reservations" },
+  { label: "Account Details", href: "/account/settings" },
+];
+
 export default function MobileMenu({
   open,
   onOpenChange,
   navLinks,
 }: MobileMenuProps) {
   const dispatch = useAppDispatch();
+  const router = useRouter();
+  const { isAuthenticated, user } = useAuth();
+  const [logout] = useLogoutMutation();
+
+  // hydration-safety guard, same pattern as the desktop nav
+  const [hasMounted, setHasMounted] = useState(false);
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setHasMounted(true);
+  }, []);
 
   const handleOpenBookingModal = () => {
     dispatch(openBookingModal());
     onOpenChange(false);
   };
+
+  async function handleLogout() {
+    onOpenChange(false);
+    await logout();
+    router.push("/");
+  }
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
@@ -82,13 +108,22 @@ export default function MobileMenu({
           </ul>
 
           <div className="mt-14 flex flex-col gap-4">
-            <Link
-              href="/login"
-              onClick={() => onOpenChange(false)}
-              className="rounded-full border border-primary-deep py-3 text-center text-text-primary transition-all duration-300 hover:bg-primary-deep hover:text-black"
-            >
-              Log In
-            </Link>
+            {hasMounted && isAuthenticated ? (
+              <button
+                onClick={handleLogout}
+                className="rounded-full border border-destructive py-3 text-center text-destructive transition-all duration-300 hover:bg-destructive hover:text-white"
+              >
+                Log out
+              </button>
+            ) : (
+              <Link
+                href="/login"
+                onClick={() => onOpenChange(false)}
+                className="rounded-full border border-primary-deep py-3 text-center text-text-primary transition-all duration-300 hover:bg-primary-deep hover:text-black"
+              >
+                Log In
+              </Link>
+            )}
 
             <Button
               onClick={handleOpenBookingModal}
