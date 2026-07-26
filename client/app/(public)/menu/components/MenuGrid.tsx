@@ -75,7 +75,7 @@ export function MenuGrid() {
       <motion.div
         layout
         className={cn(
-          "grid grid-cols-2 gap-10 md:grid-cols-3 xl:grid-cols-4 transition-opacity",
+          "grid grid-cols-1 gap-2 md:gap-10 md:grid-cols-3 xl:grid-cols-4 transition-opacity",
           isRefetchingFilters && "opacity-50",
         )}
       >

@@ -1,5 +1,6 @@
 "use client";
 
+import Navbar from "@/app/(landing)/homepage/Navbar";
 import { CategoryTabs } from "../categories/CategoryTabs";
 import MenuFilters from "./components/MenuFilters";
 import { MenuGrid } from "./components/MenuGrid";
@@ -7,7 +8,8 @@ import MenuHeader from "./components/MenuHeader";
 
 export default function MenuPage() {
   return (
-    <main className="min-h-screen bg-[url('/assets/bg.png')] bg-cover bg-center bg-fixed">
+    <main className="h-screen bg-[url('/assets/bg.png')] bg-cover bg-center bg-fixed">
+      <Navbar />
       <MenuHeader />
 
       <MenuFilters />

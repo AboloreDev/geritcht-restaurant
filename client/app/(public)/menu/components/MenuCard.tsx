@@ -4,7 +4,13 @@ import Image from "next/image";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Clock3, Plus, ImageRectangle } from "@mynaui/icons-react";
+import {
+  Clock3,
+  Plus,
+  ImageRectangle,
+  Minus,
+  Check,
+} from "@mynaui/icons-react";
 import { Menu } from "@/app/state/types/menuTypes";
 import { formatNaira } from "@/app/utils/formatNaira";
 import { getVisibleBadges } from "@/app/utils/badges";
@@ -12,6 +18,11 @@ import { useAuth } from "@/app/hooks/isAuthenticated";
 import { usePathname, useRouter } from "next/navigation";
 import Link from "next/link";
 import { resolveImageSrc } from "@/app/utils/resolveImage";
+import { useState } from "react";
+import { useAddToCartMutation } from "@/app/state/api/cartApi";
+import { toast } from "sonner";
+import { getApiError } from "@/app/utils/apiError";
+import { Input } from "@/components/ui/input";
 
 export function MenuCard({ menu }: { menu: Menu }) {
   const router = useRouter();
@@ -19,6 +30,13 @@ export function MenuCard({ menu }: { menu: Menu }) {
   const { visible: badges, overflowCount } = getVisibleBadges(menu);
   const { isAuthenticated } = useAuth();
   const pathname = usePathname();
+  const [addToCart, { isLoading }] = useAddToCartMutation();
+
+  // cart states
+  const [isAdjusting, setIsAdjusting] = useState(false);
+  const [quantity, setQuantity] = useState(1);
+  const [justAdded, setJustAdded] = useState(false);
+  const [specialInstructions, setSpecialInstructions] = useState("");
 
   function handleAddToCart(e: React.MouseEvent) {
     e.preventDefault();
@@ -27,11 +45,33 @@ export function MenuCard({ menu }: { menu: Menu }) {
       router.push(`/login?redirect=${encodeURIComponent(pathname)}`);
       return;
     }
+    setIsAdjusting(true);
+  }
+
+  async function handleConfirmAdd(e: React.MouseEvent) {
+    e.preventDefault();
+    e.stopPropagation();
+    try {
+      const response = await addToCart({
+        menu_item_id: menu.id,
+        special_instructions: specialInstructions || undefined,
+        quantity,
+      }).unwrap();
+      setIsAdjusting(false);
+      setJustAdded(true);
+      setQuantity(1);
+      setSpecialInstructions("");
+      setTimeout(() => setJustAdded(false), 1500);
+      toast.success(response.message);
+    } catch (err) {
+      console.error(err);
+      toast.error(getApiError(err));
+    }
   }
 
   return (
     <Link href={`/menu/${menu.id}`}>
-      <div className="relative mt-10 rounded-2xl bg-[#fefee3] p-4 pt-4 sm:mt-12 sm:p-5">
+      <div className="relative mt-10 mb-10 rounded-2xl bg-[#fefee3] p-4 pt-4 sm:mt-12 sm:p-5">
         {/* Floating Image */}
         <div className="absolute left-1/2 top-0 -translate-x-1/2 -translate-y-1/2">
           <motion.div
@@ -59,7 +99,7 @@ export function MenuCard({ menu }: { menu: Menu }) {
         {/* Content */}
         <div className="flex flex-col pt-12 sm:pt-14">
           {/* Title + Prep Time */}
-          <div className="flex items-start justify-between gap-3">
+          <div className="flex items-start flex-col md:flex-row justify-between gap-3">
             <h3 className="font-serif text-base font-semibold leading-tight sm:text-lg">
               {menu.name}
             </h3>
@@ -104,15 +144,80 @@ export function MenuCard({ menu }: { menu: Menu }) {
               {formatNaira(menu.price)}
             </span>
 
-            <Button
-              size="sm"
-              disabled={!menu.is_available}
-              className="w-full sm:w-auto"
-              onClick={handleAddToCart}
-            >
-              <Plus size={14} />
-              {menu.is_available ? "Add" : "Sold out"}
-            </Button>
+            {isAdjusting ? (
+              <div
+                className="flex items-center gap-2"
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                }}
+              >
+                <div
+                  className="flex items-center rounded-full border"
+                  onClick={(e) => e.preventDefault()}
+                >
+                  <input
+                    type="text"
+                    value={specialInstructions}
+                    onChange={(e) => setSpecialInstructions(e.target.value)}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                    }}
+                    placeholder="Add a note (optional)"
+                    className="w-full font-medium focus:outline-none rounded-full border px-2.5 py-1.5 text-xs"
+                  />
+                  <button
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      setQuantity((q) => Math.max(1, q - 1));
+                    }}
+                    className="flex h-8 w-8 items-center justify-center"
+                    aria-label="Decrease quantity"
+                  >
+                    <Minus className="h-3.5 w-3.5" />
+                  </button>
+                  <span className="w-6 text-center text-sm">{quantity}</span>
+                  <button
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      setQuantity((q) => q + 1);
+                    }}
+                    className="flex h-8 w-8 items-center justify-center"
+                    aria-label="Increase quantity"
+                  >
+                    <Plus className="h-3.5 w-3.5" />
+                  </button>
+                </div>
+
+                <Button
+                  size="sm"
+                  disabled={isLoading}
+                  onClick={handleConfirmAdd}
+                  aria-label="Confirm add to cart"
+                >
+                  {isLoading ? "…" : <Check className="h-4 w-4" />}
+                </Button>
+              </div>
+            ) : (
+              <Button
+                size="sm"
+                disabled={!menu.is_available}
+                onClick={handleAddToCart}
+              >
+                {justAdded ? (
+                  <>
+                    <Check className="h-3.5 w-3.5" /> Added
+                  </>
+                ) : menu.is_available ? (
+                  "Add"
+                ) : (
+                  "Sold out"
+                )}
+              </Button>
+            )}
           </div>
         </div>
       </div>

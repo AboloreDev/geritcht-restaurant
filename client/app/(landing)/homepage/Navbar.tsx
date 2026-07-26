@@ -52,7 +52,7 @@ export default function Navbar() {
         ease: [0.22, 1, 0.36, 1],
       }}
       className={cn(
-        "fixed inset-x-0 top-0 z-50 transition-all duration-500",
+        "sticky inset-x-0 top-0 z-50 transition-all duration-500",
         scrolled
           ? "border-b border-white/10 bg-[#111315]/70 shadow-xl backdrop-blur-2xl"
           : "bg-transparent",
@@ -68,7 +68,7 @@ export default function Navbar() {
               width={180}
               height={55}
               priority
-              className="h-auto w-auto object-contain"
+              className="h-28 w-28 md:w-auto md:h-auto object-contain"
             />
           </motion.div>
         </Link>

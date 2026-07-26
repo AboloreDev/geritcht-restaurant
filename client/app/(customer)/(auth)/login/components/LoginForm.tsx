@@ -42,8 +42,7 @@ export function LoginForm() {
   async function onSubmit(data: LoginFormData) {
     try {
       const response = await login(data).unwrap();
-      localStorage.setItem("token", response.data.access_token);
-      toast.success("Logged in successfully");
+      toast.success(response.message);
       router.push(redirectTo);
     } catch (err) {
       console.error(err);
