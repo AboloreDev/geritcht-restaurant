@@ -12,6 +12,8 @@ import { openBookingModal } from "@/app/state/slices/reservationSlice";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/app/hooks/isAuthenticated";
 import { UserMenu } from "@/components/code/UserMenu";
+import { openCartDrawer } from "@/app/state/slices/cartSlice";
+import { useGetCartQuery } from "@/app/state/api/cartApi";
 
 const navLinks = [
   { label: "Home", href: "#home" },
@@ -24,11 +26,14 @@ const navLinks = [
 export default function Navbar() {
   const [open, setOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
-
   const dispatch = useAppDispatch();
-
   const [hasMounted, setHasMounted] = useState(false);
   const { isAuthenticated, user } = useAuth();
+
+  const { data: cartData } = useGetCartQuery(undefined, {
+    skip: !isAuthenticated,
+  });
+  const cart = cartData?.data;
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
@@ -74,7 +79,7 @@ export default function Navbar() {
         </Link>
 
         {/* Desktop Navigation */}
-        <nav className="hidden lg:block">
+        <nav className="hidden">
           <ul className="flex items-center gap-10">
             {navLinks.map((item) => (
               <li key={item.href}>
@@ -97,9 +102,19 @@ export default function Navbar() {
             <>
               <button
                 aria-label="Cart"
+                onClick={() => dispatch(openCartDrawer())}
                 className="relative flex h-10 w-10 items-center justify-center rounded-2xl border border-primary/20 bg-[#1b2021] text-primary transition-all duration-300 hover:scale-105 hover:bg-primary hover:text-black"
               >
                 <ShoppingBag className="h-[18px] w-[18px]" />
+
+                {
+                  // @ts-expect-error "<>"
+                  cart?.item_count > 0 && (
+                    <span className="absolute -right-1 -top-1 flex h-4 w-4 items-center justify-center rounded-full bg-primary text-[10px] text-black">
+                      {cart?.item_count}
+                    </span>
+                  )
+                }
               </button>
 
               <UserMenu name={user.first_name} email={user.email} />
@@ -107,7 +122,7 @@ export default function Navbar() {
           ) : (
             <Link
               href="/login"
-              className="rounded-2xl border border-primary/20 bg-[#1b2021] px-5 py-2 text-sm font-medium text-primary transition-all duration-300 hover:bg-primary hover:text-black"
+              className="hidden md:block rounded-2xl border border-primary/20 bg-[#1b2021] px-5 py-2 text-sm font-medium text-primary transition-all duration-300 hover:bg-primary hover:text-black"
             >
               Log In
             </Link>
@@ -122,7 +137,7 @@ export default function Navbar() {
         </div>
 
         {/* Mobile */}
-        <div className="lg:hidden">
+        <div className="md:hidden">
           <MobileMenu open={open} onOpenChange={setOpen} navLinks={navLinks} />
         </div>
       </div>

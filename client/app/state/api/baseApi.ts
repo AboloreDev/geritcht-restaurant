@@ -50,7 +50,7 @@ const baseQueryWithReauth: BaseQueryFn<
         // re-check: another request might have already refreshed
         // while we were acquiring the lock
         const refreshResult = await baseQuery(
-          { url: "/auth/refresh-token", method: "POST" },
+          { url: "/auth/refresh", method: "POST" },
           api,
           extraOptions,
         );

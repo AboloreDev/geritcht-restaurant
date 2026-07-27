@@ -1,7 +1,7 @@
 // src/app/menu/[id]/page.tsx
 "use client";
 
-import { useParams, useRouter } from "next/navigation";
+import { useParams, usePathname, useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { useState } from "react";
 import { Clock3, Plus, Minus, ChevronRight } from "@mynaui/icons-react";
@@ -13,18 +13,24 @@ import Image from "next/image";
 import { useAuth } from "@/app/hooks/isAuthenticated";
 import { formatNaira } from "@/app/utils/formatNaira";
 import { RelatedItems } from "./components/RelatedItems";
+import { useAddToCartMutation } from "@/app/state/api/cartApi";
+import { toast } from "sonner";
+import { getApiError } from "@/app/utils/apiError";
 
 export default function SingleMenu() {
   const { id } = useParams();
   const menuID = id as string;
   const router = useRouter();
   const { isAuthenticated } = useAuth();
+  const pathname = usePathname();
+  const [addToCart, { isLoading: isAdding }] = useAddToCartMutation();
 
   const { data, isLoading, isError } = useGetSingleMenuQuery({ id: menuID });
   const menu = data?.data;
 
   const [activeImage, setActiveImage] = useState(0);
   const [quantity, setQuantity] = useState(1);
+  const [specialInstructions, setSpecialInstructions] = useState("");
 
   if (isLoading) return <SingleMenuSkeleton />;
 
@@ -53,12 +59,26 @@ export default function SingleMenu() {
   const allergens = menu.allergens ?? [];
   const dietaryTags = menu.dietary_tags ?? [];
 
-  function handleAddToCart() {
+  async function handleAddToCart() {
     if (!isAuthenticated) {
-      router.push("/login");
+      router.push(`/login?redirect=${encodeURIComponent(pathname)}`);
       return;
     }
-    // real add-to-cart mutation goes here once wired: { menu_id: menu.id, quantity }
+
+    try {
+      const response = await addToCart({
+        // @ts-expect-error "<>"
+        menu_item_id: menu.id,
+        quantity,
+        special_instructions: specialInstructions || undefined,
+      }).unwrap();
+      toast.success(response.message);
+      setQuantity(1);
+      setSpecialInstructions("");
+    } catch (err) {
+      console.error(err);
+      toast.error(getApiError(err));
+    }
   }
 
   return (
@@ -169,9 +189,24 @@ export default function SingleMenu() {
               {formatNaira(menu.price)}
             </div>
 
+            {/* special instructions — this page has room for a real textarea, unlike the card */}
+            <div className="mt-4">
+              <label className="text-sm font-medium text-primary-deep">
+                Special instructions{" "}
+                <span className="text-primary/60">(optional)</span>
+              </label>
+              <textarea
+                value={specialInstructions}
+                onChange={(e) => setSpecialInstructions(e.target.value)}
+                placeholder="No onions, extra spicy, etc."
+                rows={2}
+                className="mt-1.5 w-full focus:outline-none rounded-lg border border-[#fefae0] bg-[#fefae0] px-3 py-2 text-sm"
+              />
+            </div>
+
             {/* quantity + add to cart */}
             <div className="mt-6 flex items-center gap-4 text-primary-deep">
-              <div className="flex items-center rounded-full border  border-[#fefae0]">
+              <div className="flex items-center rounded-full border border-[#fefae0]">
                 <button
                   onClick={() => setQuantity((q) => Math.max(1, q - 1))}
                   className="flex h-10 w-10 items-center justify-center"
@@ -191,10 +226,14 @@ export default function SingleMenu() {
 
               <Button
                 className="flex-1 text-black"
-                disabled={!menu.is_available}
+                disabled={!menu.is_available || isAdding}
                 onClick={handleAddToCart}
               >
-                {menu.is_available ? "Add to cart" : "Sold out"}
+                {isAdding
+                  ? "Adding…"
+                  : menu.is_available
+                    ? "Add to cart"
+                    : "Sold out"}
               </Button>
             </div>
           </div>

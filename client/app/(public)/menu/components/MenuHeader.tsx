@@ -4,9 +4,6 @@ import Subheading from "@/app/(landing)/homepage/SubHeading";
 import { ChevronRight } from "@mynaui/icons-react";
 import { motion } from "framer-motion";
 import Link from "next/link";
-import { MenuSearch } from "./MenuSearch";
-import { SortMenu } from "./SortMenu";
-import { PriceRangeFilter } from "./PriceRangeFilter";
 
 export default function MenuHeader() {
   return (
