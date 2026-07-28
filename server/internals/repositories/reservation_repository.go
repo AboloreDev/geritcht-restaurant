@@ -28,7 +28,6 @@ func (r *ReservationRepository) getDB(tx *gorm.DB) *gorm.DB {
 }
 
 // Table
-
 func (r *ReservationRepository) GetTableByIDAndCapacity(ctx context.Context, tableID uint, partySize int) (*models.Table, error) {
 	var table models.Table
 	err := r.db.WithContext(ctx).
@@ -42,7 +41,7 @@ func (r *ReservationRepository) GetTableByIDAndCapacity(ctx context.Context, tab
 
 func (r *ReservationRepository) GetTablesByCapacity(ctx context.Context, partySize int) ([]models.Table, error) {
 	var tables []models.Table
-	err := r.db.WithContext(ctx).Where("capacity >= ?", partySize).Find(&tables).Error
+	err := r.db.WithContext(ctx).Where("capacity = ?", partySize).Find(&tables).Error
 	return tables, err
 }
 
@@ -52,7 +51,6 @@ func (r *ReservationRepository) UpdateTableStatus(ctx context.Context, tx *gorm.
 }
 
 // Reservation
-
 func (r *ReservationRepository) GetReservationsByDateAndSlot(ctx context.Context, date string, timeSlot datatypes.Time) ([]models.Reservation, error) {
 	var reservations []models.Reservation
 	err := r.db.WithContext(ctx).Select("table_id").

@@ -64,6 +64,7 @@ export function MyReservationsContent() {
 
   // @ts-expect-error "<>"
   const reservations = data?.data.reservations;
+  console.log("reservations", reservations);
   const hasMore = data ? (page ?? 1) < data.total_pages : false;
   const hasActiveFilters = Boolean(filterDate || filterStatus);
 
