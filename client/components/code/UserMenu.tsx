@@ -56,7 +56,7 @@ export function UserMenu({ name, email }: { name: string; email: string }) {
             <div className="my-1 h-px bg-border" />
 
             <MenuLink
-              href="/account/orders"
+              href="/orders"
               icon={Ticket}
               label="My Orders"
               onClick={() => setOpen(false)}
@@ -68,7 +68,7 @@ export function UserMenu({ name, email }: { name: string; email: string }) {
               onClick={() => setOpen(false)}
             />
             <MenuLink
-              href="/account/settings"
+              href="/settings"
               icon={CogThree}
               label="Account Details"
               onClick={() => setOpen(false)}

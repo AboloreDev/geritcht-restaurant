@@ -1,4 +1,9 @@
-import { CreateTakeoutOrderRequest, OrderResponse } from "../types/orderTypes";
+import {
+  CreateTakeoutOrderRequest,
+  GetOrdersRequest,
+  OrderListResponse,
+  OrderResponse,
+} from "../types/orderTypes";
 import { baseApi } from "./baseApi";
 
 export const orderApi = baseApi.injectEndpoints({
@@ -13,7 +18,53 @@ export const orderApi = baseApi.injectEndpoints({
         body,
       }),
     }),
+    getAllUserTakeoutOrders: builder.query<OrderListResponse, GetOrdersRequest>(
+      {
+        query: (params) => ({
+          url: "/orders/takeout/all",
+          params,
+        }),
+        serializeQueryArgs: ({ queryArgs }) => {
+          const { page, ...stableArgs } = queryArgs;
+          return JSON.stringify(stableArgs);
+        },
+        merge: (currentCache, newResponse, { arg }) => {
+          if (!arg.page || arg.page === 1) {
+            return newResponse;
+          }
+          currentCache.data.push(...newResponse.data);
+        },
+        forceRefetch: ({ currentArg, previousArg }) => {
+          return currentArg?.page !== previousArg?.page;
+        },
+        providesTags: ["Orders"],
+      },
+    ),
+    getAllOrders: builder.query<OrderListResponse, GetOrdersRequest>({
+      query: (params) => ({
+        url: "/orders/all/",
+        params,
+      }),
+      serializeQueryArgs: ({ queryArgs }) => {
+        const { page, ...stableArgs } = queryArgs;
+        return JSON.stringify(stableArgs);
+      },
+      merge: (currentCache, newResponse, { arg }) => {
+        if (!arg.page || arg.page === 1) {
+          return newResponse;
+        }
+        currentCache.data.push(...newResponse.data);
+      },
+      forceRefetch: ({ currentArg, previousArg }) => {
+        return currentArg?.page !== previousArg?.page;
+      },
+      providesTags: ["Orders"],
+    }),
   }),
 });
 
-export const { useCreateTakoutOrderMutation } = orderApi;
+export const {
+  useCreateTakoutOrderMutation,
+  useGetAllOrdersQuery,
+  useGetAllUserTakeoutOrdersQuery,
+} = orderApi;

@@ -7,7 +7,7 @@ import (
 
 func ApplyOrderFilters(query *gorm.DB, filter *dto.OrderFilterRequest) *gorm.DB {
 	if filter.Date > "" {
-		query = query.Where("date = ?", filter.Date)
+		query = query.Where("DATE(created_at) = ?", filter.Date)
 	}
 
 	if filter.Status > "" {

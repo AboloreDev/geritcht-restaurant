@@ -3,18 +3,8 @@
 import { motion, AnimatePresence } from "framer-motion";
 import { ArrowLeft, CalendarCheck } from "@mynaui/icons-react";
 import { useAppDispatch, useAppSelector, RootState } from "@/app/state/redux";
-
-import {
-  resetReservationFilters,
-  setFilterDate,
-  setFilterStatus,
-  setPage,
-} from "@/app/state/slices/reservationSlice";
-import { formatTimeSlot } from "@/app/utils/timeSlots";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
-import { useGetAllUserRservationsQuery } from "@/app/state/api/reservationsApi";
-import { ReservationResponse } from "@/app/state/types/reservationTypes";
 import {
   Select,
   SelectContent,
@@ -24,29 +14,39 @@ import {
 } from "@/components/ui/select";
 import { useEffect, useState } from "react";
 import { useDebounce } from "@/app/hooks/useDebounce";
+import { useGetAllUserTakeoutOrdersQuery } from "@/app/state/api/orderApi";
+import { Order } from "@/app/state/types/orderTypes";
 import {
   STATUS_OPTIONS,
+  STATUS_TYPES,
   statusStyle,
-} from "@/app/utils/reservationStatusHelper";
+} from "@/app/utils/orderStatusHelpers";
+import {
+  resetReservationFilters,
+  setFilterDate,
+  setFilterStatus,
+  setFilterType,
+  setPage,
+} from "@/app/state/slices/orderSlice";
 
-export function MyReservationsContent() {
+export function OrderContents() {
   const dispatch = useAppDispatch();
-  const { page, pageSize, filterDate, filterStatus } = useAppSelector(
-    (state: RootState) => state.reservation,
-  );
+  const { page, pageSize, filterDate, filterStatus, filterType } =
+    useAppSelector((state: RootState) => state.order);
 
-  const { data, isLoading, isFetching } = useGetAllUserRservationsQuery({
+  const { data, isLoading, isFetching } = useGetAllUserTakeoutOrdersQuery({
     page,
     page_size: pageSize,
     date: filterDate || undefined,
     status: filterStatus || undefined,
+    type: filterType || undefined,
   });
 
   // @ts-expect-error "<>"
-  const reservations = data?.data.reservations ?? [];
-  console.log("reservations", reservations);
+  const orders = data?.data.orders ?? [];
+  console.log("orders", orders);
   const hasMore = data ? (page ?? 1) < data.total_pages : false;
-  const hasActiveFilters = Boolean(filterDate || filterStatus);
+  const hasActiveFilters = Boolean(filterDate || filterStatus || filterType);
 
   const [dateInput, setDateInput] = useState(filterDate ?? "");
   const debouncedDate = useDebounce(dateInput, 400);
@@ -58,11 +58,10 @@ export function MyReservationsContent() {
   return (
     <div className="min-h-screen bg-[url('/assets/bg.png')] bg-cover bg-center bg-fixed">
       <div className="mx-auto max-w-3xl px-6 py-10">
-        <h1 className="font-serif text-3xl text-primary font-semibold">
-          My Reservations
-        </h1>
+        <h1 className="text-3xl text-primary font-semibold">My Orders</h1>
+
         <p className="mt-2 text-sm text-primary-deep">
-          Your upcoming and past table bookings.
+          Your current and previous orders.
         </p>
 
         <Link
@@ -72,6 +71,7 @@ export function MyReservationsContent() {
           <ArrowLeft className="h-4 w-4" />
           Back
         </Link>
+
         {/* filter bar */}
         <div className="mt-6 cursor-pointer flex z-40 flex-wrap bg-[#fefae0] rounded-2xl px-6 py-3 items-center gap-3">
           <input
@@ -84,7 +84,7 @@ export function MyReservationsContent() {
           <Select
             value={filterStatus ?? "all"}
             onValueChange={(v) =>
-              // @ts-expect-error "<>"
+              //   @ts-expect-error "<>"
               dispatch(setFilterStatus(v === "all" ? undefined : v))
             }
           >
@@ -96,6 +96,32 @@ export function MyReservationsContent() {
                 All statuses
               </SelectItem>
               {STATUS_OPTIONS.map((opt) => (
+                <SelectItem
+                  className="cursor-pointer"
+                  key={opt.value}
+                  value={opt.value}
+                >
+                  {opt.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+
+          <Select
+            value={filterType ?? "all"}
+            onValueChange={(v) =>
+              // @ts-expect-error "<>"
+              dispatch(setFilterType(v === "all" ? undefined : v))
+            }
+          >
+            <SelectTrigger className="w-40 cursor-pointer">
+              <SelectValue placeholder="All Types" className="" />
+            </SelectTrigger>
+            <SelectContent className="bg-[#fefae0] cursor-pointer">
+              <SelectItem value="all" className="">
+                All Types
+              </SelectItem>
+              {STATUS_TYPES.map((opt) => (
                 <SelectItem
                   className="cursor-pointer"
                   key={opt.value}
@@ -126,11 +152,11 @@ export function MyReservationsContent() {
               />
             ))}
           </div>
-        ) : reservations.length === 0 ? (
+        ) : orders.length === 0 ? (
           <div className="mt-16 flex flex-col items-center gap-3 text-center">
             <CalendarCheck className="h-10 w-10 text-primary" />
             <p className="text-sm text-primary">
-              You haven&apoos;t made any reservations yet.
+              You haven&apoos;t made any orders yet.
             </p>
             <Link
               href="/menu"
@@ -143,9 +169,9 @@ export function MyReservationsContent() {
           <>
             <div className="mt-8 space-y-4">
               <AnimatePresence initial={false}>
-                {reservations.map((r: ReservationResponse, i: number) => (
+                {orders.map((order: Order, i: number) => (
                   <motion.div
-                    key={r.id}
+                    key={order.id}
                     initial={{ opacity: 0, y: 12 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{
@@ -157,28 +183,38 @@ export function MyReservationsContent() {
                   >
                     <div className="flex items-start justify-between gap-3">
                       <div>
-                        <p className="font-medium">
-                          {r.date} · {formatTimeSlot(r.time_slot)}
-                        </p>
+                        <p className="font-medium">Order #{order.id}</p>
+
                         <p className="mt-1 text-sm text-muted-foreground">
-                          {r.party_size}{" "}
-                          {r.party_size === 1 ? "guest" : "guests"}
+                          {new Date(order.created_at).toLocaleDateString()}
                         </p>
+
                         <p className="mt-1 text-sm text-muted-foreground">
-                          Table Name: {r.table.name} · Location:{" "}
-                          {r.table.location}
+                          {order.order_items.length}{" "}
+                          {order.order_items.length === 1 ? "item" : "items"}
                         </p>
-                        {r.special_requests && (
+
+                        <p className="mt-1 text-sm text-muted-foreground">
+                          ₦{order.total_amount.toLocaleString()}
+                        </p>
+
+                        <p className="mt-1 text-sm text-muted-foreground capitalize">
+                          Payment: {order.payment_status}
+                        </p>
+
+                        {order.notes && (
                           <p className="mt-2 text-sm italic text-muted-foreground">
-                            &quot;{r.special_requests}&quot;
+                            &quot;{order.notes}&quot;
                           </p>
                         )}
                       </div>
 
                       <span
-                        className={`shrink-0 rounded-full px-3 py-1 text-xs font-medium capitalize ${statusStyle(r.status)}`}
+                        className={`shrink-0 rounded-full px-3 py-1 text-xs font-medium capitalize ${statusStyle(
+                          order.status,
+                        )}`}
                       >
-                        {r.status}
+                        {order.status}
                       </span>
                     </div>
                   </motion.div>

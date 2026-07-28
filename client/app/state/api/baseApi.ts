@@ -85,7 +85,7 @@ const baseQueryWithReauth: BaseQueryFn<
 export const baseApi = createApi({
   reducerPath: "baseApi",
   baseQuery: baseQueryWithReauth,
-  tagTypes: ["Category", "Menu", "Reservation", "Auth", "Cart"],
+  tagTypes: ["Category", "Menu", "Reservation", "Auth", "Cart", "Orders"],
   endpoints: (builder) => ({
     logout: builder.mutation<
       {
@@ -100,7 +100,14 @@ export const baseApi = createApi({
         url: "/auth/logout",
         method: "DELETE",
       }),
-      invalidatesTags: ["Category", "Menu", "Reservation", "Auth", "Cart"],
+      invalidatesTags: [
+        "Category",
+        "Menu",
+        "Reservation",
+        "Auth",
+        "Cart",
+        "Orders",
+      ],
       async onQueryStarted(_, { queryFulfilled }) {
         try {
           await queryFulfilled;

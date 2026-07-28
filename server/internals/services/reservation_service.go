@@ -157,8 +157,6 @@ func (s *ReservationService) CreateReservation(ctx context.Context, req *dto.Cre
 			return domain.ErrTableAlreadyBooked
 		}
 
-		
-
 		reservation = models.Reservation{
 			UserID:          userID,
 			TableID:         table.ID,
@@ -166,11 +164,6 @@ func (s *ReservationService) CreateReservation(ctx context.Context, req *dto.Cre
 			TimeSlot:        parsedTimeSlot,
 			PartySize:       req.PartySize,
 			Status:          models.ReservationStatusConfirmed,
-			Table: 	models.Table{
-				ID:        req.TableID,
-				Status:    models.TableStatusReserved,
-				UpdatedAt: time.Now(),
-			},
 			SpecialRequests: req.SpecialRequests,
 		}
 

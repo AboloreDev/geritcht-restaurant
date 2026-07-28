@@ -25,7 +25,7 @@ export interface UpdateOrderStatusRequest {
   status: string;
 }
 
-export interface OrderFilterRequest {
+export interface GetOrdersRequest {
   status?: string;
   type?: string;
   date?: string;
@@ -75,10 +75,9 @@ export interface OrderResponse {
 export interface OrderListResponse {
   status: boolean;
   message: string;
-  data: {
-    orders: Order[];
-    total: number;
-    page: number;
-    page_size: number;
-  };
+  data: Order[];
+  total: number;
+  page: number;
+  page_size: number;
+  total_pages: number;
 }
