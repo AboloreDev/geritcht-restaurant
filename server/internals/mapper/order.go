@@ -19,6 +19,13 @@ func OrderResponse(order *models.Order) *dto.OrderResponse {
 				ID:    order.OrderItems[i].Menu.ID,
 				Name:  order.OrderItems[i].Menu.Name,
 				Price: order.OrderItems[i].Menu.Price,
+				Images: []dto.MenuImageResponse{
+					{
+						ID:   order.OrderItems[i].Menu.Images[0].ID,
+						URL:  order.OrderItems[i].Menu.Images[0].URL,
+					
+					},
+				},
 			},
 			Quantity: order.OrderItems[i].Quantity,
 			Price:    order.OrderItems[i].Price,
@@ -53,5 +60,6 @@ func OrderResponse(order *models.Order) *dto.OrderResponse {
 		Payment:       paymentResponse,
 		CreatedAt:     order.CreatedAt,
 		Notes:         order.Notes,
+		Type: string(order.Type),
 	}
 }

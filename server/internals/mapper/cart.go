@@ -22,6 +22,13 @@ func ConvertToCartResponse(cart *models.Cart) *dto.CartResponse {
 				Price:           cart.CartItems[i].Menu.Price,
 				PrepTimeMinutes: cart.CartItems[i].Menu.PrepTimeMinutes,
 				SpiceLevel:      cart.CartItems[i].Menu.SpiceLevel,
+				Images: []dto.MenuImageResponse{
+					{
+						ID:   cart.CartItems[i].Menu.Images[0].ID,
+						URL:  cart.CartItems[i].Menu.Images[0].URL,
+					
+					},
+				},
 			},
 			Quantity:            cart.CartItems[i].Quantity,
 			Subtotal:            subtotal,
