@@ -21,7 +21,7 @@ func BuildMenuCacheKey(filter *dto.MenuSearchRequest) string {
 	)
 }
 
-func BuildMenuFetchCacheKey(filter dto.MenuFilterRequest) string {
+func BuildMenuFetchCacheKey(filter *dto.MenuFilterRequest) string {
     return fmt.Sprintf(
         "menu:page:%d:size:%d:cat:%d:search:%s:minp:%.2f:maxp:%.2f:spice:%d:diet:%s:allergen:%s:sortby:%s:sortorder:%s",
         filter.Page,

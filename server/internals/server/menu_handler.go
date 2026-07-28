@@ -179,7 +179,7 @@ func (s *Server) GetMenuHandler(ctx *gin.Context) {
 // @Failure 500 {object} utils.Response "Internal server error"
 // @Router /menu [get]
 func (s *Server) GetAllMenuHandler(ctx *gin.Context) {
-	var filter dto.MenuFilterRequest
+	var filter *dto.MenuFilterRequest
 
 	if err := ctx.ShouldBindQuery(&filter); err != nil {
 		utils.BadRequest(ctx, "Invalid filter params", err)

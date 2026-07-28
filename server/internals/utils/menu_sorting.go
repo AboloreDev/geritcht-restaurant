@@ -15,7 +15,7 @@ var allowedSortColumns = map[string]string{
 	"spice_level": "spice_level",
 }
 
-func ApplyMenuSorting(query *gorm.DB, filter dto.MenuFilterRequest) *gorm.DB {
+func ApplyMenuSorting(query *gorm.DB, filter *dto.MenuFilterRequest) *gorm.DB {
 
 	if filter.SortBy == "" {
 		return query.Order("created_at DESC")

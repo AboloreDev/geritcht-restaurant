@@ -95,7 +95,7 @@ func (r *MenuRepository) Delete(ctx context.Context, menuID uint) error {
 	return nil
 }
 
-func (r *MenuRepository) GetAll(ctx context.Context, filter dto.MenuFilterRequest) ([]models.Menu, int64, error) {
+func (r *MenuRepository) GetAll(ctx context.Context, filter *dto.MenuFilterRequest) ([]models.Menu, int64, error) {
 	offset := utils.Pagination(filter.Page, filter.PageSize)
 
 	query := r.db.WithContext(ctx).Model(&models.Menu{}).Where("is_available = ?", true)

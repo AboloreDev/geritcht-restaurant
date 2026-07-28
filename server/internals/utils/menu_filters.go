@@ -7,7 +7,7 @@ import (
 	"gorm.io/gorm"
 )
 
-func ApplyMenuFilters(query *gorm.DB, filter dto.MenuFilterRequest) *gorm.DB {
+func ApplyMenuFilters(query *gorm.DB, filter *dto.MenuFilterRequest) *gorm.DB {
 	if filter.CategoryID > 0 {
 		query = query.Where("menu_category_id = ?", filter.CategoryID)
 	}

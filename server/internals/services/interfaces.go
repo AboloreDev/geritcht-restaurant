@@ -35,7 +35,7 @@ type AuthServiceInterface interface {
 // Menu
 type MenuServiceInterface interface {
 	SearchProduct(ctx context.Context, req *dto.MenuSearchRequest) ([]*dto.MenuSearchResponse, *utils.PaginatedMeta, error)
-	GetAllMenuService(ctx context.Context, filter dto.MenuFilterRequest) ([]*dto.MenuResponse, *utils.PaginatedMeta, error)
+	GetAllMenuService(ctx context.Context, filter *dto.MenuFilterRequest) ([]*dto.MenuResponse, *utils.PaginatedMeta, error)
 	ToggleMenuAvailabilityService(ctx context.Context, menuID uint, isAvailable *bool) error
 	RemoveMenuImageService(ctx context.Context, menuImageID uint) error
 	AddMenuImageService(ctx context.Context, menuID uint, altText, url string) error

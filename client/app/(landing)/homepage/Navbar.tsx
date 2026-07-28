@@ -73,13 +73,13 @@ export default function Navbar() {
               width={180}
               height={55}
               priority
-              className="h-28 w-28 md:w-auto md:h-auto object-contain"
+              className="h-28 w-28 md:w-40 md:h-40 lg:w-auto lg:h-auto object-contain"
             />
           </motion.div>
         </Link>
 
         {/* Desktop Navigation */}
-        <nav className="hidden">
+        <nav className="hidden md:flex">
           <ul className="flex items-center gap-10">
             {navLinks.map((item) => (
               <li key={item.href}>
@@ -122,7 +122,7 @@ export default function Navbar() {
           ) : (
             <Link
               href="/login"
-              className="hidden md:block rounded-2xl border border-primary/20 bg-[#1b2021] px-5 py-2 text-sm font-medium text-primary transition-all duration-300 hover:bg-primary hover:text-black"
+              className="hidden md:block rounded-2xl border border-primary/20 bg-[#1b2021] px-3 py-2 text-sm font-medium text-primary transition-all duration-300 hover:bg-primary hover:text-black"
             >
               Log In
             </Link>

@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { AnimatePresence, motion } from "framer-motion";
 import { X } from "@mynaui/icons-react";
 import { formatTimeSlot } from "@/app/utils/timeSlots";
@@ -30,6 +30,7 @@ export function ConfirmReservationModal({
   const [createReservation, { isLoading, isSuccess, error }] =
     useCreateReservationMutation();
   const pathname = usePathname();
+  const searchParams = useSearchParams();
 
   const isOpen = Boolean(table);
 
@@ -46,7 +47,8 @@ export function ConfirmReservationModal({
     if (!table) return;
 
     if (!isAuthenticated) {
-      router.push(`/login?redirect=${encodeURIComponent(pathname)}`);
+      const fullPath = `${pathname}?${searchParams.toString()}`;
+      router.push(`/login?redirect=${encodeURIComponent(fullPath)}`);
       return;
     }
 

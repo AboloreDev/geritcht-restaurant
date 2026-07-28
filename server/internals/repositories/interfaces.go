@@ -113,7 +113,7 @@ type MenuRepositoryInterface interface {
 	ReplaceAllergens(ctx context.Context, menu *models.Menu, allergens []models.Allergen) error
 	ReplaceDietaryTags(ctx context.Context, menu *models.Menu, tags []models.DietaryTag) error
 	Delete(ctx context.Context, menuID uint) error
-	GetAll(ctx context.Context, filter dto.MenuFilterRequest) ([]models.Menu, int64, error)
+	GetAll(ctx context.Context, filter *dto.MenuFilterRequest) ([]models.Menu, int64, error)
 
 	// images
 	CountImages(ctx context.Context, menuID uint) (int64, error)

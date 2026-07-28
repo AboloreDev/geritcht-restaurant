@@ -69,7 +69,7 @@ func (m *MockMenuRepository) ReplaceDietaryTags(_ context.Context, menu *models.
 	return nil
 }
 func (m *MockMenuRepository) Delete(_ context.Context, menuID uint) error { return m.deleteErr }
-func (m *MockMenuRepository) GetAll(_ context.Context, filter dto.MenuFilterRequest) ([]models.Menu, int64, error) {
+func (m *MockMenuRepository) GetAll(_ context.Context, filter *dto.MenuFilterRequest) ([]models.Menu, int64, error) {
 	return m.menus, m.total, m.getErr
 }
 func (m *MockMenuRepository) CountImages(_ context.Context, menuID uint) (int64, error) {
@@ -265,7 +265,6 @@ func TestToggleMenuAvailability_Success(t *testing.T) {
 }
 
 // ─── GetAllMenu Tests
-
 func TestGetAllMenu_Success(t *testing.T) {
 	service := newMenuService(&MockMenuRepository{
 		menus: []models.Menu{
@@ -276,7 +275,7 @@ func TestGetAllMenu_Success(t *testing.T) {
 	})
 
 	filter := dto.MenuFilterRequest{Page: 1, PageSize: 10}
-	response, meta, err := service.GetAllMenuService(testMenuCtx, filter)
+	response, meta, err := service.GetAllMenuService(testMenuCtx, &filter)
 
 	assert.NoError(t, err)
 	assert.Len(t, response, 2)

@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 import Providers from "./providers";
 import { Figtree } from "next/font/google";
-import { cn } from "@/lib/utils";
+
 import { Toaster } from "sonner";
 import { CartDrawer } from "@/components/code/CartDrawer";
 import { BookTableModal } from "./(public)/reservations/components/TableBookingModal";

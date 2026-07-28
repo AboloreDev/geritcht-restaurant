@@ -173,8 +173,9 @@ func (s *ReservationService) CreateReservation(ctx context.Context, req *dto.Cre
 		return nil, err
 	}
 
-	// invalidate availability cache
+	// invalidate availability and user reservation cache
 	s.redisStore.FlushByPattern(ctx, fmt.Sprintf("availability:%s:%s:*", req.Date, req.TimeSlot))
+	s.redisStore.FlushByPattern(ctx, "reservations:user:*")
 
 	// fetch full reservation with relations
 	fullReservation, err := s.reservationRepo.GetByIDWithRelations(ctx, reservation.ID)
@@ -201,11 +202,15 @@ func (s *ReservationService) CreateReservation(ctx context.Context, req *dto.Cre
 }
 
 func (s *ReservationService) GetAllUserReservations(ctx context.Context, userID uint, req *dto.ReservationFilterRequest) (*dto.ReservationListResponse, error) {
-	if req.Page <= 0 {
-		req.Page = 1
-	}
-	if req.PageSize <= 0 {
-		req.PageSize = 10
+	cacheKey := utils.BuildUserReservationCacheKey(userID, req)
+	cached, err := s.redisStore.Get(ctx, cacheKey)
+	if err == nil && cached != "" {
+		var cachedResponse struct {
+			Data *dto.ReservationListResponse  `json:"data"`
+		}
+		if err := json.Unmarshal([]byte(cached), &cachedResponse); err == nil {
+			return cachedResponse.Data, nil
+		}
 	}
 
 	reservations, count, err := s.reservationRepo.GetAllByUser(ctx, userID, req)
@@ -213,10 +218,34 @@ func (s *ReservationService) GetAllUserReservations(ctx context.Context, userID 
 		return nil, err
 	}
 
-	return s.buildReservationListResponse(reservations, count, req), nil
+	response := s.buildReservationListResponse(reservations, count, req)
+
+	cacheData := struct {
+		Data *dto.ReservationListResponse  `json:"data"`
+	}{Data: response}
+
+	data, _ := json.Marshal(&cacheData)
+	s.redisStore.Set(ctx, cacheKey, string(data), utils.GetReservationCacheTTL(req))
+
+	return response, nil
 }
 
 func (s *ReservationService) GetUserReservation(ctx context.Context, userID uint, reservationID uint) (*dto.ReservationResponse, error) {
+	cachedKey := fmt.Sprintf("reservations:user:%dreservation:%d", userID, reservationID)
+
+	exists, _ := s.redisStore.Exists(ctx, cachedKey)
+	if exists {
+		cache, err := s.redisStore.Get(ctx, cachedKey)
+		if err == nil && cache != "" {
+			var reservation models.Reservation
+			err := json.Unmarshal([]byte(cache), &reservation)
+			if err != nil {
+				return nil, err
+			}
+			return mapper.ReservationResponse(&reservation), nil
+		}
+	}
+
 	reservation, err := s.reservationRepo.GetByIDAndUser(ctx, reservationID, userID)
 	if err != nil {
 		return nil, domain.ErrNotFound
@@ -231,15 +260,25 @@ func (s *ReservationService) GetUserReservation(ctx context.Context, userID uint
 		return nil, err
 	}
 
+	data, err := json.Marshal(&fullReservation)
+	if err != nil {
+		return nil, fmt.Errorf("Failed to set data: %w", err)
+	}
+	s.redisStore.Set(ctx, cachedKey, string(data), 20*time.Minute)
+
 	return mapper.ReservationResponse(fullReservation), nil
 }
 
 func (s *ReservationService) GetAllReservations(ctx context.Context, req *dto.ReservationFilterRequest) (*dto.ReservationListResponse, error) {
-	if req.Page <= 0 {
-		req.Page = 1
-	}
-	if req.PageSize <= 0 {
-		req.PageSize = 10
+	cacheKey := utils.BuildReservationCacheKey(req)
+	cached, err := s.redisStore.Get(ctx, cacheKey)
+	if err == nil && cached != "" {
+		var cachedResponse struct {
+			Data *dto.ReservationListResponse  `json:"data"`
+		}
+		if err := json.Unmarshal([]byte(cached), &cachedResponse); err == nil {
+			return cachedResponse.Data, nil
+		}
 	}
 
 	reservations, count, err := s.reservationRepo.GetAll(ctx, req)
@@ -247,15 +286,28 @@ func (s *ReservationService) GetAllReservations(ctx context.Context, req *dto.Re
 		return nil, err
 	}
 
-	return s.buildReservationListResponse(reservations, count, req), nil
+	response := s.buildReservationListResponse(reservations, count, req)
+
+	cacheData := struct {
+		Data *dto.ReservationListResponse  `json:"data"`
+	}{Data: response}
+
+	data, _ := json.Marshal(&cacheData)
+	s.redisStore.Set(ctx, cacheKey, string(data), utils.GetReservationCacheTTL(req))
+
+	return response, nil
 }
 
 func (s *ReservationService) GetTodayReservations(ctx context.Context, req *dto.ReservationFilterRequest) (*dto.ReservationListResponse, error) {
-	if req.Page <= 0 {
-		req.Page = 1
-	}
-	if req.PageSize <= 0 {
-		req.PageSize = 10
+	cacheKey := utils.BuildReservationCacheKey(req)
+	cached, err := s.redisStore.Get(ctx, cacheKey)
+	if err == nil && cached != "" {
+		var cachedResponse struct {
+			Data *dto.ReservationListResponse  `json:"data"`
+		}
+		if err := json.Unmarshal([]byte(cached), &cachedResponse); err == nil {
+			return cachedResponse.Data, nil
+		}
 	}
 
 	reservations, count, err := s.reservationRepo.GetTodayReservations(ctx, req)
@@ -263,7 +315,16 @@ func (s *ReservationService) GetTodayReservations(ctx context.Context, req *dto.
 		return nil, err
 	}
 
-	return s.buildReservationListResponse(reservations, count, req), nil
+	response := s.buildReservationListResponse(reservations, count, req)
+
+	cacheData := struct {
+		Data *dto.ReservationListResponse  `json:"data"`
+	}{Data: response}
+
+	data, _ := json.Marshal(&cacheData)
+	s.redisStore.Set(ctx, cacheKey, string(data), utils.GetReservationCacheTTL(req))
+
+	return response, nil
 }
 
 func (s *ReservationService) CheckInReservation(ctx context.Context, reservationID uint, userID uint) (*dto.ReservationResponse, error) {
@@ -313,6 +374,8 @@ func (s *ReservationService) CheckInReservation(ctx context.Context, reservation
 	); err != nil {
 		log.Printf("Failed to publish check-in event: %v", err)
 	}
+
+	s.redisStore.FlushByPattern(ctx, "reservations:user:*")
 
 	return mapper.ReservationResponse(fullReservation), nil
 }
@@ -377,6 +440,7 @@ func (s *ReservationService) CancelReservation(ctx context.Context, userID uint,
 	s.redisStore.FlushByPattern(ctx,
 		fmt.Sprintf("availability:%s:%s:*", reservation.Date.Format("2006-01-02"), reservation.TimeSlot),
 	)
+	s.redisStore.FlushByPattern(ctx, "reservations:user:*")
 
 	fullReservation, err := s.reservationRepo.GetByIDWithRelations(ctx, reservationID)
 	if err != nil {

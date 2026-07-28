@@ -117,19 +117,13 @@ func (r *ReservationRepository) GetAllByUser(ctx context.Context, userID uint, r
 	var count int64
 	offset := utils.Pagination(req.Page, req.PageSize)
 
-	query := r.db.WithContext(ctx).Preload("User").Preload("Table").
-		Where("user_id = ?", userID)
+	query := r.db.WithContext(ctx).Model(&models.Reservation{}).Where("user_id = ?", userID)
 
-	if req.Date != "" {
-		query = query.Where("date = ?", req.Date)
-	}
-	if req.Status != "" {
-		query = query.Where("status = ?", req.Status)
-	}
+	query = utils.ApplyReservationFilters(query, req)
 
-	query.Model(&models.Reservation{}).Count(&count)
+	query.Count(&count)
 
-	err := query.Order("date ASC, time_slot ASC").
+	err := query.Preload("User").Preload("Table").Order("date ASC, time_slot ASC").
 		Offset(offset).Limit(req.PageSize).Find(&reservations).Error
 	if err != nil {
 		return nil, 0, err
@@ -143,18 +137,15 @@ func (r *ReservationRepository) GetAll(ctx context.Context, req *dto.Reservation
 	var count int64
 	offset := utils.Pagination(req.Page, req.PageSize)
 
-	query := r.db.WithContext(ctx).Preload("User").Preload("Table")
+	query := r.db.WithContext(ctx).
+				Model(&models.Reservation{})
 
-	if req.Date != "" {
-		query = query.Where("date = ?", req.Date)
-	}
-	if req.Status != "" {
-		query = query.Where("status = ?", req.Status)
-	}
+	query = utils.ApplyReservationFilters(query, req)
 
-	query.Model(&models.Reservation{}).Count(&count)
+	query.Count(&count)
 
-	err := query.Order("time_slot ASC").
+	err := query.Preload("User").Preload("Table").
+			Order("time_slot ASC").
 		Offset(offset).Limit(req.PageSize).Find(&reservations).Error
 	if err != nil {
 		return nil, 0, err
@@ -168,16 +159,14 @@ func (r *ReservationRepository) GetTodayReservations(ctx context.Context, req *d
 	var count int64
 	offset := utils.Pagination(req.Page, req.PageSize)
 
-	query := r.db.WithContext(ctx).Preload("User").Preload("Table").
+	query := r.db.WithContext(ctx).Model(&models.Reservation{}).
 		Where("date = ?", time.Now().Format("2006-01-02"))
 
-	if req.Status != "" {
-		query = query.Where("status = ?", req.Status)
-	}
+	query = utils.ApplyReservationFilters(query, req)
 
-	query.Model(&models.Reservation{}).Count(&count)
+	query.Count(&count)
 
-	err := query.Order("time_slot ASC").
+	err := query.Preload("User").Preload("Table").Order("time_slot ASC").
 		Offset(offset).Limit(req.PageSize).Find(&reservations).Error
 	if err != nil {
 		return nil, 0, err
