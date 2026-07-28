@@ -91,7 +91,7 @@ func (s *OrderService) CreateTakeoutOrder(ctx context.Context, userID uint, req 
 			Status:        models.OrderStatusPending,
 			Notes:         req.Notes,
 			PaymentStatus: models.PaymentStatusUnpaid,
-			CreatedAt: time.Now(),
+			CreatedAt:     time.Now(),
 		}
 
 		if err := s.orderRepo.Create(ctx, tx, &order); err != nil {

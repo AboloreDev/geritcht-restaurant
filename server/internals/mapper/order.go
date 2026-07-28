@@ -13,19 +13,22 @@ func OrderResponse(order *models.Order) *dto.OrderResponse {
 	orderItems := make([]dto.OrderItemResponse, len(order.OrderItems))
 
 	for i := range order.OrderItems {
+		images := []dto.MenuImageResponse{}
+
+		if len(order.OrderItems[i].Menu.Images) > 0 {
+			images = append(images, dto.MenuImageResponse{
+				ID:      order.OrderItems[i].Menu.Images[0].ID,
+				URL:     order.OrderItems[i].Menu.Images[0].URL,
+				AltText: order.OrderItems[i].Menu.Images[0].AltText,
+			})
+		}
 		orderItems[i] = dto.OrderItemResponse{
 			ID: order.OrderItems[i].ID,
 			MenuItem: dto.MenuResponse{
-				ID:    order.OrderItems[i].Menu.ID,
-				Name:  order.OrderItems[i].Menu.Name,
-				Price: order.OrderItems[i].Menu.Price,
-				Images: []dto.MenuImageResponse{
-					{
-						ID:   order.OrderItems[i].Menu.Images[0].ID,
-						URL:  order.OrderItems[i].Menu.Images[0].URL,
-					
-					},
-				},
+				ID:     order.OrderItems[i].Menu.ID,
+				Name:   order.OrderItems[i].Menu.Name,
+				Price:  order.OrderItems[i].Menu.Price,
+				Images: images,
 			},
 			Quantity: order.OrderItems[i].Quantity,
 			Price:    order.OrderItems[i].Price,
@@ -60,6 +63,6 @@ func OrderResponse(order *models.Order) *dto.OrderResponse {
 		Payment:       paymentResponse,
 		CreatedAt:     order.CreatedAt,
 		Notes:         order.Notes,
-		Type: string(order.Type),
+		Type:          string(order.Type),
 	}
 }
