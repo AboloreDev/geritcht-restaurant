@@ -48,8 +48,30 @@ export const reservationApi = baseApi.injectEndpoints({
         if (!arg.page || arg.page === 1) {
           return newResponse;
         }
-        currentCache.reservations.push(...newResponse.reservations);
-        currentCache.meta = newResponse.meta;
+        currentCache.data.push(...newResponse.data);
+      },
+      forceRefetch: ({ currentArg, previousArg }) => {
+        return currentArg?.page !== previousArg?.page;
+      },
+      providesTags: ["Reservation"],
+    }),
+    getAllRservations: builder.query<
+      ReservationListResponse,
+      GetReservationsRequest
+    >({
+      query: (params) => ({
+        url: "/reservations/",
+        params,
+      }),
+      serializeQueryArgs: ({ queryArgs }) => {
+        const { page, ...stableArgs } = queryArgs;
+        return JSON.stringify(stableArgs);
+      },
+      merge: (currentCache, newResponse, { arg }) => {
+        if (!arg.page || arg.page === 1) {
+          return newResponse;
+        }
+        currentCache.data.push(...newResponse.data);
       },
       forceRefetch: ({ currentArg, previousArg }) => {
         return currentArg?.page !== previousArg?.page;

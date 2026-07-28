@@ -103,11 +103,11 @@ type ReceipesServiceInterface interface {
 // Order Service
 type OrderServiceInterface interface {
 	CreateTakeoutOrder(ctx context.Context, userID uint, req *dto.CreateTakeoutOrderRequest) (*dto.OrderResponse, error)
-	GetAllUserTakeoutOrders(ctx context.Context, userID uint, page, pageSize int) ([]*dto.OrderResponse, *utils.PaginatedMeta, error)
+	GetAllUserTakeoutOrders(ctx context.Context, userID uint, filter *dto.OrderFilterRequest) (*dto.OrderListResponse, error)
 	GetTakeoutOrder(ctx context.Context, userID, orderID uint) (*dto.OrderResponse, error)
 	CancelTakeoutOrder(ctx context.Context, userID, orderID uint) error
 	VerifyUserOrder(ctx context.Context, userID, orderID uint) error
-	GetAllOrders(ctx context.Context, page, pageSize int) ([]*dto.OrderResponse, *utils.PaginatedMeta, error)
+	GetAllOrders(ctx context.Context, filter *dto.OrderFilterRequest) (*dto.OrderListResponse, error)
 }
 
 // Payment Srvice

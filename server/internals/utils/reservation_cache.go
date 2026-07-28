@@ -18,7 +18,7 @@ func BuildReservationCacheKey(filter *dto.ReservationFilterRequest) string {
 }
 
 func GetReservationCacheTTL(filter *dto.ReservationFilterRequest) time.Duration {
-	hasFilter := filter.Date != "" || filter.Status != "" 
+	hasFilter := filter.Date != "" || filter.Status != ""
 
 	if hasFilter {
 		return 50 * time.Second

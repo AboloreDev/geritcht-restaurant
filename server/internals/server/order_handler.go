@@ -64,19 +64,27 @@ func (s *Server) CreateTakeoutOrderHandler(ctx *gin.Context) {
 // @Router /orders/takeout/all [get]
 func (s *Server) GetAllUserTakeoutOrdersHandler(ctx *gin.Context) {
 	userID := ctx.GetUint("user_id")
-	pageStr := ctx.DefaultQuery("page", "1")
-	pageSizeStr := ctx.DefaultQuery("pageSize", "10")
+	var ordersFilter dto.OrderFilterRequest
 
-	page, _ := strconv.Atoi(pageStr)
-	pageSize, _ := strconv.Atoi(pageSizeStr)
-
-	response, meta, err := s.orderService.GetAllUserTakeoutOrders(ctx.Request.Context(), userID, page, pageSize)
+	err := ctx.ShouldBindQuery(&ordersFilter)
 	if err != nil {
-		utils.InternalServerError(ctx, "Failed to fetch orders", err)
+		utils.BadRequest(ctx, "Invalid request data", err)
 		return
 	}
 
-	utils.PaginatedSuccessResponse(ctx, "Orders fetched successfully", response, *meta)
+	response, err := s.orderService.GetAllUserTakeoutOrders(ctx.Request.Context(), userID, &ordersFilter)
+	if err != nil {
+		switch err {
+		case domain.ErrOrderNotFound:
+			utils.NotFound(ctx, "Orders not found", err)
+			return
+		default:
+			utils.InternalServerError(ctx, "Failed to fetch orders", err)
+			return
+		}
+	}
+
+	utils.SuccessResponse(ctx, "Orders fetched successfully", response)
 }
 
 // @Summary Get my takeout orders
@@ -92,19 +100,27 @@ func (s *Server) GetAllUserTakeoutOrdersHandler(ctx *gin.Context) {
 // @Failure 500 {object} utils.Response "Internal server error"
 // @Router /orders/all [get]
 func (s *Server) GetAllOrdersHandler(ctx *gin.Context) {
-	pageStr := ctx.DefaultQuery("page", "1")
-	pageSizeStr := ctx.DefaultQuery("pageSize", "10")
+	var ordersFilter dto.OrderFilterRequest
 
-	page, _ := strconv.Atoi(pageStr)
-	pageSize, _ := strconv.Atoi(pageSizeStr)
-
-	response, meta, err := s.orderService.GetAllOrders(ctx.Request.Context(), page, pageSize)
+	err := ctx.ShouldBindQuery(&ordersFilter)
 	if err != nil {
-		utils.InternalServerError(ctx, "Failed to fetch orders", err)
+		utils.BadRequest(ctx, "Invalid request data", err)
 		return
 	}
 
-	utils.PaginatedSuccessResponse(ctx, "Orders fetched successfully", response, *meta)
+	response, err := s.orderService.GetAllOrders(ctx.Request.Context(), &ordersFilter)
+	if err != nil {
+		switch err {
+		case domain.ErrOrderNotFound:
+			utils.NotFound(ctx, "Orders not found", err)
+			return
+		default:
+			utils.InternalServerError(ctx, "Failed to fetch orders", err)
+			return
+		}
+	}
+
+	utils.SuccessResponse(ctx, "Orders fetched successfully", response)
 }
 
 // @Summary Get a takeout order

@@ -67,25 +67,25 @@ func (s *Server) InitilaisePaymentHandler(ctx *gin.Context) {
 // @Failure 500 {object} utils.Response "Internal server error"
 // @Router /payments/verify/{reference} [get]
 func (s *Server) VerifyPaymentHandler(ctx *gin.Context) {
-    reference := ctx.Param("reference")
+	reference := ctx.Param("reference")
 
-    response, err := s.paymentService.VerifyPayment(
-        ctx.Request.Context(),
-        &dto.VerifyPaymentRequest{
-            Reference: reference,
-        },
-    )
-    if err != nil {
-        switch err {
-        case domain.ErrPaymentNotFound:
-            utils.NotFound(ctx, "Payment not found", err)
-        default:
-            utils.InternalServerError(ctx, "Failed to verify payment", err)
-        }
-        return
-    }
+	response, err := s.paymentService.VerifyPayment(
+		ctx.Request.Context(),
+		&dto.VerifyPaymentRequest{
+			Reference: reference,
+		},
+	)
+	if err != nil {
+		switch err {
+		case domain.ErrPaymentNotFound:
+			utils.NotFound(ctx, "Payment not found", err)
+		default:
+			utils.InternalServerError(ctx, "Failed to verify payment", err)
+		}
+		return
+	}
 
-    utils.SuccessResponse(ctx, "Payment verified successfully", response)
+	utils.SuccessResponse(ctx, "Payment verified successfully", response)
 }
 
 // @Summary Handle Paystack webhook

@@ -112,11 +112,11 @@ func (s *PaymentService) callPaystackInitialize(email string, amount int64, refe
 	url := fmt.Sprintf("%s/transaction/initialize", s.config.Paystack.PaystackURL)
 	// Creating the payload
 	payload := map[string]interface{}{
-		"email":  email,
-		"amount": amount,
-		 "reference": reference,
+		"email":     email,
+		"amount":    amount,
+		"reference": reference,
 		"metadata": map[string]interface{}{
-			"order_id":  orderID,
+			"order_id": orderID,
 		},
 	}
 	// Convert the payload from Go struct to json
@@ -155,7 +155,7 @@ func (s *PaymentService) callPaystackInitialize(email string, amount int64, refe
 	}
 
 	if !result.Status {
-    return nil, fmt.Errorf("paystack initialization failed: %s", result.Message)
+		return nil, fmt.Errorf("paystack initialization failed: %s", result.Message)
 	}
 
 	return &result, nil
@@ -244,28 +244,28 @@ func (s *PaymentService) verifySignature(body []byte, signature string) bool {
 	return hmac.Equal([]byte(expectedMac), []byte(signature))
 }
 
-func (s *PaymentService) confirmSuccessfulPayment(ctx context.Context, payment *models.Payment,amount int64) error {
+func (s *PaymentService) confirmSuccessfulPayment(ctx context.Context, payment *models.Payment, amount int64) error {
 	// idempotency
-    if payment.Status == models.PaymentStatusPaid {
-        return nil
-    }
+	if payment.Status == models.PaymentStatusPaid {
+		return nil
+	}
 
-    // distributed lock
-    lockKey := fmt.Sprintf("lock:payment:%s", payment.Reference)
-    lockValue := []byte(payment.Reference)
+	// distributed lock
+	lockKey := fmt.Sprintf("lock:payment:%s", payment.Reference)
+	lockValue := []byte(payment.Reference)
 
-    if err := s.redisStore.Hold(ctx, lockKey, lockValue, redis.SetArgs{
-        Mode: "NX",
-        TTL:  30 * time.Second,
-    }); err != nil {
-        return nil
-    }
-    defer s.redisStore.Delete(ctx, lockKey)
+	if err := s.redisStore.Hold(ctx, lockKey, lockValue, redis.SetArgs{
+		Mode: "NX",
+		TTL:  30 * time.Second,
+	}); err != nil {
+		return nil
+	}
+	defer s.redisStore.Delete(ctx, lockKey)
 
-    expectedAmount := int64(payment.Amount * 100)
-    if amount != expectedAmount {
-        return domain.ErrPaymentAmountMismatch
-    }
+	expectedAmount := int64(payment.Amount * 100)
+	if amount != expectedAmount {
+		return domain.ErrPaymentAmountMismatch
+	}
 
 	return s.db.Transaction(func(tx *gorm.DB) error {
 		now := time.Now()
@@ -370,33 +370,33 @@ func (s *PaymentService) InitialisePayment(ctx context.Context, userID uint, req
 
 func (s *PaymentService) VerifyPayment(ctx context.Context, req *dto.VerifyPaymentRequest) (*dto.PaymentResponse, error) {
 
-    payment, err := s.paymentRepo.GetPaymentByReference(ctx, req.Reference)
-    if err != nil {
-        return nil, domain.ErrPaymentNotFound
-    }
+	payment, err := s.paymentRepo.GetPaymentByReference(ctx, req.Reference)
+	if err != nil {
+		return nil, domain.ErrPaymentNotFound
+	}
 
-    response, err := s.callPaystackVerify(req.Reference)
-    if err != nil {
-        return nil, err
-    }
+	response, err := s.callPaystackVerify(req.Reference)
+	if err != nil {
+		return nil, err
+	}
 
-    if response.Data.Status == "success" {
-        if err := s.confirmSuccessfulPayment(ctx, payment, response.Data.Amount); err != nil {
-            return nil, err
-        }
-    }
+	if response.Data.Status == "success" {
+		if err := s.confirmSuccessfulPayment(ctx, payment, response.Data.Amount); err != nil {
+			return nil, err
+		}
+	}
 
-    return &dto.PaymentResponse{
-        ID:        payment.ID,
-        OrderID:   payment.OrderID,
-        Reference: payment.Reference,
-        Amount:    payment.Amount,
-        Status:    response.Data.Status,
-        Currency:  payment.Currency,
-    }, nil
+	return &dto.PaymentResponse{
+		ID:        payment.ID,
+		OrderID:   payment.OrderID,
+		Reference: payment.Reference,
+		Amount:    payment.Amount,
+		Status:    response.Data.Status,
+		Currency:  payment.Currency,
+	}, nil
 }
 func (s *PaymentService) HandlePaystackWebhook(ctx context.Context, body []byte, signature string) error {
-	
+
 	if !s.verifySignature(body, signature) {
 		return domain.ErrInvalidSignature
 	}

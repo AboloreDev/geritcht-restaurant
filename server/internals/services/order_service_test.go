@@ -39,10 +39,10 @@ func (m *MockOrderRepository) GetByID(_ context.Context, tx *gorm.DB, orderID ui
 func (m *MockOrderRepository) GetByIDAndUser(_ context.Context, orderID, userID uint) (*models.Order, error) {
 	return m.order, m.getErr
 }
-func (m *MockOrderRepository) GetAllByUser(_ context.Context, userID uint, page, pageSize int) ([]models.Order, int64, error) {
+func (m *MockOrderRepository) GetAllByUser(_ context.Context, userID uint, filter *dto.OrderFilterRequest) ([]models.Order, int64, error) {
 	return m.orders, m.total, m.getErr
 }
-func (m *MockOrderRepository) GetAll(_ context.Context, page, pageSize int) ([]models.Order, int64, error) {
+func (m *MockOrderRepository) GetAll(_ context.Context, filter *dto.OrderFilterRequest) ([]models.Order, int64, error) {
 	return m.orders, m.total, m.getErr
 }
 func (m *MockOrderRepository) UpdateStatus(_ context.Context, orderID uint, status models.OrderStatus) error {
@@ -235,6 +235,74 @@ func TestGetTakeoutOrder_NotFound(t *testing.T) {
 
 func TestGetAllTakeoutOrders_Success(t *testing.T) {
 	userID := uint(1)
+	userID2 := uint(2)
+
+	service := newOrderService(&MockOrderRepository{
+		orders: []models.Order{ // ← slice, each item is models.Order{}
+			{
+				ID:            1,
+				UserID:        &userID,
+				Type:          models.OrderTypeTakeout,
+				Status:        models.OrderStatusPending,
+				TotalAmount:   3500,
+				PaymentStatus: models.PaymentStatusUnpaid,
+				User: &models.User{
+					ID:          1,
+					Email:       "test@test.com",
+					FirstName:   "John",
+					LastName:    "Doe",
+					PhoneNumber: "1234567890",
+				},
+				Payment: &models.Payment{
+					ID:        1,
+					Reference: "ref_123",
+					Amount:    3500,
+					Status:    models.PaymentStatusUnpaid,
+				},
+				OrderItems: []models.OrderItem{},
+			},
+			{
+				ID:            2,
+				UserID:        &userID2,
+				Type:          models.OrderTypeTakeout,
+				Status:        models.OrderStatusConfirmed,
+				TotalAmount:   5000,
+				PaymentStatus: models.PaymentStatusPaid,
+				User: &models.User{
+					ID:          2,
+					Email:       "test@zerpto.com",
+					FirstName:   "Jane",
+					LastName:    "Peter",
+					PhoneNumber: "999999999",
+				},
+				Payment: &models.Payment{
+					ID:        2,
+					Reference: "ref_456",
+					Amount:    5000,
+					Status:    models.PaymentStatusPaid,
+				},
+				OrderItems: []models.OrderItem{},
+			},
+		},
+		total: 2,
+	})
+
+	response, err := service.GetAllOrders(testOrderCtx, &dto.OrderFilterRequest{Page: 1, PageSize: 10})
+
+	assert.NoError(t, err)
+	assert.Len(t, response.Orders, 2)
+	assert.Equal(t, int64(2), response.Total)
+	assert.Equal(t, "pending", response.Orders[0].Status)
+	assert.Equal(t, "confirmed", response.Orders[1].Status)
+	assert.Equal(t, float64(3500), response.Orders[0].TotalAmount)
+	assert.Equal(t, float64(5000), response.Orders[1].TotalAmount)
+	assert.Equal(t, float64(5000), response.Orders[1].TotalAmount)
+	assert.Equal(t, "test@test.com", response.Orders[0].User.Email)
+}
+
+// Get All User TakeoutOrder
+func TestGetAllUserTakeoutOrders_Success(t *testing.T) {
+	userID := uint(1)
 	service := newOrderService(&MockOrderRepository{
 		orders: []models.Order{ // ← slice, each item is models.Order{}
 			{
@@ -285,11 +353,15 @@ func TestGetAllTakeoutOrders_Success(t *testing.T) {
 		total: 2,
 	})
 
-	response, meta, err := service.GetAllUserTakeoutOrders(testOrderCtx, userID, 1, 10)
+	response, err := service.GetAllUserTakeoutOrders(testOrderCtx, userID, &dto.OrderFilterRequest{Page: 1, PageSize: 10})
 
 	assert.NoError(t, err)
-	assert.Len(t, response, 2)
-	assert.Equal(t, int64(2), meta.Total)
+	assert.Len(t, response.Orders, 2)
+	assert.Equal(t, int64(2), response.Total)
+	assert.Equal(t, "pending", response.Orders[0].Status)
+	assert.Equal(t, "confirmed", response.Orders[1].Status)
+	assert.Equal(t, float64(3500), response.Orders[0].TotalAmount)
+	assert.Equal(t, float64(5000), response.Orders[1].TotalAmount)
 }
 
 // Create takeout order

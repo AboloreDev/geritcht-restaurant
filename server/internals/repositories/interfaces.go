@@ -132,8 +132,8 @@ type OrderRepositoryInterface interface {
 	Create(ctx context.Context, tx *gorm.DB, order *models.Order) error
 	GetByID(ctx context.Context, tx *gorm.DB, orderID uint) (*models.Order, error)
 	GetByIDAndUser(ctx context.Context, orderID, userID uint) (*models.Order, error)
-	GetAllByUser(ctx context.Context, userID uint, page, pageSize int) ([]models.Order, int64, error)
-	GetAll(ctx context.Context, page, pageSize int) ([]models.Order, int64, error)
+	GetAllByUser(ctx context.Context, userID uint, filter *dto.OrderFilterRequest) ([]models.Order, int64, error)
+	GetAll(ctx context.Context, filter *dto.OrderFilterRequest) ([]models.Order, int64, error)
 	UpdateStatus(ctx context.Context, orderID uint, status models.OrderStatus) error
 	CountByUserAndID(ctx context.Context, orderID, userID uint) (int64, error)
 }

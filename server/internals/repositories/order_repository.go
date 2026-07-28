@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/AboloreDev/geritcht-restaurant/internals/domain"
+	"github.com/AboloreDev/geritcht-restaurant/internals/dto"
 	"github.com/AboloreDev/geritcht-restaurant/internals/models"
 	"github.com/AboloreDev/geritcht-restaurant/internals/utils"
 	"gorm.io/gorm"
@@ -49,21 +50,22 @@ func (r *OrderRepository) GetByIDAndUser(ctx context.Context, orderID, userID ui
 	return &order, nil
 }
 
-func (r *OrderRepository) GetAllByUser(ctx context.Context, userID uint, page, pageSize int) ([]models.Order, int64, error) {
+func (r *OrderRepository) GetAllByUser(ctx context.Context, userID uint, filter *dto.OrderFilterRequest) ([]models.Order, int64, error) {
 	var orders []models.Order
 	var total int64
-	offset := utils.Pagination(page, pageSize)
-	pageSize = utils.ClampPageSize(pageSize)
+	offset := utils.Pagination(filter.Page, filter.PageSize)
 
-	r.db.WithContext(ctx).Model(&models.Order{}).
-		Where("user_id = ? AND type = ?", userID, models.OrderTypeTakeout).
-		Count(&total)
+	query := r.db.WithContext(ctx).Model(&models.Order{}).
+		Where("user_id = ? AND type = ?", userID, models.OrderTypeTakeout)
 
-	err := r.db.WithContext(ctx).
+	query = utils.ApplyOrderFilters(query, filter)
+
+	query.Count(&total)
+
+	err := query.
 		Preload("OrderItems.Menu").Preload("User").Preload("Payment").
-		Where("user_id = ? AND type = ?", userID, models.OrderTypeTakeout).
 		Order("created_at DESC").
-		Offset(offset).Limit(pageSize).
+		Offset(offset).Limit(filter.PageSize).
 		Find(&orders).Error
 	if err != nil {
 		return nil, 0, err
@@ -72,18 +74,19 @@ func (r *OrderRepository) GetAllByUser(ctx context.Context, userID uint, page, p
 	return orders, total, nil
 }
 
-func (r *OrderRepository) GetAll(ctx context.Context, page, pageSize int) ([]models.Order, int64, error) {
+func (r *OrderRepository) GetAll(ctx context.Context, filter *dto.OrderFilterRequest) ([]models.Order, int64, error) {
 	var orders []models.Order
 	var total int64
-	offset := utils.Pagination(page, pageSize)
-	pageSize = utils.ClampPageSize(pageSize)
+	offset := utils.Pagination(filter.Page, filter.PageSize)
 
-	r.db.WithContext(ctx).Model(&models.Order{}).Count(&total)
+	query := r.db.WithContext(ctx).Model(&models.Order{})
+	query = utils.ApplyOrderFilters(query, filter)
+	query.Count(&total)
 
-	err := r.db.WithContext(ctx).
+	err := query.
 		Preload("OrderItems.Menu").Preload("User").Preload("Payment").
 		Order("created_at DESC").
-		Offset(offset).Limit(pageSize).
+		Offset(offset).Limit(filter.PageSize).
 		Find(&orders).Error
 	if err != nil {
 		return nil, 0, err

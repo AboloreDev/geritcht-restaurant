@@ -22,30 +22,30 @@ func BuildMenuCacheKey(filter *dto.MenuSearchRequest) string {
 }
 
 func BuildMenuFetchCacheKey(filter *dto.MenuFilterRequest) string {
-    return fmt.Sprintf(
-        "menu:page:%d:size:%d:cat:%d:search:%s:minp:%.2f:maxp:%.2f:spice:%d:diet:%s:allergen:%s:sortby:%s:sortorder:%s",
-        filter.Page,
-        filter.PageSize,
-        filter.CategoryID,
-        filter.Search,
-        filter.MinPrice,
-        filter.MaxPrice,
-        filter.SpiceLevel,
-        filter.Dietary,
-        filter.AllergenExclude,
-        filter.SortBy,
-        filter.SortOrder,
-    )
+	return fmt.Sprintf(
+		"menu:page:%d:size:%d:cat:%d:search:%s:minp:%.2f:maxp:%.2f:spice:%d:diet:%s:allergen:%s:sortby:%s:sortorder:%s",
+		filter.Page,
+		filter.PageSize,
+		filter.CategoryID,
+		filter.Search,
+		filter.MinPrice,
+		filter.MaxPrice,
+		filter.SpiceLevel,
+		filter.Dietary,
+		filter.AllergenExclude,
+		filter.SortBy,
+		filter.SortOrder,
+	)
 }
 
 func GetMenuCacheTTL(filter *dto.MenuFilterRequest) time.Duration {
-	hasFilter := 
-	filter.CategoryID != 0 ||
-		filter.MinPrice != 0 ||
-		filter.MaxPrice != 0 ||
-		filter.SpiceLevel != 0 ||
-		filter.Dietary != "" ||
-		filter.AllergenExclude != ""
+	hasFilter :=
+		filter.CategoryID != 0 ||
+			filter.MinPrice != 0 ||
+			filter.MaxPrice != 0 ||
+			filter.SpiceLevel != 0 ||
+			filter.Dietary != "" ||
+			filter.AllergenExclude != ""
 
 	if hasFilter {
 		return 30 * time.Minute

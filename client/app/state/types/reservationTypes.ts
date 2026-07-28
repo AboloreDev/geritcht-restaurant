@@ -1,4 +1,5 @@
 import { UserResponse } from "./authTypes";
+import { TableDetailResponse } from "./tableTypes";
 
 export interface CheckAvailabilityRequest {
   date: string; // "YYYY-MM-DD"
@@ -33,22 +34,11 @@ export interface CreateReservationRequest {
   special_requests?: string;
 }
 
-export interface Meta {
-  page: number;
-  limit: number;
-  total: number;
-  total_pages: number;
-}
-
 export interface ReservationListResponse {
   status: boolean;
   error: string;
   message: string;
-  reservations: ReservationResponse[];
-  meta: ReservationMeta;
-}
-
-export interface ReservationMeta {
+  data: ReservationResponse[];
   total: number;
   page: number;
   page_size: number;
@@ -59,8 +49,8 @@ export interface ReservationResponse {
   id: number;
   user_id: number;
   user?: UserResponse;
+  table: TableDetailResponse;
   table_id: number;
-  // table: TableResponse;
   date: string;
   time_slot: string;
   party_size: number;
@@ -74,5 +64,5 @@ export interface GetReservationsRequest {
   date?: string;
   status?: string;
   page?: number;
-  pageSize?: number;
+  page_size?: number;
 }

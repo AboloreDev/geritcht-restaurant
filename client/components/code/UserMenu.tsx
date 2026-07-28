@@ -62,7 +62,7 @@ export function UserMenu({ name, email }: { name: string; email: string }) {
               onClick={() => setOpen(false)}
             />
             <MenuLink
-              href="/account/reservations"
+              href="/reservation"
               icon={CalendarCheck}
               label="My Reservations"
               onClick={() => setOpen(false)}

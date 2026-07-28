@@ -138,14 +138,14 @@ func (r *ReservationRepository) GetAll(ctx context.Context, req *dto.Reservation
 	offset := utils.Pagination(req.Page, req.PageSize)
 
 	query := r.db.WithContext(ctx).
-				Model(&models.Reservation{})
+		Model(&models.Reservation{})
 
 	query = utils.ApplyReservationFilters(query, req)
 
 	query.Count(&count)
 
 	err := query.Preload("User").Preload("Table").
-			Order("time_slot ASC").
+		Order("time_slot ASC").
 		Offset(offset).Limit(req.PageSize).Find(&reservations).Error
 	if err != nil {
 		return nil, 0, err
