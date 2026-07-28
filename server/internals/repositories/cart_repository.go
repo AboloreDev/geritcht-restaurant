@@ -18,7 +18,7 @@ func NewCartRepository(db *gorm.DB) *CartRepository {
 
 func (r *CartRepository) GetCartByUserID(ctx context.Context, userID uint) (*models.Cart, error) {
 	var cart models.Cart
-	err := r.db.WithContext(ctx).Preload("CartItems.Menu").
+	err := r.db.WithContext(ctx).Preload("CartItems.Menu.Images").
 		Where("user_id = ?", userID).First(&cart).Error
 	if err != nil {
 		return nil, domain.ErrCartNotFound

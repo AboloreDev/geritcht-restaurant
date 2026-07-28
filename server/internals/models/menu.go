@@ -40,7 +40,7 @@ type Menu struct {
 	Allergens           []Allergen           `json:"allergens,omitempty" gorm:"many2many:menu_item_allergens"`
 	DietaryTags         []DietaryTag         `json:"dietary_tags,omitempty" gorm:"many2many:menu_item_dietary"`
 	MenuItemIngredients []MenuItemIngredient `json:"-"`
-	Images              []MenuImage          `json:"images,omitempty"`
+	Images              []MenuImage          `json:"images"`
 }
 
 type MenuImage struct {

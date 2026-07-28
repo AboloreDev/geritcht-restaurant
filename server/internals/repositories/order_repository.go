@@ -63,7 +63,7 @@ func (r *OrderRepository) GetAllByUser(ctx context.Context, userID uint, filter 
 	query.Count(&total)
 
 	err := query.
-		Preload("OrderItems.Menu").Preload("User").Preload("Payment").
+		Preload("OrderItems.Menu.Images").Preload("User").Preload("Payment").
 		Order("created_at DESC").
 		Offset(offset).Limit(filter.PageSize).
 		Find(&orders).Error
@@ -84,7 +84,7 @@ func (r *OrderRepository) GetAll(ctx context.Context, filter *dto.OrderFilterReq
 	query.Count(&total)
 
 	err := query.
-		Preload("OrderItems.Menu").Preload("User").Preload("Payment").
+		Preload("OrderItems.Menu.Images").Preload("User").Preload("Payment").
 		Order("created_at DESC").
 		Offset(offset).Limit(filter.PageSize).
 		Find(&orders).Error

@@ -34,7 +34,6 @@ export interface GetOrdersRequest {
 }
 
 // --- Responses ---
-
 export interface OrderItem {
   id: number;
   menu_item_id: number;

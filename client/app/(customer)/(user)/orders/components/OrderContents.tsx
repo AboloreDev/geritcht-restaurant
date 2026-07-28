@@ -44,12 +44,11 @@ export function OrderContents() {
 
   // @ts-expect-error "<>"
   const orders = data?.data.orders ?? [];
-  console.log("orders", orders);
   const hasMore = data ? (page ?? 1) < data.total_pages : false;
   const hasActiveFilters = Boolean(filterDate || filterStatus || filterType);
 
   const [dateInput, setDateInput] = useState(filterDate ?? "");
-  const debouncedDate = useDebounce(dateInput, 400);
+  const debouncedDate = useDebounce(dateInput, 1000);
 
   useEffect(() => {
     dispatch(setFilterDate(debouncedDate || undefined));

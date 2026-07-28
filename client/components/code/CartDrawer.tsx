@@ -44,6 +44,8 @@ export function CartDrawer() {
   const cart = data?.data;
   const items = cart?.cart_items ?? [];
 
+  console.log(cart);
+
   // Order
   const [step, setStep] = useState<"cart" | "notes">("cart");
   const [notes, setNotes] = useState("");
