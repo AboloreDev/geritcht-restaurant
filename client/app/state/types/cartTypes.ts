@@ -4,7 +4,15 @@ export interface MenuItem {
   name: string;
   price: number;
   image_url: string;
-  images?: { url: string; alt_text: string; is_primary: boolean }[];
+  images?: MenuImages;
+}
+
+export interface MenuImages {
+  alt_text: string;
+  created_at: string;
+  id: number;
+  is_primary: boolean;
+  url: string;
 }
 
 export interface AddToCartRequest {

@@ -255,8 +255,8 @@ func (s *MenuService) AddMenuImageService(ctx context.Context, menuID uint, altT
 
 	menuImage := models.MenuImage{
 		MenuID:    menuID,
-		AltText:   altText,
 		URL:       url,
+		AltText:   altText,
 		IsPrimary: count == 0,
 		CreatedAt: time.Now(),
 	}

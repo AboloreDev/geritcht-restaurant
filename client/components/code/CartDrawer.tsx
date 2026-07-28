@@ -44,7 +44,7 @@ export function CartDrawer() {
   const cart = data?.data;
   const items = cart?.cart_items ?? [];
 
-  console.log(cart);
+  console.log(items);
 
   // Order
   const [step, setStep] = useState<"cart" | "notes">("cart");
@@ -167,16 +167,15 @@ export function CartDrawer() {
                   >
                     <div className="flex gap-4">
                       <div className="relative h-20 w-20 overflow-hidden rounded-xl">
-                        {item.menu_item.image_url && (
-                          <Image
-                            src={item.menu_item.image_url}
-                            alt={item.menu_item.name}
-                            fill
-                            className="object-cover"
-                          />
-                        )}
+                        <Image
+                          src={item.menu_item.images?.alt_text}
+                          alt={
+                            item.menu_item.images?.url || item.menu_item.name
+                          }
+                          fill
+                          className="object-cover"
+                        />
                       </div>
-
                       <div className="flex flex-1 flex-col">
                         <div className="flex justify-between">
                           <h4 className="font-medium">{item.menu_item.name}</h4>

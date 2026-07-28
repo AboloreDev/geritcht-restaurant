@@ -231,7 +231,7 @@ func (s *Server) UploadMenuImageHandler(ctx *gin.Context) {
 		return
 	}
 
-	err = s.menuServices.AddMenuImageService(ctx.Request.Context(), menuID, url, file.Filename)
+	err = s.menuServices.AddMenuImageService(ctx.Request.Context(), menuID, file.Filename, url)
 	if err != nil {
 		switch err {
 		case domain.ErrNotFound:
