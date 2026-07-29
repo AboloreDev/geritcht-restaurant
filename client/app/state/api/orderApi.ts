@@ -1,3 +1,4 @@
+import { get } from "http";
 import {
   CreateTakeoutOrderRequest,
   GetOrdersRequest,
@@ -60,6 +61,10 @@ export const orderApi = baseApi.injectEndpoints({
       },
       providesTags: ["Orders"],
     }),
+    getOrderById: builder.query<OrderResponse, { id: number }>({
+      query: ({ id }) => `/orders/takeout/${id}`,
+      providesTags: ["Orders"],
+    }),
   }),
 });
 
@@ -67,4 +72,5 @@ export const {
   useCreateTakoutOrderMutation,
   useGetAllOrdersQuery,
   useGetAllUserTakeoutOrdersQuery,
+  useGetOrderByIdQuery,
 } = orderApi;

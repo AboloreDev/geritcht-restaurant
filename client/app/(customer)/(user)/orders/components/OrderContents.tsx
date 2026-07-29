@@ -44,6 +44,7 @@ export function OrderContents() {
 
   // @ts-expect-error "<>"
   const orders = data?.data.orders ?? [];
+  console.log(orders);
   const hasMore = data ? (page ?? 1) < data.total_pages : false;
   const hasActiveFilters = Boolean(filterDate || filterStatus || filterType);
 
@@ -180,11 +181,15 @@ export function OrderContents() {
                     }}
                     className="bg-[#fefae0] rounded-2xl p-5"
                   >
-                    <div className="flex items-start justify-between gap-3">
+                    <Link
+                      href={`/orders/${order.id}`}
+                      className="flex items-start justify-between gap-3"
+                    >
                       <div>
-                        <p className="font-medium">Order #{order.id}</p>
+                        <p className="font-medium">Order No: #{order.id}</p>
 
                         <p className="mt-1 text-sm text-muted-foreground">
+                          Date:{" "}
                           {new Date(order.created_at).toLocaleDateString()}
                         </p>
 
@@ -194,11 +199,11 @@ export function OrderContents() {
                         </p>
 
                         <p className="mt-1 text-sm text-muted-foreground">
-                          ₦{order.total_amount.toLocaleString()}
+                          Total: ₦{order.total_amount.toLocaleString()}
                         </p>
 
-                        <p className="mt-1 text-sm text-muted-foreground capitalize">
-                          Payment: {order.payment_status}
+                        <p className="mt-1 text-md text-muted-foreground capitalize">
+                          Payment Status: {order.payment_status}
                         </p>
 
                         {order.notes && (
@@ -215,7 +220,7 @@ export function OrderContents() {
                       >
                         {order.status}
                       </span>
-                    </div>
+                    </Link>
                   </motion.div>
                 ))}
               </AnimatePresence>

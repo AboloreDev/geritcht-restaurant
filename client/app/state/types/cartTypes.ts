@@ -1,18 +1,12 @@
+import { MenuImage } from "./menuTypes";
+
 export interface MenuItem {
   // reuse your existing Menu type here if it's already defined elsewhere
   id: number;
   name: string;
   price: number;
   image_url: string;
-  images?: MenuImages;
-}
-
-export interface MenuImages {
-  alt_text: string;
-  created_at: string;
-  id: number;
-  is_primary: boolean;
-  url: string;
+  images?: MenuImage[];
 }
 
 export interface AddToCartRequest {

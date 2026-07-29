@@ -166,15 +166,20 @@ export function CartDrawer() {
                     className="rounded-2xl bg-[#fefae0] p-2 shadow-sm"
                   >
                     <div className="flex gap-4">
-                      <div className="relative h-20 w-20 overflow-hidden rounded-xl">
-                        <Image
-                          src={item.menu_item.images?.alt_text}
-                          alt={
-                            item.menu_item.images?.url || item.menu_item.name
-                          }
-                          fill
-                          className="object-cover"
-                        />
+                      <div className="relative h-20 w-20 overflow-hidden rounded-2xl">
+                        {item.menu_item.images?.length ? (
+                          <Image
+                            src={item.menu_item.images[0].alt_text}
+                            alt={
+                              item.menu_item.images[0].url ||
+                              item.menu_item.name
+                            }
+                            fill
+                            className="object-cover"
+                          />
+                        ) : (
+                          <div>{item.menu_item.image_url}</div>
+                        )}
                       </div>
                       <div className="flex flex-1 flex-col">
                         <div className="flex justify-between">

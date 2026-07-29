@@ -29,7 +29,7 @@ func (r *OrderRepository) GetByID(ctx context.Context, tx *gorm.DB, orderID uint
 		db = r.db
 	}
 	err := db.WithContext(ctx).
-		Preload("OrderItems.Menu.MenuCategory").
+		Preload("OrderItems.Menu.Images").
 		Preload("User").Preload("Payment").
 		Where("id = ?", orderID).First(&order).Error
 	if err != nil {
@@ -41,7 +41,7 @@ func (r *OrderRepository) GetByID(ctx context.Context, tx *gorm.DB, orderID uint
 func (r *OrderRepository) GetByIDAndUser(ctx context.Context, orderID, userID uint) (*models.Order, error) {
 	var order models.Order
 	err := r.db.WithContext(ctx).
-		Preload("OrderItems.Menu").Preload("User").Preload("Payment").
+		Preload("OrderItems.Menu.Images").Preload("User").Preload("Payment").
 		Where("id = ? AND user_id = ? AND type = ?", orderID, userID, models.OrderTypeTakeout).
 		First(&order).Error
 	if err != nil {
