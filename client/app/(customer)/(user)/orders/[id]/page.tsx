@@ -1,4 +1,3 @@
-// src/app/account/orders/[id]/OrderDetailsPage.tsx
 "use client";
 
 import { useParams } from "next/navigation";
@@ -19,13 +18,10 @@ export default function OrderDetailsPage() {
   if (isError || !data?.data) {
     return (
       <div className="flex min-h-screen flex-col items-center justify-center gap-3 text-center">
-        <p className="text-lg font-medium">
+        <p className="text-lg font-medium text-primary-deep">
           This order couldn&apos;t be found.
         </p>
-        <Link
-          href="/account/orders"
-          className="text-sm text-primary hover:underline"
-        >
+        <Link href="/orders" className="text-sm text-primary hover:underline">
           Back to orders
         </Link>
       </div>
@@ -37,15 +33,15 @@ export default function OrderDetailsPage() {
   return (
     <div className="min-h-screen bg-[url('/assets/bg.png')] bg-cover bg-center bg-fixed">
       <div className="mx-auto max-w-2xl px-6 py-10">
-        <div className="flex items-center gap-2 text-sm text-muted-foreground">
-          <Link href="/account/orders" className="hover:text-foreground">
+        <div className="flex items-center gap-2 text-sm text-primary">
+          <Link href="/orders" className="hover:text-foreground">
             My Orders
           </Link>
           <ChevronRight className="h-4 w-4" />
-          <span className="text-foreground">Order #{order.id}</span>
+          <span className="text-primary-deep">Order #{order.id}</span>
         </div>
 
-        <div className="mt-6 flex items-start justify-between gap-3">
+        <div className="mt-6 flex items-start justify-between text-primary-deep gap-3">
           <div>
             <h1 className="font-serif text-2xl font-semibold">
               Order Number: #{order.id}
@@ -65,7 +61,7 @@ export default function OrderDetailsPage() {
         </div>
 
         {/* items */}
-        <div className="mt-8 rounded-xl border bg-background">
+        <div className="mt-8 rounded-2xl bg-[#fefae0]">
           {order.order_items.map((item, i) => {
             return (
               <div
@@ -108,30 +104,41 @@ export default function OrderDetailsPage() {
 
         {/* notes */}
         {order.notes && (
-          <div className="mt-4 rounded-xl border bg-background p-4">
+          <div className="mt-4 rounded-xl border bg-[#fefae0] p-4">
             <p className="text-xs font-medium text-muted-foreground">Notes</p>
-            <p className="mt-1 text-sm">{order.notes}</p>
+            <p className="mt-1 text-md">{order.notes}</p>
           </div>
         )}
 
         {/* payment */}
-        <div className="mt-4 rounded-xl border bg-background p-4">
-          <p className="text-xs font-medium text-muted-foreground">Payment</p>
-          <div className="mt-2 flex items-center justify-between text-sm">
+        <div className="mt-4 rounded-xl border bg-[#fefae0] p-4">
+          <p className="text-md">
+            <span className="font-medium">Provider:</span>{" "}
             <span className="capitalize text-muted-foreground">
-              {order.payment?.provider ?? "—"} · {order.payment_status}
+              {order.payment?.provider ?? "—"}
             </span>
-            {order.payment?.reference && (
-              <span className="font-mono text-xs text-muted-foreground">
+          </p>
+
+          <p className="mt-2 text-md">
+            <span className="font-medium">Payment Status:</span>{" "}
+            <span className="capitalize text-muted-foreground">
+              {order.payment_status}
+            </span>
+          </p>
+
+          {order.payment?.reference && (
+            <p className="mt-2 text-md">
+              <span className="font-medium">Reference:</span>{" "}
+              <span className="font-mono text-muted-foreground">
                 {order.payment.reference}
               </span>
-            )}
-          </div>
+            </p>
+          )}
         </div>
 
         {/* total */}
-        <div className="mt-6 flex items-center justify-between rounded-xl border bg-background p-4">
-          <span className="text-sm font-medium">Total</span>
+        <div className="mt-6 flex items-center justify-between rounded-xl border bg-[#fefae0] p-4">
+          <span className="text-md font-medium">Total</span>
           <span className="text-lg font-semibold">
             {formatNaira(order.total_amount)}
           </span>
@@ -147,8 +154,11 @@ function OrderDetailsSkeleton() {
       <div className="h-4 w-32 animate-pulse rounded bg-muted" />
       <div className="mt-6 h-8 w-48 animate-pulse rounded bg-muted" />
       <div className="mt-8 space-y-3">
-        {Array.from({ length: 2 }).map((_, i) => (
-          <div key={i} className="h-20 animate-pulse rounded-xl bg-muted" />
+        {Array.from({ length: 5 }).map((_, i) => (
+          <div
+            key={i}
+            className="h-20 animate-pulse rounded-xl bg-primary-deep"
+          />
         ))}
       </div>
     </div>

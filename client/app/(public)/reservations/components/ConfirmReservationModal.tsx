@@ -79,10 +79,10 @@ export function ConfirmReservationModal({
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 12 }}
             transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
-            className="fixed left-1/2 top-1/2 z-50 w-full max-w-md -translate-x-1/2 -translate-y-1/2 rounded-2xl bg-background p-6 shadow-xl"
+            className="fixed left-1/2 top-1/2 z-50 w-full max-w-md -translate-x-1/2 -translate-y-1/2 rounded-2xl bg-[#fefae0] p-6 shadow-xl"
           >
             <div className="flex items-center justify-between">
-              <h2 className="font-serif text-xl font-medium text-primary">
+              <h2 className="font-serif text-xl font-medium">
                 {isSuccess ? "Reservation confirmed" : `Reserve ${table.name}`}
               </h2>
               <button
@@ -96,7 +96,7 @@ export function ConfirmReservationModal({
 
             {isSuccess ? (
               <div className="mt-6">
-                <p className="text-sm text-primary">
+                <p className="text-sm">
                   {table.name} is booked for {partySize}{" "}
                   {partySize === 1 ? "guest" : "guests"} on {date} at{" "}
                   {formatTimeSlot(timeSlot)}.
@@ -107,7 +107,7 @@ export function ConfirmReservationModal({
               </div>
             ) : (
               <>
-                <div className="mt-4 space-y-1 text-sm text-primary">
+                <div className="mt-4 space-y-1 text-sm ">
                   <p>
                     {date} · {formatTimeSlot(timeSlot)}
                   </p>
@@ -118,22 +118,21 @@ export function ConfirmReservationModal({
                 </div>
 
                 <div className="mt-5">
-                  <label className="text-sm text-primary-deep font-medium">
-                    Special requests{" "}
-                    <span className="text-primary-deep">(optional)</span>
+                  <label className="text-sm  font-medium">
+                    Special requests <span className="">(optional)</span>
                   </label>
                   <Textarea
                     key={table.id}
                     value={specialRequests}
                     onChange={(e) => setSpecialRequests(e.target.value)}
                     placeholder="Birthday, allergies, seating preference…"
-                    className="mt-1.5 text-primary-deep"
+                    className="mt-1.5 "
                     rows={3}
                   />
                 </div>
 
                 {error && (
-                  <p className="mt-3 text-sm text-primary-deep">
+                  <p className="mt-3 text-sm ">
                     {"data" in error &&
                     typeof error.data === "object" &&
                     error.data &&

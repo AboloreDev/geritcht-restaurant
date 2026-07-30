@@ -85,7 +85,15 @@ const baseQueryWithReauth: BaseQueryFn<
 export const baseApi = createApi({
   reducerPath: "baseApi",
   baseQuery: baseQueryWithReauth,
-  tagTypes: ["Category", "Menu", "Reservation", "Auth", "Cart", "Orders"],
+  tagTypes: [
+    "Category",
+    "Menu",
+    "Reservation",
+    "Auth",
+    "Cart",
+    "Orders",
+    "User",
+  ],
   endpoints: (builder) => ({
     logout: builder.mutation<
       {
@@ -107,6 +115,7 @@ export const baseApi = createApi({
         "Auth",
         "Cart",
         "Orders",
+        "User",
       ],
       async onQueryStarted(_, { queryFulfilled }) {
         try {

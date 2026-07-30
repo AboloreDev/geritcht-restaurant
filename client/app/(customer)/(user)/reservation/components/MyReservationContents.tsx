@@ -1,8 +1,9 @@
 "use client";
 
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowLeft, CalendarCheck } from "@mynaui/icons-react";
+import { ArrowLeft, CalendarCheck, Spinner } from "@mynaui/icons-react";
 import { useAppDispatch, useAppSelector, RootState } from "@/app/state/redux";
+import { cn } from "@/lib/utils";
 
 import {
   resetReservationFilters,
@@ -44,9 +45,12 @@ export function MyReservationsContent() {
 
   // @ts-expect-error "<>"
   const reservations = data?.data.reservations ?? [];
-  console.log("reservations", reservations);
   const hasMore = data ? (page ?? 1) < data.total_pages : false;
   const hasActiveFilters = Boolean(filterDate || filterStatus);
+
+  // refetching due to a filter change, not the very first load —
+  // filter changes always reset page to 1, so this won't fire for load-more
+  const isRefetchingFilters = isFetching && !isLoading && (page ?? 1) === 1;
 
   const [dateInput, setDateInput] = useState(filterDate ?? "");
   const debouncedDate = useDebounce(dateInput, 400);
@@ -72,6 +76,7 @@ export function MyReservationsContent() {
           <ArrowLeft className="h-4 w-4" />
           Back
         </Link>
+
         {/* filter bar */}
         <div className="mt-6 cursor-pointer flex z-40 flex-wrap bg-[#fefae0] rounded-2xl px-6 py-3 items-center gap-3">
           <input
@@ -89,11 +94,11 @@ export function MyReservationsContent() {
             }
           >
             <SelectTrigger className="w-40 cursor-pointer">
-              <SelectValue placeholder="All statuses" className="" />
+              <SelectValue placeholder="All" className="" />
             </SelectTrigger>
             <SelectContent className="bg-[#fefae0] cursor-pointer">
               <SelectItem value="all" className="">
-                All statuses
+                All
               </SelectItem>
               {STATUS_OPTIONS.map((opt) => (
                 <SelectItem
@@ -115,6 +120,13 @@ export function MyReservationsContent() {
               Clear filters
             </button>
           )}
+
+          {isRefetchingFilters && (
+            <span className="flex items-center gap-1.5 text-xs text-muted-foreground">
+              <Spinner className="h-3.5 w-3.5 animate-spin" />
+              Updating…
+            </span>
+          )}
         </div>
 
         {isLoading ? (
@@ -126,11 +138,11 @@ export function MyReservationsContent() {
               />
             ))}
           </div>
-        ) : reservations.length === 0 ? (
+        ) : reservations.length === 0 && !isFetching ? (
           <div className="mt-16 flex flex-col items-center gap-3 text-center">
             <CalendarCheck className="h-10 w-10 text-primary" />
             <p className="text-sm text-primary">
-              You haven&apoos;t made any reservations yet.
+              You haven&apos;t made any reservations yet.
             </p>
             <Link
               href="/menu"
@@ -141,7 +153,12 @@ export function MyReservationsContent() {
           </div>
         ) : (
           <>
-            <div className="mt-8 space-y-4">
+            <div
+              className={cn(
+                "mt-8 space-y-4 transition-opacity",
+                isRefetchingFilters && "opacity-50",
+              )}
+            >
               <AnimatePresence initial={false}>
                 {reservations.map((r: ReservationResponse, i: number) => (
                   <motion.div
@@ -155,7 +172,10 @@ export function MyReservationsContent() {
                     }}
                     className="bg-[#fefae0] rounded-2xl p-5"
                   >
-                    <div className="flex items-start justify-between gap-3">
+                    <Link
+                      href={`/reservation/${r.id}`}
+                      className="flex items-start justify-between gap-3"
+                    >
                       <div>
                         <p className="font-medium">
                           {r.date} · {formatTimeSlot(r.time_slot)}
@@ -180,7 +200,7 @@ export function MyReservationsContent() {
                       >
                         {r.status}
                       </span>
-                    </div>
+                    </Link>
                   </motion.div>
                 ))}
               </AnimatePresence>
@@ -193,7 +213,7 @@ export function MyReservationsContent() {
                   disabled={isFetching}
                   onClick={() => dispatch(setPage((page ?? 1) + 1))}
                 >
-                  {isFetching ? "Loading…" : "Load more"}
+                  {isFetching && (page ?? 1) > 1 ? "Loading…" : "Load more"}
                 </Button>
               </div>
             )}

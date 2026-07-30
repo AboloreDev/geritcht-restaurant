@@ -97,3 +97,9 @@ export interface ForgotPasswordResponse {
   message: string;
   token: string;
 }
+
+export interface GetProfileResponse {
+  status: boolean;
+  message: string;
+  data: UserResponse;
+}

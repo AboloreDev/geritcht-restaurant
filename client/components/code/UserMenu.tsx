@@ -68,7 +68,7 @@ export function UserMenu({ name, email }: { name: string; email: string }) {
               onClick={() => setOpen(false)}
             />
             <MenuLink
-              href="/settings"
+              href="/account"
               icon={CogThree}
               label="Account Details"
               onClick={() => setOpen(false)}

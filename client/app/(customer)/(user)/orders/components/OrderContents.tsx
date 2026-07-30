@@ -1,8 +1,9 @@
 "use client";
 
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowLeft, CalendarCheck } from "@mynaui/icons-react";
+import { ArrowLeft, CalendarCheck, Spinner } from "@mynaui/icons-react";
 import { useAppDispatch, useAppSelector, RootState } from "@/app/state/redux";
+import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import {
@@ -44,9 +45,10 @@ export function OrderContents() {
 
   // @ts-expect-error "<>"
   const orders = data?.data.orders ?? [];
-  console.log(orders);
   const hasMore = data ? (page ?? 1) < data.total_pages : false;
   const hasActiveFilters = Boolean(filterDate || filterStatus || filterType);
+
+  const isRefetchingFilters = isFetching && !isLoading && (page ?? 1) === 1;
 
   const [dateInput, setDateInput] = useState(filterDate ?? "");
   const debouncedDate = useDebounce(dateInput, 1000);
@@ -141,6 +143,13 @@ export function OrderContents() {
               Clear filters
             </button>
           )}
+
+          {isRefetchingFilters && (
+            <span className="flex items-center gap-1.5 text-xs text-muted-foreground">
+              <Spinner className="h-3.5 w-3.5 animate-spin" />
+              Updating…
+            </span>
+          )}
         </div>
 
         {isLoading ? (
@@ -152,11 +161,11 @@ export function OrderContents() {
               />
             ))}
           </div>
-        ) : orders.length === 0 ? (
+        ) : orders.length === 0 && !isFetching ? (
           <div className="mt-16 flex flex-col items-center gap-3 text-center">
             <CalendarCheck className="h-10 w-10 text-primary" />
             <p className="text-sm text-primary">
-              You haven&apoos;t made any orders yet.
+              You haven&apos;t made any orders yet.
             </p>
             <Link
               href="/menu"
@@ -167,7 +176,12 @@ export function OrderContents() {
           </div>
         ) : (
           <>
-            <div className="mt-8 space-y-4">
+            <div
+              className={cn(
+                "mt-8 space-y-4 transition-opacity",
+                isRefetchingFilters && "opacity-50",
+              )}
+            >
               <AnimatePresence initial={false}>
                 {orders.map((order: Order, i: number) => (
                   <motion.div
@@ -233,7 +247,7 @@ export function OrderContents() {
                   disabled={isFetching}
                   onClick={() => dispatch(setPage((page ?? 1) + 1))}
                 >
-                  {isFetching ? "Loading…" : "Load more"}
+                  {isFetching && (page ?? 1) > 1 ? "Loading…" : "Load more"}
                 </Button>
               </div>
             )}

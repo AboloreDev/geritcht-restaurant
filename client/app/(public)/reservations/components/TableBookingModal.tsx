@@ -73,22 +73,20 @@ export function BookTableModal() {
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 12 }}
             transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
-            className="fixed left-1/2 top-1/2 z-50 w-full max-w-md -translate-x-1/2 -translate-y-1/2 rounded-2xl bg-background p-6 shadow-xl"
+            className="fixed left-1/2 top-1/2 z-50 w-full max-w-md -translate-x-1/2 -translate-y-1/2 rounded-2xl bg-[#fefae0] p-6 shadow-xl"
           >
             <div className="flex items-center justify-between">
-              <h2 className="font-serif text-xl text-primary font-medium">
-                Book a table
-              </h2>
+              <h2 className="font-serif text-xl font-medium">Book a table</h2>
               <button
                 onClick={() => dispatch(closeBookingModal())}
                 aria-label="Close"
-                className="rounded-full cursor-pointer p-1 text-primary hover:bg-muted"
+                className="rounded-full cursor-pointer p-1 hover:bg-muted"
               >
                 <X className="h-5 w-5" />
               </button>
             </div>
 
-            <div className="mt-6 space-y-5 text-primary-deep">
+            <div className="mt-6 space-y-5">
               <div>
                 <label className="text-sm font-medium">Date</label>
                 <Input
@@ -125,7 +123,7 @@ export function BookTableModal() {
 
               <div>
                 <label className="text-sm font-medium">Party size</label>
-                <div className="mt-1.5 flex w-fit items-center rounded-lg border border-amber-300">
+                <div className="mt-1.5 flex w-fit items-center rounded-lg border border-black">
                   <button
                     onClick={() =>
                       dispatch(setPartySize(Math.max(1, partySize - 1)))
