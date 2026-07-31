@@ -1,20 +1,14 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { UserResponse } from "../state/types/authTypes";
 
-export interface AuthUser {
-  id: number;
-  first_name: string;
-  last_name: string;
-  email: string;
-}
-
-function readUser(): AuthUser | null {
+function readUser(): UserResponse | null {
   if (typeof window === "undefined") return null;
   const raw = localStorage.getItem("user");
   if (!raw) return null;
   try {
-    return JSON.parse(raw) as AuthUser;
+    return JSON.parse(raw) as UserResponse;
   } catch {
     return null;
   }
@@ -25,7 +19,7 @@ export function useAuth() {
     if (typeof window === "undefined") return false;
     return Boolean(localStorage.getItem("accessToken"));
   });
-  const [user, setUser] = useState<AuthUser | null>(() => readUser());
+  const [user, setUser] = useState<UserResponse | null>(() => readUser());
 
   useEffect(() => {
     function handleStorageChange(e: StorageEvent) {

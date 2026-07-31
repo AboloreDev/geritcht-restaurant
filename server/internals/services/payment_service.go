@@ -293,6 +293,10 @@ func (s *PaymentService) confirmSuccessfulPayment(ctx context.Context, payment *
 			return err
 		}
 
+		if err := s.inventory.CheckAndAlertThreshold(ctx, tx); err != nil {
+			log.Printf("low stock check failed for order %d: %v", payment.OrderID, err)
+		}
+
 		if err := s.paymentRepo.ClearCartByUserID(ctx, tx, payment.UserID); err != nil {
 			return err
 		}
@@ -306,7 +310,7 @@ func (s *PaymentService) confirmSuccessfulPayment(ctx context.Context, payment *
 			})
 		}
 
-		payload, _ := json.Marshal(events.OrderConfirmationPayload{
+		payload, err := json.Marshal(events.OrderConfirmationPayload{
 			UserID:    payment.UserID,
 			Email:     order.User.Email,
 			FirstName: order.User.FirstName,
@@ -315,6 +319,9 @@ func (s *PaymentService) confirmSuccessfulPayment(ctx context.Context, payment *
 			Reference: payment.Reference,
 			Items:     items,
 		})
+		if err != nil {
+			log.Printf("error marshalling %w:", err)
+		}
 
 		return s.paymentRepo.CreateOutboxEvent(ctx, tx, &models.OutboxEvent{
 			EventType: events.ChannelOrderConfirmation,

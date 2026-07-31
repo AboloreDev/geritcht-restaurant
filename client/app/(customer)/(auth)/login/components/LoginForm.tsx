@@ -19,6 +19,7 @@ import { setShowPassword } from "@/app/state/slices/globalSlice";
 import { useLoginMutation } from "@/app/state/api/authApi";
 import { toast } from "sonner";
 import { getApiError } from "@/app/utils/apiError";
+import { useAuth } from "@/app/hooks/isAuthenticated";
 
 export function LoginForm() {
   const router = useRouter();
@@ -43,7 +44,12 @@ export function LoginForm() {
     try {
       const response = await login(data).unwrap();
       toast.success(response.message);
-      router.push(redirectTo);
+      console.log(response);
+      if (response.data.user.role === "admin") {
+        router.push("/admin");
+      } else {
+        router.push(redirectTo);
+      }
     } catch (err) {
       console.error(err);
       toast.error(getApiError(err));

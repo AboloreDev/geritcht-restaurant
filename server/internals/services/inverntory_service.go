@@ -42,7 +42,7 @@ func (s *InventoryService) DeductStock(ctx context.Context, tx *gorm.DB, orderIt
 			return err
 		}
 
-		// no recipe → skip (drinks, packaged items)
+		
 		if len(recipes) == 0 {
 			continue
 		}
@@ -84,8 +84,7 @@ func (s *InventoryService) DeductStock(ctx context.Context, tx *gorm.DB, orderIt
 		}
 	}
 
-	// check thresholds after all deductions
-	return s.CheckAndAlertThreshold(ctx, tx)
+	return nil
 }
 
 func (s *InventoryService) CheckAndAlertThreshold(ctx context.Context, tx *gorm.DB) error {

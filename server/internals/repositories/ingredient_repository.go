@@ -164,3 +164,4 @@ func (r *IngredientRepository) TsvectorSearchIngredients(ctx context.Context, re
 
 	return rows, count, nil
 }
+

@@ -296,6 +296,7 @@ func (s *IngredientService) CheckLowStock(ctx context.Context, userID, ingredien
 	return nil
 }
 
+
 func (s *IngredientService) sendLowStockAlert(ctx context.Context, user *models.User, ingredient *models.Ingredient) error {
 	lowStockAlert, err := json.Marshal(events.LowStockAlertPayload{
 		AdminEmail: user.Email,
@@ -404,3 +405,4 @@ func (s *IngredientService) SearchIngredients(ctx context.Context, req *dto.Ingr
 
 	return response, meta, nil
 }
+
