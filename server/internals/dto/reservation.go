@@ -102,11 +102,10 @@ type ReservationListResponse struct {
 	TotalPages   int                   `json:"total_pages"`
 }
 
-
 type ReservationSearchRequest struct {
-	Query        string   `form:"q" binding:"required,min=1"`
-	Page         int      `form:"page"`
-	Limit        int      `form:"limit"`
+	Query string `form:"q" binding:"required,min=1"`
+	Page  int    `form:"page"`
+	Limit int    `form:"limit"`
 }
 
 type ReservationSearchResponse struct {

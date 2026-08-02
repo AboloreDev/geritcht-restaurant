@@ -24,7 +24,7 @@ export function Header({
   setIsNotificationSheetOpen,
 }: DashboardHeaderProps) {
   return (
-    <header className="sticky top-0 z-50 bg-white/90 px-4 py-3 backdrop-blur-sm sm:px-6 lg:px-8">
+    <header className="top-0 z-50 bg-white/90 px-4 py-3 backdrop-blur-sm sm:px-6 lg:px-8">
       <div className="flex items-center justify-between gap-2">
         {/* Left Section */}
         <div className="flex min-w-0 flex-1 items-center gap-2 sm:gap-3 md:gap-4">

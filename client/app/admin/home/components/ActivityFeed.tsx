@@ -33,16 +33,12 @@ export function ActivityFeed() {
     page_size: 5,
   });
 
-  console.log("ordersData", ordersData);
-  console.log("reservationsData", reservationsData);
-
   const isLoading =
     isLoadingOrders ||
     isLoadingReservations ||
     isFetchingOrders ||
     isFetchingReservations;
 
-  // @ts-expect-error "type inference"
   const orderItems: ActivityItem[] = (ordersData?.data.orders ?? []).map(
     (o: Order) => ({
       id: `order-${o.id}`,

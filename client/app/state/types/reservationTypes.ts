@@ -1,5 +1,5 @@
-import { UserResponse } from "./authTypes";
 import { TableDetailResponse } from "./tableTypes";
+import { UserResponse } from "./userTypes";
 
 export interface CheckAvailabilityRequest {
   date: string; // "YYYY-MM-DD"
@@ -65,4 +65,8 @@ export interface GetReservationsRequest {
   status?: string;
   page?: number;
   page_size?: number;
+}
+
+export interface SearchReservationRequest {
+  q: string;
 }

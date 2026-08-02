@@ -19,15 +19,15 @@ var testOrderCtx = context.Background()
 // ─── MockOrderRepository
 
 type MockOrderRepository struct {
-	order     *models.Order
-	orders    []models.Order
-	searchRank   []models.OrderWithRank
-	total     int64
-	count     int64
-	getErr    error
-	createErr error
-	updateErr error
-	countErr  error
+	order      *models.Order
+	orders     []models.Order
+	searchRank []models.OrderWithRank
+	total      int64
+	count      int64
+	getErr     error
+	createErr  error
+	updateErr  error
+	countErr   error
 }
 
 func (m *MockOrderRepository) Create(_ context.Context, tx *gorm.DB, order *models.Order) error {

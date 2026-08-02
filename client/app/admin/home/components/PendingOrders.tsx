@@ -8,13 +8,12 @@ import { DashboardListCard } from "./DashboardListCard";
 import { Order } from "@/app/state/types/orderTypes";
 
 export function PendingOrdersList() {
-  const { data, isLoading } = useGetAllOrdersQuery({
+  const { data, isLoading, isFetching } = useGetAllOrdersQuery({
     status: "pending",
     page: 1,
     page_size: 5,
   });
 
-  // @ts-expect-error "type inference"
   const orders = data?.data.orders ?? [];
 
   return (
@@ -24,6 +23,7 @@ export function PendingOrdersList() {
       isLoading={isLoading}
       isEmpty={orders.length === 0}
       emptyMessage="No pending orders."
+      isFetching={isFetching}
     >
       {orders.map((order: Order) => (
         <Link

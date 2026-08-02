@@ -1,4 +1,5 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
+import { Order } from "../types/orderTypes";
 
 interface OrderState {
   filterDate?: string;
@@ -6,6 +7,8 @@ interface OrderState {
   filterType?: string;
   page?: number;
   pageSize?: number;
+  query: string;
+  orders: Order[];
 }
 
 const initialState: OrderState = {
@@ -14,6 +17,8 @@ const initialState: OrderState = {
   filterType: undefined,
   page: 1,
   pageSize: 10,
+  query: "",
+  orders: [],
 };
 
 const orderSlice = createSlice({
@@ -35,11 +40,28 @@ const orderSlice = createSlice({
       state.filterType = action.payload;
       state.page = 1;
     },
-    resetReservationFilters(state) {
+    resetOrdersFilters(state) {
       state.filterDate = undefined;
       state.filterStatus = undefined;
       state.filterType = undefined;
       state.page = 1;
+      state.query = "";
+    },
+    setSearch(state, action: PayloadAction<string>) {
+      state.query = action.payload;
+      state.page = 1;
+    },
+    appendOrders(state, action) {
+      const existing = new Set(state.orders.map((o) => o.id));
+
+      const newOrders = action.payload.filter(
+        (order: Order) => !existing.has(order.id),
+      );
+
+      state.orders.push(...newOrders);
+    },
+    setOrders(state, action: PayloadAction<Order[]>) {
+      state.orders = action.payload;
     },
   },
 });
@@ -48,8 +70,10 @@ export const {
   setPage,
   setFilterDate,
   setFilterStatus,
-  resetReservationFilters,
+  resetOrdersFilters,
   setFilterType,
+  appendOrders,
+  setOrders,
 } = orderSlice.actions;
 
 export default orderSlice.reducer;

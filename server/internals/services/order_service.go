@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"log"
 	"time"
 
 	"github.com/AboloreDev/geritcht-restaurant/internals/domain"
@@ -263,6 +264,8 @@ func (s *OrderService) GetAllOrders(ctx context.Context, filter *dto.OrderFilter
 		}
 	}
 
+	log.Printf("filter.Page: %d, offset would be: %d", filter.Page, utils.Pagination(filter.Page, filter.PageSize))
+
 	orders, total, err := s.orderRepo.GetAll(ctx, filter)
 	if err != nil {
 		return nil, domain.ErrOrderNotFound
@@ -285,7 +288,7 @@ func (s *OrderService) SearchOrders(ctx context.Context, req *dto.OrderSearchReq
 	if err == nil && cached != "" {
 		var cachedResponse struct {
 			Data []*dto.OrderSearchResponse `json:"data"`
-			Meta *utils.PaginatedMeta            `json:"meta"`
+			Meta *utils.PaginatedMeta       `json:"meta"`
 		}
 		if err := json.Unmarshal([]byte(cached), &cachedResponse); err == nil {
 			return cachedResponse.Data, cachedResponse.Meta, nil
@@ -300,22 +303,28 @@ func (s *OrderService) SearchOrders(ctx context.Context, req *dto.OrderSearchReq
 	response := make([]*dto.OrderSearchResponse, len(rows))
 
 	for i := range rows {
+		var userResponse *dto.UserResponse
+
+		if rows[i].User != nil {
+			userResponse = &dto.UserResponse{
+				ID:        rows[i].User.ID,
+				FirstName: rows[i].User.FirstName,
+				LastName:  rows[i].User.LastName,
+				Email:     rows[i].User.Email,
+			}
+		}
+
 		response[i] = &dto.OrderSearchResponse{
 			OrderResponse: dto.OrderResponse{
-				ID:           rows[i].ID,
-				UserID:         rows[i].UserID,
-				Type:         string(rows[i].Type),
-				Status: 	string(rows[i].Status),
+				ID:          rows[i].ID,
+				UserID:      rows[i].UserID,
+				User:        userResponse,
+				Type:        string(rows[i].Type),
+				Status:      string(rows[i].Status),
 				TotalAmount: rows[i].TotalAmount,
-				User: &dto.UserResponse{
-					ID: rows[i].User.ID,
-					FirstName: rows[i].User.FirstName,
-					LastName: rows[i].User.LastName,
-					Email: rows[i].User.Email,
-				},
-				CreatedAt:    rows[i].CreatedAt,
+				CreatedAt:   rows[i].CreatedAt,
 			},
-			Rank: (rows[i].Rank),
+			Rank: rows[i].Rank,
 		}
 	}
 
@@ -336,7 +345,7 @@ func (s *OrderService) SearchOrders(ctx context.Context, req *dto.OrderSearchReq
 
 	cacheData := struct {
 		Data []*dto.OrderSearchResponse `json:"data"`
-		Meta *utils.PaginatedMeta            `json:"meta"`
+		Meta *utils.PaginatedMeta       `json:"meta"`
 	}{Data: response, Meta: meta}
 
 	data, _ := json.Marshal(&cacheData)

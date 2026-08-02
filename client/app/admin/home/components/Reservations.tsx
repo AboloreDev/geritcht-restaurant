@@ -16,7 +16,7 @@ import { ReservationResponse } from "@/app/state/types/reservationTypes";
 
 export function TodaysReservationsList() {
   const today = todayDateString();
-  const { data, isLoading } = useGetAllRservationsQuery({
+  const { data, isLoading, isFetching } = useGetAllRservationsQuery({
     date: today,
     page: 1,
     page_size: 5,
@@ -49,6 +49,7 @@ export function TodaysReservationsList() {
       isLoading={isLoading}
       isEmpty={reservations.length === 0}
       emptyMessage="No reservations today."
+      isFetching={isFetching}
     >
       {reservations.map((r: ReservationResponse) => (
         <Link

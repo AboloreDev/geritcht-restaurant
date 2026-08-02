@@ -66,11 +66,10 @@ type OrderListResponse struct {
 	TotalPages int             `json:"total_pages"`
 }
 
-
 type OrderSearchRequest struct {
-	Query        string   `form:"q" binding:"required,min=1"`
-	Page         int      `form:"page"`
-	Limit        int      `form:"limit"`
+	Query string `form:"q" binding:"required,min=1"`
+	Page  int    `form:"page"`
+	Limit int    `form:"limit"`
 }
 
 type OrderSearchResponse struct {

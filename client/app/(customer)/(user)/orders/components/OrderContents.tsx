@@ -23,7 +23,7 @@ import {
   statusStyle,
 } from "@/app/utils/orderStatusHelpers";
 import {
-  resetReservationFilters,
+  resetOrdersFilters,
   setFilterDate,
   setFilterStatus,
   setFilterType,
@@ -43,9 +43,8 @@ export function OrderContents() {
     type: filterType || undefined,
   });
 
-  // @ts-expect-error "<>"
   const orders = data?.data.orders ?? [];
-  const hasMore = data ? (page ?? 1) < data.total_pages : false;
+  const hasMore = data ? data.data.page < data.data.total_pages : false;
   const hasActiveFilters = Boolean(filterDate || filterStatus || filterType);
 
   const isRefetchingFilters = isFetching && !isLoading && (page ?? 1) === 1;
@@ -137,7 +136,7 @@ export function OrderContents() {
 
           {hasActiveFilters && (
             <button
-              onClick={() => dispatch(resetReservationFilters())}
+              onClick={() => dispatch(resetOrdersFilters())}
               className="text-xs text-muted-foreground cursor-pointer hover:text-foreground"
             >
               Clear filters

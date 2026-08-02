@@ -216,6 +216,29 @@ func (s *Server) CancelTakeoutOrderHandler(ctx *gin.Context) {
 	utils.SuccessResponse(ctx, "Order cancelled successfully", nil)
 }
 
+func (s *Server) AdminCancelOrderHandler(ctx *gin.Context) {
+	idStr := ctx.Param("id")
+	id, err := strconv.ParseUint(idStr, 10, 32)
+	if err != nil {
+		utils.BadRequest(ctx, "invalid order id", err)
+		return
+	}
+	orderID := uint(id)
+
+	if err := s.orderService.AdminCancelOrder(ctx.Request.Context(), orderID); err != nil {
+		switch err {
+		case domain.ErrOrderNotFound:
+			utils.NotFound(ctx, "Order not found", err)
+			return
+		default:
+			utils.InternalServerError(ctx, "Failed to process refund", err)
+		}
+		return
+	}
+
+	utils.SuccessResponse(ctx, "Order cancelled successfully", nil)
+}
+
 // @Summary Search Orders
 // @Description Search orders by name with pagination
 // @Tags Orders

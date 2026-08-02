@@ -5,6 +5,7 @@ import {
   GetReservationsRequest,
   ReservationListResponse,
   ReservationResponse,
+  SearchReservationRequest,
 } from "../types/reservationTypes";
 import { baseApi } from "./baseApi";
 
@@ -92,6 +93,16 @@ export const reservationApi = baseApi.injectEndpoints({
       }),
       invalidatesTags: ["Reservation"],
     }),
+    searchReservation: builder.query<
+      ReservationResponse,
+      SearchReservationRequest
+    >({
+      query: ({ q }) => ({
+        url: "/reservations/search",
+        params: { q },
+      }),
+      providesTags: ["Reservation"],
+    }),
   }),
 });
 
@@ -102,4 +113,5 @@ export const {
   useGetReservationByIdQuery,
   useGetAllRservationsQuery,
   useCheckInReservationMutation,
+  useSearchReservationQuery,
 } = reservationApi;

@@ -62,5 +62,5 @@ var (
 	ErrIngredientSearchNotFound = errors.New("Ingredient Search Not Found")
 	ErrCategoriesSearchNotFound = errors.New("Categories Search Not Found")
 	ErrReservationSeachNotFound = errors.New("Reservation Search Not Found")
-	ErrOrderSeachNotFound = errors.New("Order Search Not Found")
+	ErrOrderSeachNotFound       = errors.New("Order Search Not Found")
 )

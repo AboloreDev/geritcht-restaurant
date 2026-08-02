@@ -80,8 +80,7 @@ func (r *OrderRepository) GetAll(ctx context.Context, filter *dto.OrderFilterReq
 	offset := utils.Pagination(filter.Page, filter.PageSize)
 
 	query := r.db.WithContext(ctx).Model(&models.Order{})
-	query = utils.ApplyOrderFilters(query, filter)
-	query.Count(&total)
+	query.Session(&gorm.Session{}).Count(&total)
 
 	err := query.
 		Preload("OrderItems.Menu.Images").Preload("User").Preload("Payment").
@@ -109,8 +108,7 @@ func (r *OrderRepository) CountByUserAndID(ctx context.Context, orderID, userID 
 	return count, err
 }
 
-
-// TsVector 
+// TsVector
 func (r *OrderRepository) TsvectorSearchOrders(ctx context.Context, req *dto.OrderSearchRequest) ([]models.OrderWithRank, int64, error) {
 	if req.Page <= 0 {
 		req.Page = 1
@@ -122,7 +120,7 @@ func (r *OrderRepository) TsvectorSearchOrders(ctx context.Context, req *dto.Ord
 	offset := utils.Pagination(req.Page, req.Limit)
 
 	// build query
-	query := r.db.Model(&models.Order{}).WithContext(ctx).
+	query := r.db.Model(&models.Order{}).WithContext(ctx).Preload("User").
 		Select("orders.*, ts_rank(search_vector, plainto_tsquery('english', ?)) AS rank", req.Query).
 		Where("search_vector @@ to_tsquery('english', ? || ':*')", req.Query).
 		Offset(offset).Limit(req.Limit)

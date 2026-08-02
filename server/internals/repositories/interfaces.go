@@ -262,7 +262,6 @@ type ReservationNoShowInterface interface {
 
 	// Business Logic
 	MarkReservationNoShow(ctx context.Context, reservation *models.Reservation) error
-
 }
 
 // Reservation reminder interface

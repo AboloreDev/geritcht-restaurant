@@ -1,6 +1,6 @@
 import type { Menu } from "@/app/state/types/menuTypes";
-import { UserResponse } from "./authTypes";
 import { PaymentResponse } from "./paymentTypes";
+import { UserResponse } from "./userTypes";
 
 // --- Requests ---
 
@@ -44,9 +44,6 @@ export interface OrderItem {
   special_instructions: string;
 }
 
-// placeholder — I don't have your actual UserResponse/PaymentResponse
-// DTOs, so these are minimal guesses. Replace with your real shapes.
-
 export interface Order {
   id: number;
   user_id: number | null;
@@ -71,12 +68,25 @@ export interface OrderResponse {
   error: string;
 }
 
-export interface OrderListResponse {
+export interface OrderSearchResponse {
   status: boolean;
   message: string;
   data: Order[];
-  total: number;
-  page: number;
-  page_size: number;
-  total_pages: number;
+  error: string;
+}
+
+export interface OrderListResponse {
+  status: boolean;
+  message: string;
+  data: {
+    orders: Order[];
+    total: number;
+    page: number;
+    page_size: number;
+    total_pages: number;
+  };
+}
+
+export interface SearchOrderRequest {
+  q: string;
 }

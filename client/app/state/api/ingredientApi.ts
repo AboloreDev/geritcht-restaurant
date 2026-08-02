@@ -2,6 +2,7 @@ import {
   GetIngredientsRequest,
   IngredientResponse,
   InventoryAlertResponse,
+  SearchIngredientRequest,
 } from "../types/ingredientTypes";
 import { baseApi } from "./baseApi";
 
@@ -28,6 +29,16 @@ export const ingredientApi = baseApi.injectEndpoints({
       }),
       providesTags: ["Ingredient"],
     }),
+    searchIngredient: builder.query<
+      IngredientResponse,
+      SearchIngredientRequest
+    >({
+      query: ({ q }) => ({
+        url: "/ingredients/search",
+        params: { q },
+      }),
+      providesTags: ["Ingredient"],
+    }),
   }),
 });
 
@@ -35,4 +46,5 @@ export const {
   useGetAllIngredientsQuery,
   useGetLowStockIngredientsQuery,
   useGetInventoryAlertsQuery,
+  useSearchIngredientQuery,
 } = ingredientApi;

@@ -4,6 +4,8 @@ import {
   GetOrdersRequest,
   OrderListResponse,
   OrderResponse,
+  OrderSearchResponse,
+  SearchOrderRequest,
 } from "../types/orderTypes";
 import { baseApi } from "./baseApi";
 
@@ -33,7 +35,7 @@ export const orderApi = baseApi.injectEndpoints({
           if (!arg.page || arg.page === 1) {
             return newResponse;
           }
-          currentCache.data.push(...newResponse.data);
+          currentCache.data.orders.push(...newResponse.data.orders);
         },
         forceRefetch: ({ currentArg, previousArg }) => {
           return currentArg?.page !== previousArg?.page;
@@ -54,7 +56,7 @@ export const orderApi = baseApi.injectEndpoints({
         if (!arg.page || arg.page === 1) {
           return newResponse;
         }
-        currentCache.data.push(...newResponse.data);
+        currentCache.data.orders.push(...newResponse.data.orders);
       },
       forceRefetch: ({ currentArg, previousArg }) => {
         return currentArg?.page !== previousArg?.page;
@@ -65,6 +67,23 @@ export const orderApi = baseApi.injectEndpoints({
       query: ({ id }) => `/orders/takeout/${id}`,
       providesTags: ["Orders"],
     }),
+    searchOrder: builder.query<OrderSearchResponse, SearchOrderRequest>({
+      query: ({ q }) => ({
+        url: "/orders/search",
+        params: { q },
+      }),
+      providesTags: ["Orders"],
+    }),
+    adminCancelOrder: builder.mutation<
+      { status: boolean; message: string },
+      { id: number }
+    >({
+      query: ({ id }) => ({
+        url: `/orders/${id}/cancel`,
+        method: "PATCH",
+      }),
+      invalidatesTags: ["Orders"],
+    }),
   }),
 });
 
@@ -73,4 +92,6 @@ export const {
   useGetAllOrdersQuery,
   useGetAllUserTakeoutOrdersQuery,
   useGetOrderByIdQuery,
+  useSearchOrderQuery,
+  useAdminCancelOrderMutation,
 } = orderApi;

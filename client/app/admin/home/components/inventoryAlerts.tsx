@@ -12,9 +12,6 @@ export function InventoryAlerts() {
   const lowStock = data?.data.low_stock_ingredients ?? [];
   const outOfStock = data?.data.out_of_stock_items ?? [];
 
-  console.log("lowStock", lowStock);
-  console.log("outOfStock", outOfStock);
-
   if (isLoading) {
     return <div className="h-16 animate-pulse rounded-xl bg-[#faedcd]/70" />;
   }

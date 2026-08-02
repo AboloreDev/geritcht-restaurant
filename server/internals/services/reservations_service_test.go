@@ -24,7 +24,7 @@ type MockReservationRepository struct {
 	tables       []models.Table
 	reservation  *models.Reservation
 	reservations []models.Reservation
-	searchRank		[]models.ReservationWithRank
+	searchRank   []models.ReservationWithRank
 	waitlist     *models.Waitlist
 	total        int64
 	count        int64

@@ -39,3 +39,7 @@ export interface InventoryAlertResponse {
   message: string;
   data: InventoryAlert;
 }
+
+export interface SearchIngredientRequest {
+  q: string;
+}

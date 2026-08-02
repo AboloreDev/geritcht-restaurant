@@ -229,6 +229,7 @@ func (s *Server) SetUpRoutes() *gin.Engine {
 				order.GET("/all", s.AdminMiddleware(), s.GetAllOrdersHandler)
 				order.PATCH("/takeout/:id/cancel", s.RateLimiter(10, time.Minute), s.CancelReservationHandler)
 				order.GET("/search", s.AdminMiddleware(), s.SearchOrderHandler)
+				order.PATCH("/:id/cancel", s.AdminMiddleware(), s.AdminCancelOrderHandler)
 			}
 
 			payment := protected.Group("/payments")
@@ -242,11 +243,7 @@ func (s *Server) SetUpRoutes() *gin.Engine {
 				payment.GET("/ref/:reference", s.GetPaymentByReferenceHandler)
 
 			}
-			websocket := protected.Group("/ws")
-			{
-				// Websocket
-				websocket.GET("/orders/:id", s.AuthMiddleware(), s.WebSocketHandler)
-			}
+			
 			ingredient := protected.Group("/ingredients")
 			{
 				// Ingredient Protected Routes
@@ -288,6 +285,7 @@ func (s *Server) SetUpRoutes() *gin.Engine {
 		api.GET("/table/:id", s.GetTableHandler)
 		api.GET("/availability", s.RateLimiter(60, time.Minute), s.CheckAvailabilityHandler)
 		api.POST("/payments/webhook", s.WebhookHandler)
+		api.GET("/ws/orders/:id", s.WebSocketHandler)
 	}
 	return router
 }

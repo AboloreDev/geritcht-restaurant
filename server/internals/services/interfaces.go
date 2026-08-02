@@ -111,7 +111,7 @@ type OrderServiceInterface interface {
 	GetAllOrders(ctx context.Context, filter *dto.OrderFilterRequest) (*dto.OrderListResponse, error)
 	AdminCancelOrder(ctx context.Context, orderID uint) error
 
-	SearchOrders(ctx context.Context, req *dto.OrderSearchRequest) ([]*dto.OrderSearchResponse, *utils.PaginatedMeta, error) 
+	SearchOrders(ctx context.Context, req *dto.OrderSearchRequest) ([]*dto.OrderSearchResponse, *utils.PaginatedMeta, error)
 }
 
 // Payment Srvice

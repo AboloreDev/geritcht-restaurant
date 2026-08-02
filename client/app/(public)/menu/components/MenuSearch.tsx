@@ -9,14 +9,7 @@ import { Search, X } from "@mynaui/icons-react";
 import { Input } from "@/components/ui/input";
 import { useAppDispatch } from "@/app/state/redux";
 import { useSearchMenuQuery } from "@/app/state/api/menuApi";
-
-function formatNaira(amount: number) {
-  return new Intl.NumberFormat("en-NG", {
-    style: "currency",
-    currency: "NGN",
-    maximumFractionDigits: 0,
-  }).format(amount);
-}
+import { formatNaira } from "@/app/utils/formatNaira";
 
 export function MenuSearch() {
   const dispatch = useAppDispatch();

@@ -200,8 +200,7 @@ func (r *ReservationRepository) LockTableForUpdate(ctx context.Context, tx *gorm
 	return &table, err
 }
 
-
-// TsVector 
+// TsVector
 func (r *ReservationRepository) TsvectorSearchReservations(ctx context.Context, req *dto.ReservationSearchRequest) ([]models.ReservationWithRank, int64, error) {
 	if req.Page <= 0 {
 		req.Page = 1
@@ -213,7 +212,7 @@ func (r *ReservationRepository) TsvectorSearchReservations(ctx context.Context, 
 	offset := utils.Pagination(req.Page, req.Limit)
 
 	// build query
-	query := r.db.Model(&models.Order{}).WithContext(ctx).
+	query := r.db.Model(&models.Order{}).WithContext(ctx).Preload("User").
 		Select("reservations.*, ts_rank(search_vector, plainto_tsquery('english', ?)) AS rank", req.Query).
 		Where("search_vector @@ to_tsquery('english', ? || ':*')", req.Query).
 		Offset(offset).Limit(req.Limit)

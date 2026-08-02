@@ -488,7 +488,7 @@ func (s *ReservationService) SearchReservations(ctx context.Context, req *dto.Re
 	if err == nil && cached != "" {
 		var cachedResponse struct {
 			Data []*dto.ReservationSearchResponse `json:"data"`
-			Meta *utils.PaginatedMeta            `json:"meta"`
+			Meta *utils.PaginatedMeta             `json:"meta"`
 		}
 		if err := json.Unmarshal([]byte(cached), &cachedResponse); err == nil {
 			return cachedResponse.Data, cachedResponse.Meta, nil
@@ -505,18 +505,18 @@ func (s *ReservationService) SearchReservations(ctx context.Context, req *dto.Re
 	for i := range rows {
 		response[i] = &dto.ReservationSearchResponse{
 			ReservationResponse: dto.ReservationResponse{
-				ID:           rows[i].ID,
-				UserID:         rows[i].UserID,
-				Status: 	string(rows[i].Status),
-				TimeSlot:  utils.FormatDataTypesTime(rows[i].TimeSlot),
-				Date: rows[i].Date.Format("2006-01-02"),
+				ID:       rows[i].ID,
+				UserID:   rows[i].UserID,
+				Status:   string(rows[i].Status),
+				TimeSlot: utils.FormatDataTypesTime(rows[i].TimeSlot),
+				Date:     rows[i].Date.Format("2006-01-02"),
 				User: &dto.UserResponse{
-					ID: rows[i].User.ID,
+					ID:        rows[i].User.ID,
 					FirstName: rows[i].User.FirstName,
-					LastName: rows[i].User.LastName,
-					Email: rows[i].User.Email,
+					LastName:  rows[i].User.LastName,
+					Email:     rows[i].User.Email,
 				},
-				CreatedAt:    rows[i].CreatedAt,
+				CreatedAt: rows[i].CreatedAt,
 			},
 			Rank: (rows[i].Rank),
 		}
@@ -539,7 +539,7 @@ func (s *ReservationService) SearchReservations(ctx context.Context, req *dto.Re
 
 	cacheData := struct {
 		Data []*dto.ReservationSearchResponse `json:"data"`
-		Meta *utils.PaginatedMeta            `json:"meta"`
+		Meta *utils.PaginatedMeta             `json:"meta"`
 	}{Data: response, Meta: meta}
 
 	data, _ := json.Marshal(&cacheData)
