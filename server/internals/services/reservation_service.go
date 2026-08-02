@@ -482,6 +482,72 @@ func (s *ReservationService) CancelReservation(ctx context.Context, userID uint,
 	return mapper.ReservationResponse(fullReservation), nil
 }
 
+func (s *ReservationService) SearchReservations(ctx context.Context, req *dto.ReservationSearchRequest) ([]*dto.ReservationSearchResponse, *utils.PaginatedMeta, error) {
+	cacheKey := fmt.Sprintf("reservations:%s:p%d:s%d", req.Query, req.Page, req.Limit)
+	cached, err := s.redisStore.Get(ctx, cacheKey)
+	if err == nil && cached != "" {
+		var cachedResponse struct {
+			Data []*dto.ReservationSearchResponse `json:"data"`
+			Meta *utils.PaginatedMeta            `json:"meta"`
+		}
+		if err := json.Unmarshal([]byte(cached), &cachedResponse); err == nil {
+			return cachedResponse.Data, cachedResponse.Meta, nil
+		}
+	}
+
+	rows, count, err := s.reservationRepo.TsvectorSearchReservations(ctx, req)
+	if err != nil {
+		return nil, nil, domain.ErrIngredientSearchNotFound
+	}
+
+	response := make([]*dto.ReservationSearchResponse, len(rows))
+
+	for i := range rows {
+		response[i] = &dto.ReservationSearchResponse{
+			ReservationResponse: dto.ReservationResponse{
+				ID:           rows[i].ID,
+				UserID:         rows[i].UserID,
+				Status: 	string(rows[i].Status),
+				TimeSlot:  utils.FormatDataTypesTime(rows[i].TimeSlot),
+				Date: rows[i].Date.Format("2006-01-02"),
+				User: &dto.UserResponse{
+					ID: rows[i].User.ID,
+					FirstName: rows[i].User.FirstName,
+					LastName: rows[i].User.LastName,
+					Email: rows[i].User.Email,
+				},
+				CreatedAt:    rows[i].CreatedAt,
+			},
+			Rank: (rows[i].Rank),
+		}
+	}
+
+	if req.Page <= 0 {
+		req.Page = 1
+	}
+	if req.Limit <= 0 {
+		req.Limit = 20
+	}
+
+	totalPages := int((count + int64(req.Limit) - 1) / int64(req.Limit))
+	meta := &utils.PaginatedMeta{
+		Page:       req.Page,
+		Limit:      req.Limit,
+		Total:      count,
+		TotalPages: totalPages,
+	}
+
+	cacheData := struct {
+		Data []*dto.ReservationSearchResponse `json:"data"`
+		Meta *utils.PaginatedMeta            `json:"meta"`
+	}{Data: response, Meta: meta}
+
+	data, _ := json.Marshal(&cacheData)
+	s.redisStore.Set(ctx, cacheKey, string(data), 5*time.Minute)
+
+	return response, meta, nil
+}
+
 // Private helper
 func (s *ReservationService) buildReservationListResponse(
 	reservations []models.Reservation,

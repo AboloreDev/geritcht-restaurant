@@ -2,6 +2,8 @@ import {
   ChangePasswordRequest,
   GetProfileResponse,
   UpdateProfileRequest,
+  User,
+  UserResponse,
 } from "../types/authTypes";
 import { baseApi } from "./baseApi";
 
@@ -45,6 +47,12 @@ export const userApi = baseApi.injectEndpoints({
       }),
       invalidatesTags: ["User"],
     }),
+    getAllUsers: builder.query<User, void>({
+      query: () => ({
+        url: `/users/`,
+      }),
+      providesTags: ["User"],
+    }),
   }),
 });
 
@@ -53,4 +61,5 @@ export const {
   useUpdateUserProfileMutation,
   useChangePasswordMutation,
   useDeactivateAccountMutation,
+  useGetAllUsersQuery,
 } = userApi;

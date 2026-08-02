@@ -70,6 +70,7 @@ func (m *MockInventoryRepository) GetMenuItemIDsByIngredient(_ context.Context, 
 func (m *MockInventoryRepository) DisableMenuItems(_ context.Context, _ *gorm.DB, menuItemIDs []uint) error {
 	return m.disableErr
 }
+func (m *MockInventoryRepository) GetMenuByID(ctx context.Context, tx *gorm.DB, menuID uint) (*models.Menu, error)
 
 func newInventoryService(repo *MockInventoryRepository) *InventoryService {
 	return NewInventoryService(

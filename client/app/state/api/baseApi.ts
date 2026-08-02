@@ -93,6 +93,7 @@ export const baseApi = createApi({
     "Cart",
     "Orders",
     "User",
+    "Ingredient",
   ],
   endpoints: (builder) => ({
     logout: builder.mutation<
@@ -116,6 +117,7 @@ export const baseApi = createApi({
         "Cart",
         "Orders",
         "User",
+        "Ingredient",
       ],
       async onQueryStarted(_, { queryFulfilled }) {
         try {

@@ -27,6 +27,8 @@ import {
   InvoiceIcon,
   CashbackIcon,
   AutoConversationsIcon,
+  SausageIcon,
+  Users,
 } from "@hugeicons/core-free-icons";
 import { useAuth } from "@/app/hooks/isAuthenticated";
 import Image from "next/image";
@@ -62,6 +64,16 @@ const data = {
       title: "Reservations",
       url: "/admin/reservations",
       icon: <HugeiconsIcon icon={AirplaneSeatIcon} strokeWidth={2} />,
+    },
+    {
+      title: "Ingredients",
+      url: "/admin/ingredients",
+      icon: <HugeiconsIcon icon={SausageIcon} strokeWidth={2} />,
+    },
+    {
+      title: "Users",
+      url: "/admin/users",
+      icon: <HugeiconsIcon icon={Users} strokeWidth={2} />,
     },
   ],
   navSecondary: [

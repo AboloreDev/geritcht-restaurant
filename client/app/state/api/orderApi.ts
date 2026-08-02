@@ -43,7 +43,7 @@ export const orderApi = baseApi.injectEndpoints({
     ),
     getAllOrders: builder.query<OrderListResponse, GetOrdersRequest>({
       query: (params) => ({
-        url: "/orders/all/",
+        url: "/orders/all",
         params,
       }),
       serializeQueryArgs: ({ queryArgs }) => {

@@ -197,3 +197,13 @@ func (s *Server) GetRecipesHandler(ctx *gin.Context) {
 
 	utils.SuccessResponse(ctx, "Recipe fetched successfully", response)
 }
+
+func (s *Server) GetInventoryAlertsHandler(ctx *gin.Context) {
+	response, err := s.inventoryService.InventoryAlerts(ctx.Request.Context())
+	if err != nil {
+		utils.InternalServerError(ctx, "Failed to fetch inventory alerts", err)
+		return
+	}
+
+	utils.SuccessResponse(ctx, "Inventory alerts fetched successfully", response)
+}

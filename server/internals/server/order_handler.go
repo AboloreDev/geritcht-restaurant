@@ -1,6 +1,7 @@
 package server
 
 import (
+	"errors"
 	"strconv"
 
 	"github.com/AboloreDev/geritcht-restaurant/internals/domain"
@@ -213,4 +214,44 @@ func (s *Server) CancelTakeoutOrderHandler(ctx *gin.Context) {
 	}
 
 	utils.SuccessResponse(ctx, "Order cancelled successfully", nil)
+}
+
+// @Summary Search Orders
+// @Description Search orders by name with pagination
+// @Tags Orders
+// @Accept json
+// @Produce json
+// @Param query query string false "Order name"
+// @Param page query int false "Page number"
+// @Param pageSize query int false "Number of items per page"
+// @Security BearerAuth
+// @Success 200 {object} utils.PaginatedResponse{data=[]dto.OrderResponse} "Orders retrieved successfully"
+// @Failure 400 {object} utils.Response "Invalid search parameters"
+// @Failure 401 {object} utils.Response "Unauthorized"
+// @Failure 403 {object} utils.Response "Forbidden"
+// @Failure 404 {object} utils.Response "No orders found"
+// @Failure 500 {object} utils.Response "Internal server error"
+// @Router /orders/search [get]
+func (s *Server) SearchOrderHandler(ctx *gin.Context) {
+	var req dto.OrderSearchRequest
+
+	if err := ctx.ShouldBindQuery(&req); err != nil {
+		utils.BadRequest(ctx, "Invalid search parameters", err)
+		return
+	}
+
+	response, meta, err := s.orderService.SearchOrders(ctx.Request.Context(), &req)
+	if err != nil {
+		switch err {
+		case domain.ErrOrderSeachNotFound:
+			utils.NotFound(ctx, "Search returned no result", err)
+		default:
+			s.log.Error().Err(err).Msg("Order search failed")
+			utils.InternalServerError(ctx, "Something went wrong", errors.New("unable to complete search at this time"))
+
+		}
+		return
+	}
+
+	utils.PaginatedSuccessResponse(ctx, "orders retrieved successfully", response, *meta)
 }

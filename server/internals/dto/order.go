@@ -43,7 +43,7 @@ type OrderItemResponse struct {
 
 type OrderResponse struct {
 	ID            uint                `json:"id"`
-	UserID        *uint               `json:"user_id"`
+	UserID        *uint               `json:"user_id,omitempty"`
 	User          *UserResponse       `json:"user,omitempty"`
 	TableID       *uint               `json:"table_id"`
 	ReservationID *uint               `json:"reservation_id"`
@@ -64,4 +64,16 @@ type OrderListResponse struct {
 	Page       int             `json:"page"`
 	PageSize   int             `json:"page_size"`
 	TotalPages int             `json:"total_pages"`
+}
+
+
+type OrderSearchRequest struct {
+	Query        string   `form:"q" binding:"required,min=1"`
+	Page         int      `form:"page"`
+	Limit        int      `form:"limit"`
+}
+
+type OrderSearchResponse struct {
+	OrderResponse
+	Rank float32 `json:"rank"`
 }

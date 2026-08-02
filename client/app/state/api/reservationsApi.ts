@@ -82,6 +82,16 @@ export const reservationApi = baseApi.injectEndpoints({
       query: ({ id }) => `/reservations/${id}/user`,
       providesTags: ["Reservation"],
     }),
+    checkInReservation: builder.mutation<
+      { status: boolean; message: string },
+      { id: number }
+    >({
+      query: ({ id }) => ({
+        url: `/reservations/${id}`,
+        method: "POST",
+      }),
+      invalidatesTags: ["Reservation"],
+    }),
   }),
 });
 
@@ -90,4 +100,6 @@ export const {
   useCreateReservationMutation,
   useGetAllUserRservationsQuery,
   useGetReservationByIdQuery,
+  useGetAllRservationsQuery,
+  useCheckInReservationMutation,
 } = reservationApi;

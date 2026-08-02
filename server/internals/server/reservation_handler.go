@@ -1,6 +1,7 @@
 package server
 
 import (
+	"errors"
 	"strconv"
 
 	"github.com/AboloreDev/geritcht-restaurant/internals/domain"
@@ -343,4 +344,44 @@ func (s *Server) CancelReservationHandler(ctx *gin.Context) {
 	}
 
 	utils.SuccessResponse(ctx, "Successfully cancelled", response)
+}
+
+// @Summary Search Reservations
+// @Description Search reservations by name with pagination
+// @Tags Reservations
+// @Accept json
+// @Produce json
+// @Param query query string false "Reservation name"
+// @Param page query int false "Page number"
+// @Param pageSize query int false "Number of items per page"
+// @Security BearerAuth
+// @Success 200 {object} utils.PaginatedResponse{data=[]dto.ReservationResponse} "Reservations retrieved successfully"
+// @Failure 400 {object} utils.Response "Invalid search parameters"
+// @Failure 401 {object} utils.Response "Unauthorized"
+// @Failure 403 {object} utils.Response "Forbidden"
+// @Failure 404 {object} utils.Response "No reservations found"
+// @Failure 500 {object} utils.Response "Internal server error"
+// @Router /reservations/search [get]
+func (s *Server) SearchReservationHandler(ctx *gin.Context) {
+	var req dto.ReservationSearchRequest
+
+	if err := ctx.ShouldBindQuery(&req); err != nil {
+		utils.BadRequest(ctx, "Invalid search parameters", err)
+		return
+	}
+
+	response, meta, err := s.reservationServices.SearchReservations(ctx.Request.Context(), &req)
+	if err != nil {
+		switch err {
+		case domain.ErrReservationSeachNotFound:
+			utils.NotFound(ctx, "Search returned no result", err)
+		default:
+			s.log.Error().Err(err).Msg("Reservation search failed")
+			utils.InternalServerError(ctx, "Something went wrong", errors.New("unable to complete search at this time"))
+
+		}
+		return
+	}
+
+	utils.PaginatedSuccessResponse(ctx, "reservation retrieved successfully", response, *meta)
 }

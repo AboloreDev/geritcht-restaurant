@@ -2579,6 +2579,63 @@ paths:
       summary: Get my takeout orders
       tags:
       - Orders
+  /orders/search:
+    get:
+      consumes:
+      - application/json
+      description: Search orders by name with pagination
+      parameters:
+      - description: Order name
+        in: query
+        name: query
+        type: string
+      - description: Page number
+        in: query
+        name: page
+        type: integer
+      - description: Number of items per page
+        in: query
+        name: pageSize
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Orders retrieved successfully
+          schema:
+            allOf:
+            - $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.PaginatedResponse'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_dto.OrderResponse'
+                  type: array
+              type: object
+        "400":
+          description: Invalid search parameters
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+        "404":
+          description: No orders found
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+      security:
+      - BearerAuth: []
+      summary: Search Orders
+      tags:
+      - Orders
   /orders/takeout:
     post:
       consumes:
@@ -3514,6 +3571,63 @@ paths:
       security:
       - BearerAuth: []
       summary: Check in reservation
+      tags:
+      - Reservations
+  /reservations/search:
+    get:
+      consumes:
+      - application/json
+      description: Search reservations by name with pagination
+      parameters:
+      - description: Reservation name
+        in: query
+        name: query
+        type: string
+      - description: Page number
+        in: query
+        name: page
+        type: integer
+      - description: Number of items per page
+        in: query
+        name: pageSize
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Reservations retrieved successfully
+          schema:
+            allOf:
+            - $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.PaginatedResponse'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_dto.ReservationResponse'
+                  type: array
+              type: object
+        "400":
+          description: Invalid search parameters
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+        "404":
+          description: No reservations found
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response'
+      security:
+      - BearerAuth: []
+      summary: Search Reservations
       tags:
       - Reservations
   /reservations/today:

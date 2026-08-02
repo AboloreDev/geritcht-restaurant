@@ -3007,6 +3007,99 @@ const docTemplate = `{
                 }
             }
         },
+        "/orders/search": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Search orders by name with pagination",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Orders"
+                ],
+                "summary": "Search Orders",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Order name",
+                        "name": "query",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Page number",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Number of items per page",
+                        "name": "pageSize",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Orders retrieved successfully",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.PaginatedResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_dto.OrderResponse"
+                                            }
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid search parameters",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response"
+                        }
+                    },
+                    "404": {
+                        "description": "No orders found",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response"
+                        }
+                    }
+                }
+            }
+        },
         "/orders/takeout": {
             "post": {
                 "security": [
@@ -4226,6 +4319,99 @@ const docTemplate = `{
                                 "type": "string",
                                 "description": "Remaining requests (0 when limited)"
                             }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/reservations/search": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Search reservations by name with pagination",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Reservations"
+                ],
+                "summary": "Search Reservations",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Reservation name",
+                        "name": "query",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Page number",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Number of items per page",
+                        "name": "pageSize",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Reservations retrieved successfully",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.PaginatedResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_dto.ReservationResponse"
+                                            }
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid search parameters",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response"
+                        }
+                    },
+                    "404": {
+                        "description": "No reservations found",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_AboloreDev_geritcht-restaurant_internals_utils.Response"
                         }
                     },
                     "500": {

@@ -62,3 +62,8 @@ const (
 	WaitlistStatusConfirmed WaitlistStatus = "confirmed"
 	WaitlistStatusExpired   WaitlistStatus = "expired"
 )
+
+type ReservationWithRank struct {
+	Reservation
+	Rank float32 `gorm:"column:rank"`
+}

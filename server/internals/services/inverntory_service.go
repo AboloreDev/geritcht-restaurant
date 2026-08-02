@@ -7,8 +7,10 @@ import (
 	"time"
 
 	"github.com/AboloreDev/geritcht-restaurant/internals/domain"
+	"github.com/AboloreDev/geritcht-restaurant/internals/dto"
 	"github.com/AboloreDev/geritcht-restaurant/internals/events"
 	"github.com/AboloreDev/geritcht-restaurant/internals/interfaces"
+	"github.com/AboloreDev/geritcht-restaurant/internals/mapper"
 	"github.com/AboloreDev/geritcht-restaurant/internals/models"
 	"github.com/AboloreDev/geritcht-restaurant/internals/repositories"
 	"gorm.io/gorm"
@@ -42,7 +44,6 @@ func (s *InventoryService) DeductStock(ctx context.Context, tx *gorm.DB, orderIt
 			return err
 		}
 
-		
 		if len(recipes) == 0 {
 			continue
 		}
@@ -168,4 +169,41 @@ func (s *InventoryService) CheckAndAlertThreshold(ctx context.Context, tx *gorm.
 	}
 
 	return nil
+}
+
+func (s *InventoryService) InventoryAlerts(ctx context.Context) (*dto.InventoryAlertResponse, error) {
+	lowIngredients, err := s.inventoryRepo.GetLowStockIngredients(ctx, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	outOfStockIngredients, err := s.inventoryRepo.GetOutOfStockIngredients(ctx, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	// resolve out-of-stock ingredients into the menu items they affect —
+	// same lookup already used in CheckAndAlertThreshold
+	var affectedMenuItems []models.Menu
+	seen := make(map[uint]bool)
+
+	for _, ing := range outOfStockIngredients {
+		menuItemIDs, err := s.inventoryRepo.GetMenuItemIDsByIngredient(ctx, nil, ing.ID)
+		if err != nil {
+			continue
+		}
+		for _, menuID := range menuItemIDs {
+			if seen[menuID] {
+				continue
+			}
+			seen[menuID] = true
+			menu, err := s.inventoryRepo.GetMenuByID(ctx, nil, menuID)
+			if err != nil {
+				continue
+			}
+			affectedMenuItems = append(affectedMenuItems, *menu)
+		}
+	}
+
+	return mapper.ConvertToInventoryAlertResponse(lowIngredients, affectedMenuItems), nil
 }

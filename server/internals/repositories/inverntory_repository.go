@@ -102,3 +102,12 @@ func (r *InventoryRepository) DisableMenuItems(ctx context.Context, tx *gorm.DB,
 		Where("id IN ?", menuItemIDs).
 		Update("is_available", false).Error
 }
+
+func (r *InventoryRepository) GetMenuByID(ctx context.Context, tx *gorm.DB, menuID uint) (*models.Menu, error) {
+	var menu models.Menu
+	err := r.getDB(tx).WithContext(ctx).First(&menu, menuID).Error
+	if err != nil {
+		return nil, err
+	}
+	return &menu, nil
+}

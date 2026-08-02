@@ -108,3 +108,40 @@ func (r *OrderRepository) CountByUserAndID(ctx context.Context, orderID, userID 
 		Count(&count).Error
 	return count, err
 }
+
+
+// TsVector 
+func (r *OrderRepository) TsvectorSearchOrders(ctx context.Context, req *dto.OrderSearchRequest) ([]models.OrderWithRank, int64, error) {
+	if req.Page <= 0 {
+		req.Page = 1
+	}
+	if req.Limit <= 0 {
+		req.Limit = 20
+	}
+
+	offset := utils.Pagination(req.Page, req.Limit)
+
+	// build query
+	query := r.db.Model(&models.Order{}).WithContext(ctx).
+		Select("orders.*, ts_rank(search_vector, plainto_tsquery('english', ?)) AS rank", req.Query).
+		Where("search_vector @@ to_tsquery('english', ? || ':*')", req.Query).
+		Offset(offset).Limit(req.Limit)
+
+	var count int64
+	query.Count(&count)
+
+	// Execute query with ranking
+	// Crreate rank struct
+
+	var rows []models.OrderWithRank
+	err :=
+		query.Order("rank DESC, created_at DESC").
+			Offset(offset).Limit(req.Limit).
+			Find(&rows).Error
+
+	if err != nil {
+		return nil, 0, err
+	}
+
+	return rows, count, nil
+}

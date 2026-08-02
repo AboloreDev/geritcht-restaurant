@@ -63,6 +63,13 @@ export interface UserResponse {
   created_at: string;
 }
 
+export interface User {
+  status: boolean;
+  message: string;
+  data: UserResponse[];
+  error: string;
+}
+
 export interface AuthResponse {
   status: boolean;
   message: string;

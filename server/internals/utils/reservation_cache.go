@@ -23,7 +23,7 @@ func GetReservationCacheTTL(filter *dto.ReservationFilterRequest) time.Duration 
 	if hasFilter {
 		return 50 * time.Second
 	}
-	return 20 * time.Minute
+	return 5 * time.Minute
 }
 
 func BuildUserReservationCacheKey(userID uint, filter *dto.ReservationFilterRequest) string {

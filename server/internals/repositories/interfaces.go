@@ -136,6 +136,9 @@ type OrderRepositoryInterface interface {
 	GetAll(ctx context.Context, filter *dto.OrderFilterRequest) ([]models.Order, int64, error)
 	UpdateStatus(ctx context.Context, orderID uint, status models.OrderStatus) error
 	CountByUserAndID(ctx context.Context, orderID, userID uint) (int64, error)
+
+	// TsVector
+	TsvectorSearchOrders(ctx context.Context, req *dto.OrderSearchRequest) ([]models.OrderWithRank, int64, error)
 }
 
 // Payment repository interface
@@ -209,6 +212,9 @@ type ReservationRepositoryInterface interface {
 	GetFirstWaitlistByDateSlot(ctx context.Context, tx *gorm.DB, date interface{}, timeSlot datatypes.Time, partySize int) (*models.Waitlist, error)
 	UpdateWaitlistStatus(ctx context.Context, tx *gorm.DB, waitlist *models.Waitlist, updates map[string]interface{}) error
 	LockTableForUpdate(ctx context.Context, tx *gorm.DB, tableID uint) (*models.Table, error)
+
+	// TsVector
+	TsvectorSearchReservations(ctx context.Context, req *dto.ReservationSearchRequest) ([]models.ReservationWithRank, int64, error)
 }
 
 // Inventory repository interface
@@ -224,6 +230,7 @@ type InventoryRepositoryInterface interface {
 	MarkOutboxPublished(ctx context.Context, tx *gorm.DB, outboxID uint) error
 	GetMenuItemIDsByIngredient(ctx context.Context, tx *gorm.DB, ingredientID uint) ([]uint, error)
 	DisableMenuItems(ctx context.Context, tx *gorm.DB, menuItemIDs []uint) error
+	GetMenuByID(ctx context.Context, tx *gorm.DB, menuID uint) (*models.Menu, error)
 }
 
 // Ingredient repository interface
@@ -255,6 +262,7 @@ type ReservationNoShowInterface interface {
 
 	// Business Logic
 	MarkReservationNoShow(ctx context.Context, reservation *models.Reservation) error
+
 }
 
 // Reservation reminder interface

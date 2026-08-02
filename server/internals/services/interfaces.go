@@ -90,6 +90,7 @@ type IngredientServiceInterface interface {
 type InventoryServiceInterface interface {
 	DeductStock(ctx context.Context, tx *gorm.DB, orderItems []models.OrderItem, orderID uint, createdBy uint) error
 	CheckAndAlertThreshold(ctx context.Context, tx *gorm.DB) error
+	InventoryAlerts(ctx context.Context) (*dto.InventoryAlertResponse, error)
 }
 
 // Recipes
@@ -108,6 +109,9 @@ type OrderServiceInterface interface {
 	CancelTakeoutOrder(ctx context.Context, userID, orderID uint) error
 	VerifyUserOrder(ctx context.Context, userID, orderID uint) error
 	GetAllOrders(ctx context.Context, filter *dto.OrderFilterRequest) (*dto.OrderListResponse, error)
+	AdminCancelOrder(ctx context.Context, orderID uint) error
+
+	SearchOrders(ctx context.Context, req *dto.OrderSearchRequest) ([]*dto.OrderSearchResponse, *utils.PaginatedMeta, error) 
 }
 
 // Payment Srvice
@@ -137,6 +141,8 @@ type ReservationServiceInterface interface {
 	CreateReservation(ctx context.Context, req *dto.CreateReservationRequest, userID uint) (*dto.ReservationResponse, error)
 	CheckTableAvailability(ctx context.Context, req *dto.CheckAvailabilityRequest) (*dto.AvailabilityResponse, error)
 	buildReservationListResponse(reservations []models.Reservation, count int64, req *dto.ReservationFilterRequest) *dto.ReservationListResponse
+
+	SearchReservations(ctx context.Context, req *dto.ReservationSearchRequest) ([]*dto.ReservationSearchResponse, *utils.PaginatedMeta, error)
 }
 
 // Table service

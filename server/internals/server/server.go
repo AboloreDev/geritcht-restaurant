@@ -207,7 +207,7 @@ func (s *Server) SetUpRoutes() *gin.Engine {
 				reservation.GET("/today", s.GetTodayReservationHandler)
 				reservation.POST("/:id", s.RateLimiter(20, time.Minute), s.CheckInReservationHandler)
 				reservation.PATCH("/:id/cancel", s.RateLimiter(10, time.Minute), s.RoleMiddleware("admin", "staff"), s.CancelReservationHandler)
-				// reservation.GET("/availability", s.CheckAvailabilityHandler)
+				reservation.GET("/search", s.AdminMiddleware(), s.SearchReservationHandler)
 			}
 
 			cart := protected.Group("/cart")
@@ -228,6 +228,7 @@ func (s *Server) SetUpRoutes() *gin.Engine {
 				order.GET("/takeout/all", s.GetAllUserTakeoutOrdersHandler)
 				order.GET("/all", s.AdminMiddleware(), s.GetAllOrdersHandler)
 				order.PATCH("/takeout/:id/cancel", s.RateLimiter(10, time.Minute), s.CancelReservationHandler)
+				order.GET("/search", s.AdminMiddleware(), s.SearchOrderHandler)
 			}
 
 			payment := protected.Group("/payments")
@@ -258,6 +259,7 @@ func (s *Server) SetUpRoutes() *gin.Engine {
 				ingredient.POST("/limit", s.RateLimiter(20, time.Minute), s.AdminMiddleware(), s.SetThresholdLimitHandler)
 				ingredient.GET("/search", s.AdminMiddleware(), s.SearchIngredientHandler)
 				ingredient.GET("/check-low-stock", s.AdminMiddleware(), s.CheckLowStockHandler)
+				ingredient.GET("/alerts", s.AdminMiddleware(), s.GetInventoryAlertsHandler)
 			}
 			recipes := protected.Group("/recipes")
 			{

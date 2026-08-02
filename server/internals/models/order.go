@@ -58,3 +58,9 @@ const (
 	OrderStatusCompleted OrderStatus = "completed"
 	OrderStatusCancelled OrderStatus = "cancelled"
 )
+
+
+type OrderWithRank struct {
+	Order
+	Rank float32 `gorm:"column:rank"`
+}

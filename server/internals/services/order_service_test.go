@@ -21,6 +21,7 @@ var testOrderCtx = context.Background()
 type MockOrderRepository struct {
 	order     *models.Order
 	orders    []models.Order
+	searchRank   []models.OrderWithRank
 	total     int64
 	count     int64
 	getErr    error
@@ -50,6 +51,9 @@ func (m *MockOrderRepository) UpdateStatus(_ context.Context, orderID uint, stat
 }
 func (m *MockOrderRepository) CountByUserAndID(_ context.Context, orderID, userID uint) (int64, error) {
 	return m.count, m.countErr
+}
+func (r *MockOrderRepository) TsvectorSearchOrders(ctx context.Context, req *dto.OrderSearchRequest) ([]models.OrderWithRank, int64, error) {
+	return r.searchRank, r.count, r.getErr
 }
 
 func newOrderService(orderRepo *MockOrderRepository) *OrderService {

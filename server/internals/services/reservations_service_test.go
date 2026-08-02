@@ -24,6 +24,7 @@ type MockReservationRepository struct {
 	tables       []models.Table
 	reservation  *models.Reservation
 	reservations []models.Reservation
+	searchRank		[]models.ReservationWithRank
 	waitlist     *models.Waitlist
 	total        int64
 	count        int64
@@ -94,6 +95,10 @@ func (m *MockReservationRepository) UpdateWaitlistStatus(_ context.Context, _ *g
 
 func (m *MockReservationRepository) LockTableForUpdate(_ context.Context, _ *gorm.DB, tableID uint) (*models.Table, error) {
 	return m.table, m.tableErr
+}
+
+func (r *MockReservationRepository) TsvectorSearchReservations(ctx context.Context, req *dto.ReservationSearchRequest) ([]models.ReservationWithRank, int64, error) {
+	return r.searchRank, r.count, r.reservationErr
 }
 
 func newReservationService(
