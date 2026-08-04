@@ -107,10 +107,10 @@ type OrderServiceInterface interface {
 	GetAllUserTakeoutOrders(ctx context.Context, userID uint, filter *dto.OrderFilterRequest) (*dto.OrderListResponse, error)
 	GetTakeoutOrder(ctx context.Context, userID, orderID uint) (*dto.OrderResponse, error)
 	CancelTakeoutOrder(ctx context.Context, userID, orderID uint) error
-	VerifyUserOrder(ctx context.Context, userID, orderID uint) error
+	VerifyUserOrder(ctx context.Context, userID uint, role string, orderID uint) error	
 	GetAllOrders(ctx context.Context, filter *dto.OrderFilterRequest) (*dto.OrderListResponse, error)
 	AdminCancelOrder(ctx context.Context, orderID uint) error
-
+	GetOrder(ctx context.Context, orderID uint) (*dto.OrderResponse, error)
 	SearchOrders(ctx context.Context, req *dto.OrderSearchRequest) ([]*dto.OrderSearchResponse, *utils.PaginatedMeta, error)
 }
 

@@ -2,9 +2,8 @@ import {
   ChangePasswordRequest,
   GetProfileResponse,
   UpdateProfileRequest,
-  User,
-  UserResponse,
 } from "../types/authTypes";
+import { User } from "../types/userTypes";
 import { baseApi } from "./baseApi";
 
 export const userApi = baseApi.injectEndpoints({

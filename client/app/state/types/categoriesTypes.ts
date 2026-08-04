@@ -21,11 +21,18 @@ export interface Pagination {
   total_pages: number;
 }
 
+export interface CategoryResponse {
+  status: boolean;
+  error: string;
+  message: string;
+  data: Category;
+}
+
 export interface GetCategoriesResponse {
   data: Category[];
-  pagination: Pagination;
+  meta: Pagination;
 }
 
 export interface SearchCategoriesRequest {
-  query: string;
+  q: string;
 }

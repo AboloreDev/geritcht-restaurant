@@ -22,7 +22,6 @@ import { useState } from "react";
 import { useAddToCartMutation } from "@/app/state/api/cartApi";
 import { toast } from "sonner";
 import { getApiError } from "@/app/utils/apiError";
-import { Input } from "@/components/ui/input";
 
 export function MenuCard({ menu }: { menu: Menu }) {
   const router = useRouter();

@@ -49,7 +49,7 @@ func (s *OrderAutoWorker) ProcessOrderStatus(log zerolog.Logger) {
 	s.db.Where("status IN ? AND type = ? AND updated_at < ?",
 		[]string{"confirmed", "preparing", "ready"},
 		models.OrderTypeTakeout,
-		time.Now().Add(-5*time.Minute),
+		time.Now().Add(-2*time.Minute),
 	).Find(&orders)
 
 	for _, order := range orders {
@@ -65,6 +65,7 @@ func (s *OrderAutoWorker) ProcessOrderStatus(log zerolog.Logger) {
 			continue
 		}
 		msg := websockets.BuildMessageWithStatus(order.ID, string(next))
+		log.Println(string(msg))
 		s.hub.Broadcast(order.ID, msg)
 
 		log.Info().

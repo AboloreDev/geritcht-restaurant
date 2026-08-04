@@ -1,10 +1,10 @@
 package server
 
 import (
+	"log"
 	"net/http"
 	"strconv"
 
-	"github.com/AboloreDev/geritcht-restaurant/internals/models"
 	"github.com/AboloreDev/geritcht-restaurant/internals/utils"
 	websockets "github.com/AboloreDev/geritcht-restaurant/internals/web-sockets"
 	"github.com/gin-gonic/gin"
@@ -41,7 +41,16 @@ var upgrader = websocket.Upgrader{
 // @Description {"order_id":12,"status":"ready"}
 // @Description {"order_id":12,"status":"completed"}
 func (s *Server) WebSocketHandler(ctx *gin.Context) {
-	userID := ctx.GetUint("user_id")
+	 token := ctx.Query("token")
+
+    claims, err := utils.ValidateToken(token, s.cfg.JWT.JWTSecret)
+    if err != nil {
+        return
+    }
+
+    userID := claims.UserID
+	adminRole := claims.Role
+	log.Println(adminRole)
 
 	idStr := ctx.Param("id")
 	id, err := strconv.ParseUint(idStr, 10, 32)
@@ -50,10 +59,10 @@ func (s *Server) WebSocketHandler(ctx *gin.Context) {
 		return
 	}
 	orderID := uint(id)
+	log.Println(orderID)
 
-	var order models.Order
-
-	err = s.orderService.VerifyUserOrder(ctx.Request.Context(), userID, orderID)
+	
+	err = s.orderService.VerifyUserOrder(ctx.Request.Context(), userID, adminRole, orderID)
 	if err != nil {
 		utils.BadRequest(ctx, "Order not found", err)
 		return
@@ -71,11 +80,15 @@ func (s *Server) WebSocketHandler(ctx *gin.Context) {
 		Conn:    conn,
 		Send:    make(chan []byte, 256),
 	}
+	log.Println(client)
+	s.hub.Register <- client	
 
-	s.hub.Register <- client
-
-	data := websockets.BuildMessageWithStatus(orderID, string(order.Status))
-	client.Send <- data
+	order, err := s.orderService.GetOrder(ctx.Request.Context(), orderID)
+	if err == nil {
+		data := websockets.BuildMessageWithStatus(orderID, string(order.Status))
+		log.Println(string(data))
+		client.Send <- data
+	}
 
 	// Launch the read and write goroutines for the client
 	go client.ReadPump()

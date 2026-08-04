@@ -108,6 +108,14 @@ func (r *OrderRepository) CountByUserAndID(ctx context.Context, orderID, userID 
 	return count, err
 }
 
+func (r *OrderRepository) ExistsByID(ctx context.Context, orderID uint) (bool, error) {
+	var count int64
+	err := r.db.WithContext(ctx).Model(&models.Order{}).
+		Where("id = ?", orderID).
+		Count(&count).Error
+	return count > 0, err
+}
+
 // TsVector
 func (r *OrderRepository) TsvectorSearchOrders(ctx context.Context, req *dto.OrderSearchRequest) ([]models.OrderWithRank, int64, error) {
 	if req.Page <= 0 {

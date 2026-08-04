@@ -152,8 +152,6 @@ func (s *Server) SetUpRoutes() *gin.Engine {
 				category.POST("/", s.AdminMiddleware(), s.CreateCategoryHandler)
 				category.PATCH("/:id", s.AdminMiddleware(), s.UpdateCategoryHandler)
 				category.DELETE("/:id", s.AdminMiddleware(), s.DeleteCategory)
-				// category.GET("/categories", s.GetCategoriesHandler)
-				// category.GET("/categories/:id", s.GetCategory)
 			}
 
 			menu := protected.Group("/menu")
@@ -161,8 +159,6 @@ func (s *Server) SetUpRoutes() *gin.Engine {
 				// Menu Protected Routes
 				menu.POST("/", s.RateLimiter(20, time.Minute), s.AdminMiddleware(), s.CreateMenuHandler)
 				menu.PATCH("/:id", s.RateLimiter(20, time.Minute), s.AdminMiddleware(), s.UpdateMenuHandler)
-				// menu.GET("/", s.GetAllMenuHandler)
-				// menu.GET("/:id", s.GetMenuHandler)
 				menu.DELETE("/:id", s.AdminMiddleware(), s.DeleteMenuHandler)
 				menu.PATCH("/:id/toggle", s.AdminMiddleware(), s.ToggleMenuAvailabilityHandler)
 				menu.POST("/:id/images", s.AdminMiddleware(), s.UploadMenuImageHandler)
@@ -224,11 +220,12 @@ func (s *Server) SetUpRoutes() *gin.Engine {
 			{
 				// Order Protected Routes
 				order.POST("/takeout", s.RateLimiter(20, time.Minute), s.CreateTakeoutOrderHandler)
-				order.GET("/takeout/:id", s.GetTakeoutOrderHandler)
-				order.GET("/takeout/all", s.GetAllUserTakeoutOrdersHandler)
+				order.GET("/takeout/:id", s.AuthMiddleware(), s.GetTakeoutOrderHandler)
+				order.GET("/takeout/all", s.AuthMiddleware(), s.GetAllUserTakeoutOrdersHandler)
 				order.GET("/all", s.AdminMiddleware(), s.GetAllOrdersHandler)
 				order.PATCH("/takeout/:id/cancel", s.RateLimiter(10, time.Minute), s.CancelReservationHandler)
 				order.GET("/search", s.AdminMiddleware(), s.SearchOrderHandler)
+				order.GET("/:id", s.AdminMiddleware(), s.GetOrderHandler)
 				order.PATCH("/:id/cancel", s.AdminMiddleware(), s.AdminCancelOrderHandler)
 			}
 
@@ -277,7 +274,7 @@ func (s *Server) SetUpRoutes() *gin.Engine {
 		// Public routes
 		api.GET("/categories", s.RateLimiter(100, time.Minute), s.GetCategoriesHandler)
 		api.GET("/categories/:id", s.RateLimiter(100, time.Minute), s.GetCategory)
-		api.GET("/category/search", s.SearchCategoryHandler)
+		api.GET("/categories/search", s.SearchCategoryHandler)
 		api.GET("/menu/search", s.SearchMenuHandler)
 		api.GET("/menu", s.RateLimiter(100, time.Minute), s.GetAllMenuHandler)
 		api.GET("/menu/:id", s.RateLimiter(100, time.Minute), s.GetMenuHandler)

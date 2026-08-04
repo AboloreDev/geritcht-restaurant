@@ -2,6 +2,7 @@
 
 import {
   useAdminCancelOrderMutation,
+  useAdminGetOrderByIdQuery,
   useGetOrderByIdQuery,
 } from "@/app/state/api/orderApi";
 import { getApiError } from "@/app/utils/apiError";
@@ -21,7 +22,7 @@ export default function OrderDetailAdmin() {
   const { id } = useParams();
   const orderId = Number(id);
 
-  const { data, isLoading, isError, refetch } = useGetOrderByIdQuery({
+  const { data, isLoading, isError, refetch } = useAdminGetOrderByIdQuery({
     id: orderId,
   });
   const [cancelOrder, { isLoading: isCancelling }] =
@@ -34,32 +35,53 @@ export default function OrderDetailAdmin() {
 
   useEffect(() => {
     const httpUrl = process.env.NEXT_PUBLIC_API_BASE_URL!;
-
+    const token = localStorage.getItem("accessToken");
     const wsUrl = httpUrl
       .replace("http://", "ws://")
       .replace("https://", "wss://");
 
-    console.log("Connecting to websocket for order", wsUrl, orderId);
+    const ws = new WebSocket(
+      `${wsUrl}/ws/orders/${orderId}?token=${encodeURIComponent(token!)}`,
+    );
 
-    const ws = new WebSocket(`${wsUrl}/ws/orders/${orderId}`);
-    console.log("Connecting to websocket for order", ws);
+    let isCleanedUp = false;
 
-    ws.onopen = () => setWsConnected(true);
+    ws.onopen = () => {
+      if (isCleanedUp) {
+        ws.close();
+        return;
+      }
+      setWsConnected(true);
+    };
+
     ws.onclose = () => setWsConnected(false);
+
     ws.onmessage = (event) => {
       try {
         const payload = JSON.parse(event.data);
         if (payload.status) {
           setLiveStatus(payload.status);
-          refetch(); // pull full order again so items/totals stay in sync too
+          refetch();
         }
       } catch {
         // ignore malformed frames
       }
     };
 
-    return () => ws.close();
-  }, [orderId, refetch]);
+    return () => {
+      isCleanedUp = true;
+      // only close if the connection actually opened or is opening —
+      // avoids the "closed before established" warning on a socket
+      // that's about to complete its handshake right as we clean up
+      if (
+        ws.readyState === WebSocket.OPEN ||
+        ws.readyState === WebSocket.CONNECTING
+      ) {
+        ws.close();
+      }
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [orderId]);
 
   async function handleCancel() {
     try {

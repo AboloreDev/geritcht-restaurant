@@ -24,6 +24,7 @@ func (h *Hub) Run() {
 	for {
 		select {
 		case client := <-h.Register:
+			log.Printf("Registered client for order %d", client.OrderID)
 			h.Mutex.Lock()
 			h.Clients[client.OrderID] = append(h.Clients[client.OrderID], client)
 			h.Mutex.Unlock()
@@ -55,6 +56,8 @@ func (h *Hub) Broadcast(orderID uint, message []byte) {
 	h.Mutex.RLock()
 	clients := h.Clients[orderID]
 	h.Mutex.RUnlock()
+
+	log.Printf("Broadcasting to order %d — %d clients connected", orderID, len(clients))
 
 	for _, client := range clients {
 		select {

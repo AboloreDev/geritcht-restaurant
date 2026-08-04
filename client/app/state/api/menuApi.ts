@@ -1,9 +1,13 @@
 import {
+  CreateMenuRequest,
   GetMenusRequest,
   GetMenusResponse,
   GetSingleMenuResponse,
   SearchMenuRequest,
+  ToggleAvailabilityRequest,
+  UpdateMenuRequest,
 } from "../types/menuTypes";
+import { MessageResponse } from "../types/userTypes";
 import { baseApi } from "./baseApi";
 
 export const menuApi = baseApi.injectEndpoints({
@@ -42,8 +46,71 @@ export const menuApi = baseApi.injectEndpoints({
       }),
       providesTags: ["Menu"],
     }),
+
+    createMenu: builder.mutation<GetSingleMenuResponse, CreateMenuRequest>({
+      query: (body) => ({
+        method: "POST",
+        url: "/menu/",
+        body,
+      }),
+      invalidatesTags: ["Menu"],
+    }),
+    updateMenu: builder.mutation<
+      GetSingleMenuResponse,
+      { id: number; body: UpdateMenuRequest }
+    >({
+      query: ({ id, body }) => ({
+        method: "PATCH",
+        url: `/menu/${id}`,
+        body,
+      }),
+      invalidatesTags: ["Menu"],
+    }),
+    uploadMenuImage: builder.mutation<
+      { message: string; data: { url: string } },
+      { id: number; image: File; is_primary: boolean }
+    >({
+      query: ({ id, image, is_primary }) => {
+        const formData = new FormData();
+        formData.append("image", image);
+        formData.append("is_primary", String(is_primary));
+
+        return {
+          url: `/menus/${id}/images`,
+          method: "POST",
+          body: formData,
+        };
+      },
+      invalidatesTags: ["Menu"],
+    }),
+    deleteImageUpload: builder.mutation<MessageResponse, { id: number }>({
+      query: ({ id }) => ({
+        method: "DELETE",
+        url: `/images/${id}`,
+      }),
+      invalidatesTags: ["Menu"],
+    }),
+    toggleMenuAvailability: builder.mutation<
+      MessageResponse,
+      { id: number; body: ToggleAvailabilityRequest }
+    >({
+      query: ({ id, body }) => ({
+        method: "PATCH",
+        url: `/menu/${id}/toggle`,
+        body,
+      }),
+      invalidatesTags: ["Menu"],
+    }),
   }),
 });
 
-export const { useGetMenusQuery, useSearchMenuQuery, useGetSingleMenuQuery } =
-  menuApi;
+export const {
+  useGetMenusQuery,
+  useSearchMenuQuery,
+  useGetSingleMenuQuery,
+  useCreateMenuMutation,
+  useUpdateMenuMutation,
+  useDeleteImageUploadMutation,
+  useToggleMenuAvailabilityMutation,
+  useUploadMenuImageMutation,
+} = menuApi;

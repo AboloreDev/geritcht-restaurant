@@ -13,6 +13,11 @@ export interface LoginRequest {
   password: string;
 }
 
+export interface MessageResponse {
+  status: boolean;
+  message: string;
+}
+
 export interface RefreshTokenRequest {
   refresh_token: string;
 }

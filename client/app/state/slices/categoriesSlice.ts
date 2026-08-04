@@ -5,12 +5,14 @@ interface CategoryState {
   search: string;
   page: number;
   limit: number;
+  query: string;
 }
 const initialState: CategoryState = {
   selectedCategoryId: null,
   search: "",
   page: 1,
-  limit: 100,
+  limit: 10,
+  query: "",
 };
 
 const categorySlice = createSlice({
@@ -23,6 +25,11 @@ const categorySlice = createSlice({
 
     setCategorySearch(state, action: PayloadAction<string>) {
       state.search = action.payload;
+      state.page = 1;
+    },
+
+    setQuery(state, action: PayloadAction<string>) {
+      state.query = action.payload;
       state.page = 1;
     },
 
@@ -43,6 +50,7 @@ export const {
   setCategorySearch,
   setCategoryPage,
   resetCategory,
+  setQuery,
 } = categorySlice.actions;
 
 export default categorySlice.reducer;

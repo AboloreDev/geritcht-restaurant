@@ -189,6 +189,35 @@ func (s *OrderService) GetTakeoutOrder(ctx context.Context, userID, orderID uint
 	return mapper.OrderResponse(order), nil
 }
 
+func (s *OrderService) GetOrder(ctx context.Context, orderID uint) (*dto.OrderResponse, error) {
+	cachedKey := fmt.Sprintf("orders:order:%d", orderID)
+
+	exists, _ := s.redisStore.Exists(ctx, cachedKey)
+	if exists {
+		cache, err := s.redisStore.Get(ctx, cachedKey)
+		if err == nil && cache != "" {
+			var order models.Order
+			err := json.Unmarshal([]byte(cache), &order)
+			if err != nil {
+				return nil, err
+			}
+			return mapper.OrderResponse(&order), nil
+		}
+	}
+	order, err := s.orderRepo.GetByID(ctx, nil, orderID)
+	if err != nil {
+		return nil, domain.ErrOrderNotFound
+	}
+
+	data, err := json.Marshal(&order)
+	if err != nil {
+		return nil, fmt.Errorf("Failed to set data: %w", err)
+	}
+	s.redisStore.Set(ctx, cachedKey, string(data), 20*time.Minute)
+
+	return mapper.OrderResponse(order), nil
+}
+
 func (s *OrderService) CancelTakeoutOrder(ctx context.Context, userID, orderID uint) error {
 	order, err := s.orderRepo.GetByIDAndUser(ctx, orderID, userID)
 	if err != nil {
@@ -241,7 +270,19 @@ func (s *OrderService) AdminCancelOrder(ctx context.Context, orderID uint) error
 	return nil
 }
 
-func (s *OrderService) VerifyUserOrder(ctx context.Context, userID, orderID uint) error {
+func (s *OrderService) VerifyUserOrder(ctx context.Context, userID uint, role string, orderID uint) error {
+	if role == string(models.RoleAdmin) {
+		exists, err := s.orderRepo.ExistsByID(ctx, orderID)
+		if err != nil {
+			return domain.ErrOrderNotFound
+		}
+		if !exists {
+			return domain.ErrOrderNotFound
+		}
+		return nil
+	}
+
+	// regular users can only watch their own order
 	count, err := s.orderRepo.CountByUserAndID(ctx, orderID, userID)
 	if err != nil {
 		return domain.ErrOrderNotFound

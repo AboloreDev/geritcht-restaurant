@@ -52,6 +52,9 @@ func (m *MockOrderRepository) UpdateStatus(_ context.Context, orderID uint, stat
 func (m *MockOrderRepository) CountByUserAndID(_ context.Context, orderID, userID uint) (int64, error) {
 	return m.count, m.countErr
 }
+func (m *MockOrderRepository) ExistsByID(ctx context.Context, orderID uint) (bool, error) {
+	return false, m.countErr
+}
 func (r *MockOrderRepository) TsvectorSearchOrders(ctx context.Context, req *dto.OrderSearchRequest) ([]models.OrderWithRank, int64, error) {
 	return r.searchRank, r.count, r.getErr
 }
@@ -170,10 +173,11 @@ func TestVerifyUserOrder(t *testing.T) {
 		count       int64
 		countErr    error
 		expectedErr error
+		role string
 	}{
-		{name: "order belongs to user", count: 1, expectedErr: nil},
-		{name: "order not found", count: 0, expectedErr: domain.ErrOrderNotFound},
-		{name: "db error", countErr: domain.ErrOrderNotFound, expectedErr: domain.ErrOrderNotFound},
+		{name: "order belongs to user", count: 1, expectedErr: nil, role: "admin"},
+		{name: "order not found", count: 0, expectedErr: domain.ErrOrderNotFound, role: "customer"},
+		{name: "db error", countErr: domain.ErrOrderNotFound, expectedErr: domain.ErrOrderNotFound, role: "customer"},
 	}
 
 	for _, tt := range tests {
@@ -183,7 +187,7 @@ func TestVerifyUserOrder(t *testing.T) {
 				countErr: tt.countErr,
 			})
 
-			err := service.VerifyUserOrder(testOrderCtx, 1, 1)
+			err := service.VerifyUserOrder(testOrderCtx, 1, tt.role, 1)
 
 			assert.Equal(t, tt.expectedErr, err)
 		})

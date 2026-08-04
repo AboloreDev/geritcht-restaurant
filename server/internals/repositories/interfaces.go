@@ -73,6 +73,7 @@ type CategoryRepositoryInterface interface {
 	Update(ctx context.Context, category *models.MenuCategory) error
 	Delete(ctx context.Context, categoryID uint) error
 	CountMenuItems(ctx context.Context, categoryID uint) (int64, error)
+	GetByIDAdmin(ctx context.Context, categoryID uint) (*models.MenuCategory, error)
 
 	// Search tsvector
 	TsvectorSearchCategories(ctx context.Context, req *dto.CategorySearchRequest) ([]models.MenuCategoryWithRank, int64, error)
@@ -136,6 +137,7 @@ type OrderRepositoryInterface interface {
 	GetAll(ctx context.Context, filter *dto.OrderFilterRequest) ([]models.Order, int64, error)
 	UpdateStatus(ctx context.Context, orderID uint, status models.OrderStatus) error
 	CountByUserAndID(ctx context.Context, orderID, userID uint) (int64, error)
+	ExistsByID(ctx context.Context, orderID uint) (bool, error)
 
 	// TsVector
 	TsvectorSearchOrders(ctx context.Context, req *dto.OrderSearchRequest) ([]models.OrderWithRank, int64, error)

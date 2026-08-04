@@ -85,7 +85,7 @@ func (s *CategoryService) CreateCategoryService(ctx context.Context, req *dto.Cr
 
 func (s *CategoryService) UpdateCategoryService(ctx context.Context, categoryID uint, req *dto.UpdateCategoryRequest) (*dto.MenuCategoryResponse, error) {
 
-	category, err := s.categoryRepo.GetByID(ctx, categoryID)
+	category, err := s.categoryRepo.GetByIDAdmin(ctx, categoryID)
 	if err != nil {
 		return nil, domain.ErrNotFound
 	}

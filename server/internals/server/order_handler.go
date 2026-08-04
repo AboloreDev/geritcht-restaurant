@@ -239,6 +239,29 @@ func (s *Server) AdminCancelOrderHandler(ctx *gin.Context) {
 	utils.SuccessResponse(ctx, "Order cancelled successfully", nil)
 }
 
+func (s *Server) GetOrderHandler(ctx *gin.Context) {
+	idStr := ctx.Param("id")
+	id, err := strconv.ParseUint(idStr, 10, 32)
+	if err != nil {
+		utils.BadRequest(ctx, "Invalid id", err)
+		return
+	}
+	orderID := uint(id)
+
+	response, err := s.orderService.GetOrder(ctx.Request.Context(), orderID)
+	if err != nil {
+		switch err {
+		case domain.ErrOrderNotFound:
+			utils.NotFound(ctx, "Order not found", err)
+		default:
+			utils.InternalServerError(ctx, "Failed to fetch order", err)
+		}
+		return
+	}
+
+	utils.SuccessResponse(ctx, "Order fetched successfully", response)
+}
+
 // @Summary Search Orders
 // @Description Search orders by name with pagination
 // @Tags Orders

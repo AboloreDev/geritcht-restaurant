@@ -35,6 +35,9 @@ func (m *MockCategoryRepository) Create(_ context.Context, category *models.Menu
 func (m *MockCategoryRepository) GetByID(_ context.Context, categoryID uint) (*models.MenuCategory, error) {
 	return m.category, m.getErr
 }
+func (m *MockCategoryRepository) GetByIDAdmin(_ context.Context, categoryID uint) (*models.MenuCategory, error) {
+	return m.category, m.getErr
+}
 func (m *MockCategoryRepository) GetByName(_ context.Context, name string) (*models.MenuCategory, error) {
 	return m.category, m.getErr
 }

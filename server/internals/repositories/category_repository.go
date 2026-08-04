@@ -32,6 +32,16 @@ func (r *CategoryRepository) GetByID(ctx context.Context, categoryID uint) (*mod
 	}
 	return &category, nil
 }
+func (r *CategoryRepository) GetByIDAdmin(ctx context.Context, categoryID uint) (*models.MenuCategory, error) {
+	var category models.MenuCategory
+	err := r.db.WithContext(ctx).
+		Where("id = ? ", categoryID).
+		First(&category).Error
+	if err != nil {
+		return nil, err
+	}
+	return &category, nil
+}
 
 func (r *CategoryRepository) GetByName(ctx context.Context, name string) (*models.MenuCategory, error) {
 	var category models.MenuCategory

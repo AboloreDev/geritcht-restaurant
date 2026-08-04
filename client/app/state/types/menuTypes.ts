@@ -2,22 +2,17 @@ export interface Menu {
   id: number;
   name: string;
   description: string;
-
   price: number;
   prep_time_minutes: number;
   spice_level: number;
-
   image_url: string;
   is_available: boolean;
   display_order: number;
-
   category_id: number;
   category: MenuCategory;
-
   images: MenuImage[];
   allergens: MenuAllergen[];
   dietary_tags: MenuDietaryTag[];
-
   created_at: string;
   updated_at: string;
 }
@@ -27,10 +22,8 @@ export interface MenuCategory {
   name: string;
   description: string;
   image_url: string;
-
   display_order: number;
   is_active: boolean;
-
   created_at: string;
 }
 
@@ -76,20 +69,45 @@ export interface GetSingleMenuResponse {
 export interface GetMenusRequest {
   page?: number;
   limit?: number;
-
   category_id?: number;
   query?: string;
-
   min_price?: number;
   max_price?: number;
-
   prep_time_minutes?: number;
   spice_level?: number;
-
   sort_by?: "name" | "price" | "created_at";
   sort_order?: "asc" | "desc";
 }
 
 export interface SearchMenuRequest {
   q: string;
+}
+
+export interface CreateMenuRequest {
+  category_id: number;
+  name: string;
+  description?: string;
+  price: number;
+  prep_time_minutes: number;
+  spice_level: number;
+  allergen_ids: number[];
+  dietary_tag_ids: number[];
+  display_order: number;
+}
+
+export interface UpdateMenuRequest {
+  category_id: number;
+  name: string;
+  description?: string;
+  price: number;
+  prep_time_minutes: number;
+  spice_level: number;
+  is_available?: boolean;
+  allergen_ids: number[];
+  dietary_tag_ids: number[];
+  display_order: number;
+}
+
+export interface ToggleAvailabilityRequest {
+  is_available: boolean;
 }

@@ -67,6 +67,10 @@ export const orderApi = baseApi.injectEndpoints({
       query: ({ id }) => `/orders/takeout/${id}`,
       providesTags: ["Orders"],
     }),
+    adminGetOrderById: builder.query<OrderResponse, { id: number }>({
+      query: ({ id }) => `/orders/${id}`,
+      providesTags: ["Orders"],
+    }),
     searchOrder: builder.query<OrderSearchResponse, SearchOrderRequest>({
       query: ({ q }) => ({
         url: "/orders/search",
@@ -94,4 +98,5 @@ export const {
   useGetOrderByIdQuery,
   useSearchOrderQuery,
   useAdminCancelOrderMutation,
+  useAdminGetOrderByIdQuery,
 } = orderApi;

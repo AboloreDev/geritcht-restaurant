@@ -21,7 +21,6 @@ import {
   Home11Icon,
   ShoppingCart02Icon,
   Folder03Icon,
-  FileStackIcon,
   TableRoundIcon,
   AirplaneSeatIcon,
   InvoiceIcon,
@@ -46,14 +45,26 @@ const data = {
       icon: <HugeiconsIcon icon={ShoppingCart02Icon} strokeWidth={2} />,
     },
     {
-      title: "Menu",
-      url: "/admin/menu",
+      title: "Menu Management",
       icon: <HugeiconsIcon icon={Folder03Icon} strokeWidth={2} />,
-    },
-    {
-      title: "Categories",
-      url: "/admin/categories",
-      icon: <HugeiconsIcon icon={FileStackIcon} strokeWidth={2} />,
+      items: [
+        {
+          title: "All Menu",
+          url: "/admin/menu",
+        },
+        {
+          title: "Categories",
+          url: "/admin/categories",
+        },
+        {
+          title: "Allergen",
+          url: "/admin/allergens",
+        },
+        {
+          title: "Dietary Tags",
+          url: "/admin/tags",
+        },
+      ],
     },
     {
       title: "Tables",
@@ -129,7 +140,6 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         <NavSecondary items={data.navSecondary} className="mt-auto" />
       </SidebarContent>
       <SidebarFooter>
-        {/* @ts-expect-error "<>" */}
         <NavUser user={user} />
       </SidebarFooter>
     </Sidebar>
