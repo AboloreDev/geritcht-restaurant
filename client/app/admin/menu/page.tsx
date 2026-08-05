@@ -7,9 +7,12 @@ import { MenuToolbar } from "./components/MenuToolbar";
 import { Separator } from "@/components/ui/separator";
 import MenuTable from "./components/MenuTable";
 import { setPage } from "@/app/state/slices/menuSlice";
+import { useState } from "react";
+import CreateMenuSheet from "./components/create/CreateMenuSheet";
 
 const Menu = () => {
   const dispatch = useAppDispatch();
+  const [openMenuCreateSheet, setOpenMenuCreateSheet] = useState(false);
   const {
     categoryId,
     page,
@@ -40,10 +43,12 @@ const Menu = () => {
   const total = menu?.meta.total ?? 0;
   const hasMore = menu ? menu.meta.page < menu.meta.total_pages : false;
 
-  const handleCreate = () => ({});
+  const handleCreate = () => {
+    setOpenMenuCreateSheet(true);
+  };
 
   return (
-    <div className="flex flex-col p-4 space-y-4 overflow-y-auto h-screen">
+    <div className="flex flex-col p-4 space-y-4 overflow-y-auto min-h-screen">
       <Header
         title="🍽️ Menu"
         subTitle="Manage your restaurant menu, pricing, availability and images."
@@ -51,19 +56,26 @@ const Menu = () => {
 
       <MenuStats menus={menus} total={total} />
 
-      <div className="bg-[#faedcd] h-screen rounded-2xl flex flex-col space-y-5 p-4">
-        <MenuToolbar onCreate={handleCreate} />
+      <div className="overflow-y-auto h-[800px] ">
+        <div className="bg-[#faedcd] rounded-2xl flex flex-col space-y-5 p-4">
+          <MenuToolbar onCreate={handleCreate} />
 
-        <Separator />
+          <Separator />
 
-        <MenuTable
-          menus={menus}
-          isLoading={isLoading}
-          isFetching={isFetching}
-          hasMore={hasMore}
-          onLoadMore={() => setPage(page + 1)}
-        />
+          <MenuTable
+            menus={menus}
+            isLoading={isLoading}
+            isFetching={isFetching}
+            hasMore={hasMore}
+            onLoadMore={() => setPage(page + 1)}
+          />
+        </div>
       </div>
+
+      <CreateMenuSheet
+        open={openMenuCreateSheet}
+        onOpenChange={() => setOpenMenuCreateSheet}
+      />
     </div>
   );
 };

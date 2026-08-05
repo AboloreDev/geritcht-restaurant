@@ -8,10 +8,12 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
+
 import { Menu } from "@/app/state/types/menuTypes";
-import MenuEmptyState from "./MenuEmpty";
-import MenuSkeleton from "./MenuSkeleton";
+
 import MenuTableRow from "./MenuTableRow";
+import MenuSkeleton from "./MenuSkeleton";
+import MenuEmptyState from "./MenuEmpty";
 
 interface MenuTableProps {
   menus: Menu[];
@@ -28,30 +30,26 @@ export default function MenuTable({
   hasMore,
   onLoadMore,
 }: MenuTableProps) {
-  if (isLoading) {
-    return <MenuSkeleton />;
-  }
+  if (isLoading) return <MenuSkeleton />;
 
-  if (!menus.length) {
-    return <MenuEmptyState />;
-  }
+  if (!menus.length) return <MenuEmptyState />;
 
   return (
-    <div className="overflow-hidden rounded-2xl border bg-[#faedcd]">
+    <div className="overflow-hidden rounded-2xl bg-[#faedcd]">
       <Table>
         <TableHeader>
-          <TableRow className="bg-[#fefae0] hover:bg-[#fefae0]">
-            <TableHead className="w-20">Image</TableHead>
+          <TableRow className="h-14 bg-[#fefae0] hover:bg-[#fefae0]">
+            <TableHead className="w-[90px]">Image</TableHead>
 
-            <TableHead>Menu</TableHead>
+            <TableHead className="min-w-[340px]">Menu</TableHead>
 
-            <TableHead>Category</TableHead>
+            <TableHead className="w-[180px]">Category</TableHead>
 
-            <TableHead className="text-right">Price</TableHead>
+            <TableHead className="w-[120px] text-right">Price</TableHead>
 
-            <TableHead>Status</TableHead>
+            <TableHead className="w-[140px] text-center">Status</TableHead>
 
-            <TableHead className="w-32 text-right">Actions</TableHead>
+            <TableHead className="w-[120px] text-right">Actions</TableHead>
           </TableRow>
         </TableHeader>
 
@@ -63,10 +61,16 @@ export default function MenuTable({
       </Table>
 
       {hasMore && (
-        <div className="flex justify-center border-t bg-white p-5">
-          <Button variant="outline" disabled={isFetching} onClick={onLoadMore}>
-            {isFetching ? "Loading..." : "Load More"}
-          </Button>
+        <div className="border-t bg-white p-5">
+          <div className="flex justify-center">
+            <Button
+              variant="outline"
+              disabled={isFetching}
+              onClick={onLoadMore}
+            >
+              {isFetching ? "Loading..." : "Load More"}
+            </Button>
+          </div>
         </div>
       )}
     </div>
