@@ -14,5 +14,9 @@ func ApplyReservationFilters(query *gorm.DB, filter *dto.ReservationFilterReques
 		query = query.Where("status = ?", filter.Status)
 	}
 
+	if filter.TimeSlot > "" {
+		query = query.Where("time_slot = ?", filter.TimeSlot)
+	}
+
 	return query
 }

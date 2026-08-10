@@ -1,4 +1,4 @@
-import { TableDetailResponse } from "./tableTypes";
+import { Table } from "./tableTypes";
 import { UserResponse } from "./userTypes";
 
 export interface CheckAvailabilityRequest {
@@ -38,18 +38,18 @@ export interface ReservationListResponse {
   status: boolean;
   error: string;
   message: string;
-  data: ReservationResponse[];
+  data: Reservation[];
   total: number;
   page: number;
   page_size: number;
   total_pages: number;
 }
 
-export interface ReservationResponse {
+export interface Reservation {
   id: number;
   user_id: number;
   user?: UserResponse;
-  table: TableDetailResponse;
+  table: Table;
   table_id: number;
   date: string;
   time_slot: string;
@@ -60,9 +60,22 @@ export interface ReservationResponse {
   created_at: string;
 }
 
+export interface ReservationResponse {
+  status: boolean;
+  message: string;
+  data: Reservation;
+}
+
+export interface ReservationSearchResponse {
+  status: boolean;
+  message: string;
+  data: Reservation[];
+  error: string;
+}
 export interface GetReservationsRequest {
   date?: string;
   status?: string;
+  time_slot?: string;
   page?: number;
   page_size?: number;
 }

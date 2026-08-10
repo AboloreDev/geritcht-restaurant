@@ -9,16 +9,17 @@ import (
 
 func BuildReservationCacheKey(filter *dto.ReservationFilterRequest) string {
 	return fmt.Sprintf(
-		"reservations:all:page:%d:size:%d:date:%s:status:%s",
+		"reservations:all:page:%d:size:%d:date:%s:status:%s:timeslot:%s",
 		filter.Page,
 		filter.PageSize,
 		normalize(filter.Date),
 		normalize(filter.Status),
+		normalize(filter.TimeSlot),
 	)
 }
 
 func GetReservationCacheTTL(filter *dto.ReservationFilterRequest) time.Duration {
-	hasFilter := filter.Date != "" || filter.Status != ""
+	hasFilter := filter.Date != "" || filter.Status != "" || filter.TimeSlot != ""
 
 	if hasFilter {
 		return 50 * time.Second
@@ -37,7 +38,7 @@ func BuildUserReservationCacheKey(userID uint, filter *dto.ReservationFilterRequ
 	)
 }
 
-func normalize(value string) string {
+func normalize(value interface{}) interface{} {
 	if value == "" {
 		return "all"
 	}

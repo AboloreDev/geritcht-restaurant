@@ -173,7 +173,7 @@ func TestVerifyUserOrder(t *testing.T) {
 		count       int64
 		countErr    error
 		expectedErr error
-		role string
+		role        string
 	}{
 		{name: "order belongs to user", count: 1, expectedErr: nil, role: "admin"},
 		{name: "order not found", count: 0, expectedErr: domain.ErrOrderNotFound, role: "customer"},

@@ -20,13 +20,13 @@ const menuBaseSchema = z.object({
     .optional()
     .or(z.literal("")),
 
-  price: z
+  price: z.coerce
     .number({
       error: "Price is required.",
     })
     .positive("Price must be greater than zero."),
 
-  prep_time_minutes: z
+  prep_time_minutes: z.coerce
     .number()
     .min(0, "Preparation time cannot be negative.")
     .max(180, "Preparation time seems too high.")
@@ -38,7 +38,7 @@ const menuBaseSchema = z.object({
 
   dietary_tag_ids: z.array(z.number()).default([]),
 
-  display_order: z.number().min(0).default(0),
+  display_order: z.coerce.number().min(0).default(0),
 });
 
 export const createMenuSchema = menuBaseSchema;

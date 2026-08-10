@@ -18,12 +18,10 @@ export default function ImagePreviewCard({ file, index, onRemove }: Props) {
   const [preview, setPreview] = useState("");
 
   useEffect(() => {
-    const url = URL.createObjectURL(file);
-
-    setPreview(url);
-
-    return () => URL.revokeObjectURL(url);
-  }, [file]);
+    return () => {
+      URL.revokeObjectURL(preview);
+    };
+  }, [preview]);
 
   const size = `${(file.size / 1024 / 1024).toFixed(2)} MB`;
 

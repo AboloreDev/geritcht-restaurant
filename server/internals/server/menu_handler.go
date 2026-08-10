@@ -195,6 +195,23 @@ func (s *Server) GetAllMenuHandler(ctx *gin.Context) {
 	utils.PaginatedSuccessResponse(ctx, "Menu retrieved successfully", response, *meta)
 }
 
+func (s *Server) AdminGetAllMenuHandler(ctx *gin.Context) {
+	var filter *dto.MenuFilterRequest
+
+	if err := ctx.ShouldBindQuery(&filter); err != nil {
+		utils.BadRequest(ctx, "Invalid filter params", err)
+		return
+	}
+
+	response, meta, err := s.menuServices.AdminGetAllMenuService(ctx.Request.Context(), filter)
+	if err != nil {
+		utils.InternalServerError(ctx, "Something went wrong", err)
+		return
+	}
+
+	utils.PaginatedSuccessResponse(ctx, "Menu retrieved successfully", response, *meta)
+}
+
 // @Summary Upload a menu item image
 // @Description Upload an image for an existing menu item. Admin access required.
 // @Tags Menu

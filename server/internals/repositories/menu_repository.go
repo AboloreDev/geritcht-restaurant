@@ -118,6 +118,29 @@ func (r *MenuRepository) GetAll(ctx context.Context, filter *dto.MenuFilterReque
 	return menus, count, nil
 }
 
+func (r *MenuRepository) AdminGetAll(ctx context.Context, filter *dto.MenuFilterRequest) ([]models.Menu, int64, error) {
+	offset := utils.Pagination(filter.Page, filter.PageSize)
+
+	query := r.db.WithContext(ctx).Model(&models.Menu{})
+	query = utils.ApplyMenuFilters(query, filter)
+	query = utils.ApplyMenuSorting(query, filter)
+
+	var count int64
+	query.Count(&count)
+
+	var menus []models.Menu
+	err := query.
+		Preload("Images").Preload("Allergens").
+		Preload("MenuCategory").Preload("DietaryTags").
+		Offset(offset).Limit(filter.PageSize).
+		Find(&menus).Error
+	if err != nil {
+		return nil, 0, err
+	}
+
+	return menus, count, nil
+}
+
 // ─── Images
 
 func (r *MenuRepository) CountImages(ctx context.Context, menuID uint) (int64, error) {

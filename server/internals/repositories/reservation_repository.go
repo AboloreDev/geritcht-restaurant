@@ -84,6 +84,17 @@ func (r *ReservationRepository) GetByIDAndUser(ctx context.Context, reservationI
 	return &reservation, nil
 }
 
+func (r *ReservationRepository) GetByID(ctx context.Context, reservationID uint) (*models.Reservation, error) {
+	var reservation models.Reservation
+	err := r.db.WithContext(ctx).
+		Where("id = ?", reservationID).
+		First(&reservation).Error
+	if err != nil {
+		return nil, domain.ErrNotFound
+	}
+	return &reservation, nil
+}
+
 func (r *ReservationRepository) GetByIDWithRelations(ctx context.Context, reservationID uint) (*models.Reservation, error) {
 	var reservation models.Reservation
 	err := r.db.WithContext(ctx).Preload("User").Preload("Table").
@@ -212,7 +223,7 @@ func (r *ReservationRepository) TsvectorSearchReservations(ctx context.Context, 
 	offset := utils.Pagination(req.Page, req.Limit)
 
 	// build query
-	query := r.db.Model(&models.Order{}).WithContext(ctx).Preload("User").
+	query := r.db.Model(&models.Reservation{}).WithContext(ctx).Preload("User").Preload("Table").
 		Select("reservations.*, ts_rank(search_vector, plainto_tsquery('english', ?)) AS rank", req.Query).
 		Where("search_vector @@ to_tsquery('english', ? || ':*')", req.Query).
 		Offset(offset).Limit(req.Limit)

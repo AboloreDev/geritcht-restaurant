@@ -68,6 +68,9 @@ func (m *MockReservationRepository) Create(_ context.Context, _ *gorm.DB, reserv
 func (m *MockReservationRepository) GetByIDAndUser(_ context.Context, reservationID, userID uint) (*models.Reservation, error) {
 	return m.reservation, m.reservationErr
 }
+func (m *MockReservationRepository) GetByID(_ context.Context, reservationID uint) (*models.Reservation, error) {
+	return m.reservation, m.reservationErr
+}
 func (m *MockReservationRepository) GetByIDWithRelations(_ context.Context, reservationID uint) (*models.Reservation, error) {
 	return m.reservation, m.reservationErr
 }

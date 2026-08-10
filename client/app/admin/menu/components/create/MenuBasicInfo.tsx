@@ -13,14 +13,16 @@ import DietaryTagSelector from "./DietaryTagSelector";
 
 interface Props {
   isLoading?: boolean;
-  onCancel: () => void;
   onSubmit: React.FormEventHandler<HTMLFormElement>;
+  submitText?: string;
+  onCancel: () => void;
 }
 
 export default function MenuBasicInfo({
   isLoading,
-  onCancel,
   onSubmit,
+  submitText,
+  onCancel,
 }: Props) {
   const { control } = useFormContext();
 
@@ -155,7 +157,7 @@ export default function MenuBasicInfo({
         </Button>
 
         <Button disabled={isLoading} type="submit">
-          {isLoading ? "Creating..." : "Create Menu"}
+          {isLoading ? "Saving..." : (submitText ?? "Create Menu")}
         </Button>
       </div>
     </form>

@@ -163,6 +163,7 @@ func (s *Server) SetUpRoutes() *gin.Engine {
 				menu.PATCH("/:id/toggle", s.AdminMiddleware(), s.ToggleMenuAvailabilityHandler)
 				menu.POST("/:id/images", s.AdminMiddleware(), s.UploadMenuImageHandler)
 				menu.DELETE("/images/:id", s.AdminMiddleware(), s.DeleteMenuImageHandler)
+				menu.GET("/all", s.AdminMiddleware(), s.AdminGetAllMenuHandler)
 			}
 
 			allergens := protected.Group("/allergens")
@@ -187,8 +188,6 @@ func (s *Server) SetUpRoutes() *gin.Engine {
 			{
 				// Table Protected Routes
 				table.POST("/", s.AdminMiddleware(), s.CreateTableHandler)
-				// table.GET("/", s.GetAllTablesHandler)
-				// table.GET("/:id", s.GetTableHandler)
 				table.PATCH("/:id", s.AdminMiddleware(), s.UpdateTableHandler)
 				table.DELETE("/:id", s.AdminMiddleware(), s.DeleteTableHandler)
 			}
@@ -202,7 +201,9 @@ func (s *Server) SetUpRoutes() *gin.Engine {
 				reservation.GET("/user", s.GetAllUserReservationsHandler)
 				reservation.GET("/today", s.GetTodayReservationHandler)
 				reservation.POST("/:id", s.RateLimiter(20, time.Minute), s.CheckInReservationHandler)
-				reservation.PATCH("/:id/cancel", s.RateLimiter(10, time.Minute), s.RoleMiddleware("admin", "staff"), s.CancelReservationHandler)
+				reservation.GET("/:id", s.ReservationDetaislHandler)
+				reservation.PATCH("/:id/cancel", s.RateLimiter(10, time.Minute), s.CancelReservationHandler)
+				reservation.PATCH("/admin/:id/cancel", s.RateLimiter(10, time.Minute), s.RoleMiddleware("admin", "staff"), s.AdminCancelReservationHandler)
 				reservation.GET("/search", s.AdminMiddleware(), s.SearchReservationHandler)
 			}
 
@@ -240,7 +241,7 @@ func (s *Server) SetUpRoutes() *gin.Engine {
 				payment.GET("/ref/:reference", s.GetPaymentByReferenceHandler)
 
 			}
-			
+
 			ingredient := protected.Group("/ingredients")
 			{
 				// Ingredient Protected Routes
@@ -278,8 +279,8 @@ func (s *Server) SetUpRoutes() *gin.Engine {
 		api.GET("/menu/search", s.SearchMenuHandler)
 		api.GET("/menu", s.RateLimiter(100, time.Minute), s.GetAllMenuHandler)
 		api.GET("/menu/:id", s.RateLimiter(100, time.Minute), s.GetMenuHandler)
-		api.GET("/table", s.RateLimiter(100, time.Minute), s.GetAllTablesHandler)
-		api.GET("/table/:id", s.GetTableHandler)
+		api.GET("/tables", s.RateLimiter(100, time.Minute), s.GetAllTablesHandler)
+		api.GET("/tables/:id", s.GetTableHandler)
 		api.GET("/availability", s.RateLimiter(60, time.Minute), s.CheckAvailabilityHandler)
 		api.POST("/payments/webhook", s.WebhookHandler)
 		api.GET("/ws/orders/:id", s.WebSocketHandler)

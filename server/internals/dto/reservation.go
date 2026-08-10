@@ -32,6 +32,7 @@ type JoinWaitlistRequest struct {
 type ReservationFilterRequest struct {
 	Date     string `form:"date"`
 	Status   string `form:"status"`
+	TimeSlot string `form:"time_slot"`
 	Page     int    `form:"page,default=1"`
 	PageSize int    `form:"page_size,default=10"`
 }

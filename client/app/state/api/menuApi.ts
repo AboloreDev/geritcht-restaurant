@@ -33,6 +33,27 @@ export const menuApi = baseApi.injectEndpoints({
       },
       providesTags: ["Menu"],
     }),
+    getMenusAdmin: builder.query<GetMenusResponse, GetMenusRequest>({
+      query: (params) => ({
+        url: "/menu/all",
+        params,
+      }),
+      serializeQueryArgs: ({ queryArgs }) => {
+        const { page, ...stableArgs } = queryArgs;
+        return JSON.stringify(stableArgs);
+      },
+      merge: (currentCache, newResponse, { arg }) => {
+        if (!arg.page || arg.page === 1) {
+          return newResponse;
+        }
+        currentCache.data.push(...newResponse.data);
+        currentCache.meta = newResponse.meta;
+      },
+      forceRefetch: ({ currentArg, previousArg }) => {
+        return currentArg?.page !== previousArg?.page;
+      },
+      providesTags: ["Menu"],
+    }),
 
     getSingleMenu: builder.query<GetSingleMenuResponse, { id: string }>({
       query: ({ id }) => `/menu/${id}`,
@@ -76,7 +97,7 @@ export const menuApi = baseApi.injectEndpoints({
         formData.append("is_primary", String(is_primary));
 
         return {
-          url: `/menus/${id}/images`,
+          url: `/menu/${id}/images`,
           method: "POST",
           body: formData,
         };
@@ -101,6 +122,13 @@ export const menuApi = baseApi.injectEndpoints({
       }),
       invalidatesTags: ["Menu"],
     }),
+    deleteMenu: builder.mutation<MessageResponse, { id: number }>({
+      query: ({ id }) => ({
+        method: "DELETE",
+        url: `/menu/${id}`,
+      }),
+      invalidatesTags: ["Menu"],
+    }),
   }),
 });
 
@@ -113,4 +141,6 @@ export const {
   useDeleteImageUploadMutation,
   useToggleMenuAvailabilityMutation,
   useUploadMenuImageMutation,
+  useDeleteMenuMutation,
+  useGetMenusAdminQuery,
 } = menuApi;

@@ -76,10 +76,20 @@ const data = {
       url: "/admin/reservations",
       icon: <HugeiconsIcon icon={AirplaneSeatIcon} strokeWidth={2} />,
     },
+
     {
-      title: "Ingredients",
-      url: "/admin/ingredients",
-      icon: <HugeiconsIcon icon={SausageIcon} strokeWidth={2} />,
+      title: "Inventory",
+      icon: <HugeiconsIcon icon={Folder03Icon} strokeWidth={2} />,
+      items: [
+        {
+          title: "Ingredients",
+          url: "/admin/ingredients",
+        },
+        {
+          title: "Recipes",
+          url: "/admin/recipes",
+        },
+      ],
     },
     {
       title: "Users",

@@ -5,6 +5,7 @@ import {
   GetReservationsRequest,
   ReservationListResponse,
   ReservationResponse,
+  ReservationSearchResponse,
   SearchReservationRequest,
 } from "../types/reservationTypes";
 import { baseApi } from "./baseApi";
@@ -80,7 +81,7 @@ export const reservationApi = baseApi.injectEndpoints({
       providesTags: ["Reservation"],
     }),
     getReservationById: builder.query<ReservationResponse, { id: number }>({
-      query: ({ id }) => `/reservations/${id}/user`,
+      query: ({ id }) => `/reservations/${id}`,
       providesTags: ["Reservation"],
     }),
     checkInReservation: builder.mutation<
@@ -93,8 +94,23 @@ export const reservationApi = baseApi.injectEndpoints({
       }),
       invalidatesTags: ["Reservation"],
     }),
-    searchReservation: builder.query<
+    cancelReservation: builder.mutation<ReservationResponse, { id: number }>({
+      query: ({ id }) => ({
+        url: `/reservation/${id}/cancel`,
+        method: "PATCH",
+      }),
+    }),
+    adminCancelReservation: builder.mutation<
       ReservationResponse,
+      { id: number }
+    >({
+      query: ({ id }) => ({
+        url: `/reservation/admin/${id}/cancel`,
+        method: "PATCH",
+      }),
+    }),
+    searchReservation: builder.query<
+      ReservationSearchResponse,
       SearchReservationRequest
     >({
       query: ({ q }) => ({
@@ -114,4 +130,6 @@ export const {
   useGetAllRservationsQuery,
   useCheckInReservationMutation,
   useSearchReservationQuery,
+  useCancelReservationMutation,
+  useAdminCancelReservationMutation,
 } = reservationApi;

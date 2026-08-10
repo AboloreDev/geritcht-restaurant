@@ -7,16 +7,16 @@ import (
 )
 
 type MenuCategory struct {
-	ID           uint           `json:"id" gorm:"primaryKey"`
-	Name         string         `json:"name" gorm:"not null"`
-	Description  string         `json:"description"`
-	ImageURL     string         `json:"image_url"`
-	IsActive     bool           `json:"is_active" gorm:"default:true"`
-	DisplayOrder int            `json:"display_order" gorm:"default:0"`
-	
-	CreatedAt    time.Time      `json:"created_at"`
-	UpdatedAt    time.Time      `json:"updated_at"`
-	DeletedAt    gorm.DeletedAt `json:"-" gorm:"index"`
+	ID           uint   `json:"id" gorm:"primaryKey"`
+	Name         string `json:"name" gorm:"not null"`
+	Description  string `json:"description"`
+	ImageURL     string `json:"image_url"`
+	IsActive     bool   `json:"is_active" gorm:"default:true"`
+	DisplayOrder int    `json:"display_order" gorm:"default:0"`
+
+	CreatedAt time.Time      `json:"created_at"`
+	UpdatedAt time.Time      `json:"updated_at"`
+	DeletedAt gorm.DeletedAt `json:"-" gorm:"index"`
 
 	// Relationships
 	Menu []Menu `json:"-"`

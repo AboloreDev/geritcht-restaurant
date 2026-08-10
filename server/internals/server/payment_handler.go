@@ -146,13 +146,16 @@ func (s *Server) WebhookHandler(ctx *gin.Context) {
 // @Router /payments/history [get]
 func (s *Server) GetAllPaymentHistory(ctx *gin.Context) {
 	userID := ctx.GetUint("user_id")
-	pageStr := ctx.DefaultQuery("page", "1")
-	pageSizeStr := ctx.DefaultQuery("pageSize", "10")
+	
+	var paymentFilter dto.PaymentFilterRequest
 
-	page, _ := strconv.Atoi(pageStr)
-	pageSize, _ := strconv.Atoi(pageSizeStr)
+	err := ctx.ShouldBindQuery(&paymentFilter)
+	if err != nil {
+		utils.BadRequest(ctx, "Invalid request data", err)
+		return
+	}
 
-	response, meta, err := s.paymentService.GetAllPaymentHistory(ctx.Request.Context(), userID, page, pageSize)
+	response, meta, err := s.paymentService.GetAllPaymentHistory(ctx.Request.Context(), userID, &paymentFilter)
 	if err != nil {
 		utils.InternalServerError(ctx, "Failed to fetch payment history", err)
 		return
@@ -223,6 +226,26 @@ func (s *Server) GetPaymentDetailsHandler(ctx *gin.Context) {
 	}
 
 	utils.SuccessResponse(ctx, "Payment fetched successfully", response)
+}
+
+func (s *Server) AdminGetAllPaymentHistory(ctx *gin.Context) {
+
+	
+	var paymentFilter dto.PaymentFilterRequest
+
+	err := ctx.ShouldBindQuery(&paymentFilter)
+	if err != nil {
+		utils.BadRequest(ctx, "Invalid request data", err)
+		return
+	}
+
+	response, meta, err := s.paymentService.AdminGetAllPaymentHistory(ctx.Request.Context(), &paymentFilter)
+	if err != nil {
+		utils.InternalServerError(ctx, "Failed to fetch payment history", err)
+		return
+	}
+
+	utils.PaginatedSuccessResponse(ctx, "Payments fetched successfully", response, *meta)
 }
 
 // @Summary Get refund details

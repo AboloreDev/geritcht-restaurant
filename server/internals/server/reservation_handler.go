@@ -346,6 +346,58 @@ func (s *Server) CancelReservationHandler(ctx *gin.Context) {
 	utils.SuccessResponse(ctx, "Successfully cancelled", response)
 }
 
+func (s *Server) AdminCancelReservationHandler(ctx *gin.Context) {
+	idStr := ctx.Param("id")
+	id, err := strconv.ParseUint(idStr, 10, 32)
+	if err != nil {
+		utils.BadRequest(ctx, "Invalid ID", err)
+		return
+	}
+	reservationID := uint(id)
+
+	response, err := s.reservationServices.AdminCancelReservation(ctx.Request.Context(), reservationID)
+	if err != nil {
+		switch err {
+		case domain.ErrNotFound:
+			utils.NotFound(ctx, "Reservation not found", err)
+		case domain.ErrForbidden:
+			utils.Forbidden(ctx, "Forbidden", err)
+		case domain.ErrCannotCancel:
+			utils.BadRequest(ctx, "You cannot cancel a reservation within 2hours of the reserved time", err)
+		case domain.ErrUserNotFound:
+			utils.NotFound(ctx, "User not found", err)
+		default:
+			utils.InternalServerError(ctx, "Internal server error", err)
+		}
+		return
+	}
+
+	utils.SuccessResponse(ctx, "Successfully cancelled", response)
+}
+
+func (s *Server) ReservationDetaislHandler(ctx *gin.Context) {
+	idStr := ctx.Param("id")
+	id, err := strconv.ParseUint(idStr, 10, 32)
+	if err != nil {
+		utils.BadRequest(ctx, "Invalid ID", err)
+		return
+	}
+	reservationID := uint(id)
+
+
+	rsv, err := s.reservationServices.GetReservationDetails(ctx, reservationID)
+	if err != nil  {
+		switch err {
+		case domain.ErrReservationNotFound:
+			utils.NotFound(ctx, "Reservation not found", err)
+		default:  
+			utils.InternalServerError(ctx, "Internal Server error", err)
+		}
+		return
+	}
+	utils.SuccessResponse(ctx, "Reservation fetched successful", rsv)
+}
+
 // @Summary Search Reservations
 // @Description Search reservations by name with pagination
 // @Tags Reservations

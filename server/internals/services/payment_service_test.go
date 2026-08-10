@@ -68,7 +68,10 @@ func (m *MockPaymentRepository) GetPaymentByID(_ context.Context, paymentID uint
 func (m *MockPaymentRepository) UpdatePayment(_ context.Context, _ *gorm.DB, payment *models.Payment, updates map[string]interface{}) error {
 	return m.updateErr
 }
-func (m *MockPaymentRepository) GetAllByUserID(_ context.Context, userID uint, page, pageSize int) ([]models.Payment, int64, error) {
+func (m *MockPaymentRepository) GetAllByUserID(_ context.Context, userID uint, req *dto.PaymentFilterRequest) ([]models.Payment, int64, error) {
+	return m.payments, m.total, m.paymentErr
+}
+func (m *MockPaymentRepository)  GetAll(_ context.Context, filter *dto.PaymentFilterRequest) ([]models.Payment, int64, error) {
 	return m.payments, m.total, m.paymentErr
 }
 func (m *MockPaymentRepository) Create(_ context.Context, _ *gorm.DB, payment *models.Payment) error {
@@ -569,7 +572,7 @@ func TestGetAllPaymentHistory_Success(t *testing.T) {
 		total: 2,
 	})
 
-	response, meta, err := service.GetAllPaymentHistory(testPaymentCtx, 1, 1, 10)
+	response, meta, err := service.GetAllPaymentHistory(testPaymentCtx, 1, &dto.PaymentFilterRequest{})
 
 	assert.NoError(t, err)
 	assert.Len(t, response, 2)

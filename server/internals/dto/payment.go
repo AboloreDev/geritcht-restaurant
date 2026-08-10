@@ -34,3 +34,11 @@ type InitializePaymentResponse struct {
 	Amount           float64         `json:"amount"`
 	Payment          PaymentResponse `json:"payment"`
 }
+
+type PaymentFilterRequest struct {
+	Status   string `form:"status"`
+	Reference string `form:"reference"`
+	Amount float64	`form:"amount"`
+	Page     int    `form:"page,default=1"`
+	PageSize int    `form:"page_size,default=10"`
+}

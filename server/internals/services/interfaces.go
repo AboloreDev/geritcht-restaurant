@@ -43,6 +43,7 @@ type MenuServiceInterface interface {
 	GetMenu(ctx context.Context, menuID uint) (*dto.MenuResponse, error)
 	UpdateMenuService(ctx context.Context, menuID uint, req *dto.UpdateMenuRequest) (*dto.MenuResponse, error)
 	CreateMenuService(ctx context.Context, req *dto.CreateMenuRequest) (*dto.MenuResponse, error)
+	AdminGetAllMenuService(ctx context.Context, filter *dto.MenuFilterRequest) ([]*dto.MenuResponse, *utils.PaginatedMeta, error)
 }
 
 // Cart
@@ -107,7 +108,7 @@ type OrderServiceInterface interface {
 	GetAllUserTakeoutOrders(ctx context.Context, userID uint, filter *dto.OrderFilterRequest) (*dto.OrderListResponse, error)
 	GetTakeoutOrder(ctx context.Context, userID, orderID uint) (*dto.OrderResponse, error)
 	CancelTakeoutOrder(ctx context.Context, userID, orderID uint) error
-	VerifyUserOrder(ctx context.Context, userID uint, role string, orderID uint) error	
+	VerifyUserOrder(ctx context.Context, userID uint, role string, orderID uint) error
 	GetAllOrders(ctx context.Context, filter *dto.OrderFilterRequest) (*dto.OrderListResponse, error)
 	AdminCancelOrder(ctx context.Context, orderID uint) error
 	GetOrder(ctx context.Context, orderID uint) (*dto.OrderResponse, error)
@@ -126,8 +127,9 @@ type PaymentServiceInterface interface {
 	GetPaymentByReference(ctx context.Context, reference string) (*dto.PaymentResponse, error)
 	GetPaymentDetails(ctx context.Context, paymentID uint) (*dto.PaymentResponse, error)
 	GetRefundDetails(ctx context.Context, refundID uint) (*dto.RefundResponse, error)
-	GetAllPaymentHistory(ctx context.Context, userID uint, page, pageSize int) ([]*dto.PaymentResponse, *utils.PaginatedMeta, error)
+	GetAllPaymentHistory(ctx context.Context, userID uint, req *dto.PaymentFilterRequest) ([]*dto.PaymentResponse, *utils.PaginatedMeta, error)
 	VerifyPayment(ctx context.Context, req *dto.VerifyPaymentRequest) (*dto.PaymentResponse, error)
+	AdminGetAllPaymentHistory(ctx context.Context, req *dto.PaymentFilterRequest) ([]*dto.PaymentResponse, *utils.PaginatedMeta, error) 
 }
 
 // Reservation Service
@@ -141,6 +143,8 @@ type ReservationServiceInterface interface {
 	CreateReservation(ctx context.Context, req *dto.CreateReservationRequest, userID uint) (*dto.ReservationResponse, error)
 	CheckTableAvailability(ctx context.Context, req *dto.CheckAvailabilityRequest) (*dto.AvailabilityResponse, error)
 	buildReservationListResponse(reservations []models.Reservation, count int64, req *dto.ReservationFilterRequest) *dto.ReservationListResponse
+	AdminCancelReservation(ctx context.Context, reservationID uint) (*dto.ReservationResponse, error)
+	GetReservationDetails(ctx context.Context, reservationID uint) (*dto.ReservationResponse, error)
 
 	SearchReservations(ctx context.Context, req *dto.ReservationSearchRequest) ([]*dto.ReservationSearchResponse, *utils.PaginatedMeta, error)
 }

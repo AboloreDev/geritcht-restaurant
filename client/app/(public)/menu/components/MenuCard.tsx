@@ -26,6 +26,7 @@ import { getApiError } from "@/app/utils/apiError";
 export function MenuCard({ menu }: { menu: Menu }) {
   const router = useRouter();
   const imageSrc = resolveImageSrc(menu);
+  console.log(imageSrc);
   const { visible: badges, overflowCount } = getVisibleBadges(menu);
   const { isAuthenticated } = useAuth();
   const pathname = usePathname();

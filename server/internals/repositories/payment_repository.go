@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/AboloreDev/geritcht-restaurant/internals/domain"
+	"github.com/AboloreDev/geritcht-restaurant/internals/dto"
 	"github.com/AboloreDev/geritcht-restaurant/internals/models"
 	"github.com/AboloreDev/geritcht-restaurant/internals/utils"
 	"gorm.io/gorm"
@@ -87,19 +88,43 @@ func (r *PaymentRepository) UpdatePayment(ctx context.Context, tx *gorm.DB, paym
 	return r.getDB(tx).WithContext(ctx).Model(payment).Updates(updates).Error
 }
 
-func (r *PaymentRepository) GetAllByUserID(ctx context.Context, userID uint, page, pageSize int) ([]models.Payment, int64, error) {
+func (r *PaymentRepository) GetAllByUserID(ctx context.Context, userID uint, filter *dto.PaymentFilterRequest) ([]models.Payment, int64, error) {
 	var payments []models.Payment
 	var total int64
-	offset := utils.Pagination(page, pageSize)
+	offset := utils.Pagination(filter.Page, filter.PageSize)
 
-	r.db.WithContext(ctx).Model(&models.Payment{}).
-		Where("user_id = ?", userID).Count(&total)
+	query := r.db.WithContext(ctx).Model(&models.Payment{}).
+		Where("user_id = ?", userID)
+
+	query = utils.ApplyPaymentFilters(query, filter)
+	query.Count(&total)
 
 	err := r.db.WithContext(ctx).
 		Preload("Order").Preload("User").
 		Where("user_id = ?", userID).
 		Order("created_at DESC").
-		Offset(offset).Limit(pageSize).
+		Offset(offset).Limit(filter.PageSize).
+		Find(&payments).Error
+	if err != nil {
+		return nil, 0, err
+	}
+
+	return payments, total, nil
+}
+
+func (r *PaymentRepository) GetAll(ctx context.Context, filter *dto.PaymentFilterRequest) ([]models.Payment, int64, error) {
+	var payments []models.Payment
+	var total int64
+	offset := utils.Pagination(filter.Page, filter.PageSize)
+
+	query := r.db.WithContext(ctx).Model(&models.Payment{})
+	query = utils.ApplyPaymentFilters(query, filter)
+	query.Count(&total)
+
+	err := r.db.WithContext(ctx).
+		Preload("Order").Preload("User").
+		Order("created_at DESC").
+		Offset(offset).Limit(filter.PageSize).
 		Find(&payments).Error
 	if err != nil {
 		return nil, 0, err

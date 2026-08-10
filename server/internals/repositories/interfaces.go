@@ -115,6 +115,7 @@ type MenuRepositoryInterface interface {
 	ReplaceDietaryTags(ctx context.Context, menu *models.Menu, tags []models.DietaryTag) error
 	Delete(ctx context.Context, menuID uint) error
 	GetAll(ctx context.Context, filter *dto.MenuFilterRequest) ([]models.Menu, int64, error)
+	AdminGetAll(ctx context.Context, filter *dto.MenuFilterRequest) ([]models.Menu, int64, error)
 
 	// images
 	CountImages(ctx context.Context, menuID uint) (int64, error)
@@ -155,9 +156,10 @@ type PaymentRepositoryInterface interface {
 	GetPaymentByReference(ctx context.Context, reference string) (*models.Payment, error)
 	GetPaymentByID(ctx context.Context, paymentID uint) (*models.Payment, error)
 	UpdatePayment(ctx context.Context, tx *gorm.DB, payment *models.Payment, updates map[string]interface{}) error
-	GetAllByUserID(ctx context.Context, userID uint, page, pageSize int) ([]models.Payment, int64, error)
+	GetAllByUserID(ctx context.Context, userID uint, filter *dto.PaymentFilterRequest) ([]models.Payment, int64, error) 
 	Create(ctx context.Context, tx *gorm.DB, payment *models.Payment) error
 	RecheckPaymentWithReference(ctx context.Context, reference string) error
+	GetAll(ctx context.Context, filter *dto.PaymentFilterRequest) ([]models.Payment, int64, error)
 
 	// Cart
 	ClearCartByUserID(ctx context.Context, tx *gorm.DB, userID uint) error
@@ -209,6 +211,7 @@ type ReservationRepositoryInterface interface {
 	GetAllByUser(ctx context.Context, userID uint, req *dto.ReservationFilterRequest) ([]models.Reservation, int64, error)
 	GetAll(ctx context.Context, req *dto.ReservationFilterRequest) ([]models.Reservation, int64, error)
 	GetTodayReservations(ctx context.Context, req *dto.ReservationFilterRequest) ([]models.Reservation, int64, error)
+	GetByID(ctx context.Context, reservationID uint) (*models.Reservation, error)
 
 	// Waitlist
 	GetFirstWaitlistByDateSlot(ctx context.Context, tx *gorm.DB, date interface{}, timeSlot datatypes.Time, partySize int) (*models.Waitlist, error)

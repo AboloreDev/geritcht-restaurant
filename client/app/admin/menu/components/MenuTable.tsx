@@ -8,9 +8,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-
 import { Menu } from "@/app/state/types/menuTypes";
-
 import MenuTableRow from "./MenuTableRow";
 import MenuSkeleton from "./MenuSkeleton";
 import MenuEmptyState from "./MenuEmpty";
@@ -31,7 +29,6 @@ export default function MenuTable({
   onLoadMore,
 }: MenuTableProps) {
   if (isLoading) return <MenuSkeleton />;
-
   if (!menus.length) return <MenuEmptyState />;
 
   return (
@@ -40,16 +37,13 @@ export default function MenuTable({
         <TableHeader>
           <TableRow className="h-14 bg-[#fefae0] hover:bg-[#fefae0]">
             <TableHead className="w-[90px]">Image</TableHead>
-
-            <TableHead className="min-w-[340px]">Menu</TableHead>
-
-            <TableHead className="w-[180px]">Category</TableHead>
-
-            <TableHead className="w-[120px] text-right">Price</TableHead>
-
-            <TableHead className="w-[140px] text-center">Status</TableHead>
-
-            <TableHead className="w-[120px] text-right">Actions</TableHead>
+            <TableHead className="min-w-[300px]">Menu</TableHead>
+            <TableHead className="w-[160px]">Category</TableHead>
+            <TableHead className="w-[110px] text-right">Price</TableHead>
+            <TableHead className="w-[130px] text-center">
+              Availability
+            </TableHead>
+            <TableHead className="w-[110px] text-right">Actions</TableHead>
           </TableRow>
         </TableHeader>
 

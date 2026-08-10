@@ -138,7 +138,7 @@ func (s *MenuService) CreateMenuService(ctx context.Context, req *dto.CreateMenu
 		return nil, err
 	}
 
-	s.redisStore.FlushByPattern(ctx, "menu:all:*")
+	s.redisStore.FlushByPattern(ctx, "menu:*")
 	s.redisStore.Delete(ctx, fmt.Sprintf("menu:category:%d", menu.MenuCategoryID))
 
 	return s.ConvertToMenuResponse(&menu), nil
@@ -193,7 +193,7 @@ func (s *MenuService) UpdateMenuService(ctx context.Context, menuID uint, req *d
 		return nil, err
 	}
 
-	s.redisStore.FlushByPattern(ctx, "menu:all:*")
+	s.redisStore.FlushByPattern(ctx, "menu:*")
 	s.redisStore.Delete(ctx, "menu:all")
 	s.redisStore.Delete(ctx, fmt.Sprintf("menu:item:%d", menuID))
 
@@ -236,7 +236,7 @@ func (s *MenuService) DeleteMenu(ctx context.Context, menuID uint) error {
 		return err
 	}
 
-	s.redisStore.FlushByPattern(ctx, "menu:all:*")
+	s.redisStore.FlushByPattern(ctx, "menu:*")
 	s.redisStore.Delete(ctx, fmt.Sprintf("menu:item:%d", menuID))
 
 	return nil
@@ -266,7 +266,7 @@ func (s *MenuService) AddMenuImageService(ctx context.Context, menuID uint, altT
 		return err
 	}
 
-	s.redisStore.FlushByPattern(ctx, "menu:all:*")
+	s.redisStore.FlushByPattern(ctx, "menu:*")
 	s.redisStore.Delete(ctx, fmt.Sprintf("menu:item:%d", menuID))
 
 	return nil
@@ -297,7 +297,7 @@ func (s *MenuService) RemoveMenuImageService(ctx context.Context, menuImageID ui
 		}
 	}
 
-	s.redisStore.FlushByPattern(ctx, "menu:all:*")
+	s.redisStore.FlushByPattern(ctx, "menu:*")
 	s.redisStore.Delete(ctx, fmt.Sprintf("menu:item:%d", image.MenuID))
 
 	return nil
@@ -319,7 +319,7 @@ func (s *MenuService) ToggleMenuAvailabilityService(ctx context.Context, menuID 
 		return err
 	}
 
-	s.redisStore.FlushByPattern(ctx, "menu:all:*")
+	s.redisStore.FlushByPattern(ctx, "menu:*")
 
 	return nil
 }
@@ -338,6 +338,47 @@ func (s *MenuService) GetAllMenuService(ctx context.Context, filter *dto.MenuFil
 	}
 
 	menus, count, err := s.menuRepo.GetAll(ctx, filter)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	response := make([]*dto.MenuResponse, 0, len(menus))
+	for _, menu := range menus {
+		response = append(response, s.ConvertToMenuResponse(&menu))
+	}
+
+	totalPages := int((count + int64(filter.PageSize) - 1) / int64(filter.PageSize))
+	meta := &utils.PaginatedMeta{
+		Page:       filter.Page,
+		Limit:      filter.PageSize,
+		Total:      count,
+		TotalPages: totalPages,
+	}
+
+	cacheData := struct {
+		Data []*dto.MenuResponse  `json:"data"`
+		Meta *utils.PaginatedMeta `json:"meta"`
+	}{Data: response, Meta: meta}
+
+	data, _ := json.Marshal(&cacheData)
+	s.redisStore.Set(ctx, cacheKey, string(data), utils.GetMenuCacheTTL(filter))
+
+	return response, meta, nil
+}
+func (s *MenuService) AdminGetAllMenuService(ctx context.Context, filter *dto.MenuFilterRequest) ([]*dto.MenuResponse, *utils.PaginatedMeta, error) {
+	cacheKey := utils.BuildMenuFetchCacheKey(filter)
+	cached, err := s.redisStore.Get(ctx, cacheKey)
+	if err == nil && cached != "" {
+		var cachedResponse struct {
+			Data []*dto.MenuResponse  `json:"data"`
+			Meta *utils.PaginatedMeta `json:"meta"`
+		}
+		if err := json.Unmarshal([]byte(cached), &cachedResponse); err == nil {
+			return cachedResponse.Data, cachedResponse.Meta, nil
+		}
+	}
+
+	menus, count, err := s.menuRepo.AdminGetAll(ctx, filter)
 	if err != nil {
 		return nil, nil, err
 	}

@@ -41,14 +41,14 @@ var upgrader = websocket.Upgrader{
 // @Description {"order_id":12,"status":"ready"}
 // @Description {"order_id":12,"status":"completed"}
 func (s *Server) WebSocketHandler(ctx *gin.Context) {
-	 token := ctx.Query("token")
+	token := ctx.Query("token")
 
-    claims, err := utils.ValidateToken(token, s.cfg.JWT.JWTSecret)
-    if err != nil {
-        return
-    }
+	claims, err := utils.ValidateToken(token, s.cfg.JWT.JWTSecret)
+	if err != nil {
+		return
+	}
 
-    userID := claims.UserID
+	userID := claims.UserID
 	adminRole := claims.Role
 	log.Println(adminRole)
 
@@ -61,7 +61,6 @@ func (s *Server) WebSocketHandler(ctx *gin.Context) {
 	orderID := uint(id)
 	log.Println(orderID)
 
-	
 	err = s.orderService.VerifyUserOrder(ctx.Request.Context(), userID, adminRole, orderID)
 	if err != nil {
 		utils.BadRequest(ctx, "Order not found", err)
@@ -81,7 +80,7 @@ func (s *Server) WebSocketHandler(ctx *gin.Context) {
 		Send:    make(chan []byte, 256),
 	}
 	log.Println(client)
-	s.hub.Register <- client	
+	s.hub.Register <- client
 
 	order, err := s.orderService.GetOrder(ctx.Request.Context(), orderID)
 	if err == nil {

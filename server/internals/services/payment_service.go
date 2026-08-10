@@ -604,10 +604,10 @@ func (s *PaymentService) GetRefundDetails(ctx context.Context, refundID uint) (*
 	}, nil
 }
 
-func (s *PaymentService) GetAllPaymentHistory(ctx context.Context, userID uint, page, pageSize int) ([]*dto.PaymentResponse, *utils.PaginatedMeta, error) {
-	cacheKey := fmt.Sprintf("user:payments:%d:p:%d:s:%d", userID, page, pageSize)
+func (s *PaymentService) GetAllPaymentHistory(ctx context.Context, userID uint, req *dto.PaymentFilterRequest) ([]*dto.PaymentResponse, *utils.PaginatedMeta, error) {
+	cachedKey := utils.BuildUserPaymentCacheKey(userID, req)
 
-	cached, err := s.redisStore.Get(ctx, cacheKey)
+	cached, err := s.redisStore.Get(ctx, cachedKey)
 	if err == nil && cached != "" {
 		var cachedResponse struct {
 			Data []*dto.PaymentResponse `json:"data"`
@@ -618,7 +618,7 @@ func (s *PaymentService) GetAllPaymentHistory(ctx context.Context, userID uint, 
 		}
 	}
 
-	payments, total, err := s.paymentRepo.GetAllByUserID(ctx, userID, page, pageSize)
+	payments, total, err := s.paymentRepo.GetAllByUserID(ctx, userID, req)
 	if err != nil {
 		return nil, nil, domain.ErrPaymentNotFound
 	}
@@ -628,15 +628,53 @@ func (s *PaymentService) GetAllPaymentHistory(ctx context.Context, userID uint, 
 		response = append(response, mapper.PaymentResponse(&payment))
 	}
 
-	totalPages := int((total + int64(pageSize) - 1) / int64(pageSize))
-	meta := &utils.PaginatedMeta{Page: page, Limit: pageSize, Total: total, TotalPages: totalPages}
+	totalPages := int((total + int64(req.PageSize) - 1) / int64(req.PageSize))
+	meta := &utils.PaginatedMeta{Page: req.Page, Limit: req.PageSize, Total: total, TotalPages: totalPages}
 
 	cacheData := struct {
 		Data []*dto.PaymentResponse `json:"data"`
 		Meta *utils.PaginatedMeta   `json:"meta"`
 	}{Data: response, Meta: meta}
 	data, _ := json.Marshal(&cacheData)
-	s.redisStore.Set(ctx, cacheKey, string(data), 1*time.Hour)
+	
+	s.redisStore.Set(ctx, cachedKey, string(data), utils.GetPaymentCacheTTL(req))
+
+	return response, meta, nil
+}
+
+func (s *PaymentService) AdminGetAllPaymentHistory(ctx context.Context, req *dto.PaymentFilterRequest) ([]*dto.PaymentResponse, *utils.PaginatedMeta, error) {
+	cachedKey := utils.BuildPaymentCacheKey(req)
+
+	cached, err := s.redisStore.Get(ctx, cachedKey)
+	if err == nil && cached != "" {
+		var cachedResponse struct {
+			Data []*dto.PaymentResponse `json:"data"`
+			Meta *utils.PaginatedMeta   `json:"meta"`
+		}
+		if err := json.Unmarshal([]byte(cached), &cachedResponse); err == nil {
+			return cachedResponse.Data, cachedResponse.Meta, nil
+		}
+	}
+
+	payments, total, err := s.paymentRepo.GetAll(ctx, req)
+	if err != nil {
+		return nil, nil, domain.ErrPaymentNotFound
+	}
+
+	response := make([]*dto.PaymentResponse, 0, len(payments))
+	for _, payment := range payments {
+		response = append(response, mapper.PaymentResponse(&payment))
+	}
+
+	totalPages := int((total + int64(req.PageSize) - 1) / int64(req.PageSize))
+	meta := &utils.PaginatedMeta{Page: req.Page, Limit: req.PageSize, Total: total, TotalPages: totalPages}
+
+	cacheData := struct {
+		Data []*dto.PaymentResponse `json:"data"`
+		Meta *utils.PaginatedMeta   `json:"meta"`
+	}{Data: response, Meta: meta}
+	data, _ := json.Marshal(&cacheData)
+	s.redisStore.Set(ctx, cachedKey, string(data), utils.GetPaymentCacheTTL(req))
 
 	return response, meta, nil
 }

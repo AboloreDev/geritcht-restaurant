@@ -1,6 +1,6 @@
 import { Pagination } from "./categoriesTypes";
 import { Order } from "./orderTypes";
-import { ReservationResponse } from "./reservationTypes";
+import { Reservation, ReservationResponse } from "./reservationTypes";
 
 export interface CreateTableRequest {
   name: string;
@@ -32,7 +32,7 @@ export interface Table {
   location: string;
   status: TableStatus;
   qr_code?: string;
-  current_reservation?: ReservationResponse;
+  current_reservation?: Reservation;
   current_order?: Order;
 }
 

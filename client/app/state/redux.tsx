@@ -13,6 +13,7 @@ import categoryReducer from "./slices/categoriesSlice";
 import reservationReducer from "./slices/reservationSlice";
 import cartReducer from "./slices/cartSlice";
 import orderReducer from "./slices/orderSlice";
+import tableReducer from "./slices/tableSlice";
 import { baseApi } from "./api/baseApi";
 
 const rootReducer = combineReducers({
@@ -22,7 +23,7 @@ const rootReducer = combineReducers({
   reservation: reservationReducer,
   cart: cartReducer,
   order: orderReducer,
-
+  table: tableReducer,
   // baseApi
   [baseApi.reducerPath]: baseApi.reducer,
 });

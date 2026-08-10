@@ -10,8 +10,11 @@ interface ReservationState {
   // my-reservations list filter state
   filterDate?: string;
   filterStatus?: string;
+  filterTimeSlot?: string;
   page?: number;
   pageSize?: number;
+
+  query: string;
 }
 
 const initialState: ReservationState = {
@@ -21,8 +24,11 @@ const initialState: ReservationState = {
   partySize: 2,
   filterDate: undefined,
   filterStatus: undefined,
+  filterTimeSlot: undefined,
   page: 1,
   pageSize: 10,
+
+  query: "",
 };
 
 const reservationSlice = createSlice({
@@ -55,6 +61,14 @@ const reservationSlice = createSlice({
       state.filterStatus = action.payload;
       state.page = 1;
     },
+    setSearch(state, action: PayloadAction<string>) {
+      state.query = action.payload;
+      state.page = 1;
+    },
+    setFilterTimeSlot(state, action: PayloadAction<string | undefined>) {
+      state.filterTimeSlot = action.payload;
+      state.page = 1;
+    },
     resetReservationFilters(state) {
       state.filterDate = undefined;
       state.filterStatus = undefined;
@@ -73,6 +87,8 @@ export const {
   setFilterDate,
   setFilterStatus,
   resetReservationFilters,
+  setFilterTimeSlot,
+  setSearch,
 } = reservationSlice.actions;
 
 export default reservationSlice.reducer;

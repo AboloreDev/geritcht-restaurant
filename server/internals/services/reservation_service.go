@@ -482,6 +482,140 @@ func (s *ReservationService) CancelReservation(ctx context.Context, userID uint,
 	return mapper.ReservationResponse(fullReservation), nil
 }
 
+func (s *ReservationService) GetReservationDetails(ctx context.Context, reservationID uint) (*dto.ReservationResponse, error) {
+	cachedKey := fmt.Sprintf("reservations:reserve:%d", reservationID)
+
+	exists, _ := s.redisStore.Exists(ctx, cachedKey)
+	if exists {
+		cache, err := s.redisStore.Get(ctx, cachedKey)
+		if err == nil && cache != "" {
+			var rsv models.Reservation
+			err := json.Unmarshal([]byte(cache), &rsv)
+			if err != nil {
+				return nil, err
+			}
+			return mapper.ReservationResponse(&rsv), nil
+		}
+	}
+
+	rsv, err := s.reservationRepo.GetByIDWithRelations(ctx, reservationID)
+	if err != nil {
+		return nil, domain.ErrReservationNotFound
+	}
+
+	data, err := json.Marshal(&rsv)
+	if err != nil {
+		return nil, fmt.Errorf("Failed to set data: %w", err)
+	}
+	s.redisStore.Set(ctx, cachedKey, string(data), 20*time.Minute)
+
+	return mapper.ReservationResponse(rsv), nil
+}
+
+func (s *ReservationService) AdminCancelReservation(ctx context.Context, reservationID uint) (*dto.ReservationResponse, error) {
+	reservation, err := s.reservationRepo.GetByID(ctx, reservationID)
+	if err != nil {
+		return nil, domain.ErrNotFound
+	}
+
+	if reservation.Status == models.ReservationStatusCancelled {
+		return nil, domain.ErrAlreadyCancelled
+	}
+
+	if reservation.Status != models.ReservationStatusPending &&
+		reservation.Status != models.ReservationStatusConfirmed {
+		return nil, domain.ErrCannotCancel
+	}
+
+	reservationTime := time.Date(
+		reservation.Date.Year(),
+		reservation.Date.Month(),
+		reservation.Date.Day(),
+		0,
+		0,
+		0,
+		0,
+		reservation.Date.Location(),
+	).Add(time.Duration(reservation.TimeSlot))
+
+	if !reservationTime.After(time.Now().Add(2 * time.Hour)) {
+		return nil, domain.ErrCannotCancel
+	}
+
+	var waitlist *models.Waitlist
+
+	err = s.db.Transaction(func(tx *gorm.DB) error {
+		if err := s.reservationRepo.UpdateStatus(ctx, tx, reservationID, map[string]interface{}{
+			"status": models.ReservationStatusCancelled,
+		}); err != nil {
+			return err
+		}
+
+		if err := s.reservationRepo.UpdateTableStatus(ctx, tx, reservation.TableID, models.TableStatusAvailable); err != nil {
+			return err
+		}
+
+		// notify next waitlist person
+		wl, err := s.reservationRepo.GetFirstWaitlistByDateSlot(ctx, tx,
+			reservation.Date, reservation.TimeSlot, reservation.PartySize)
+		if err != nil {
+			return nil // no waitlist → ok
+		}
+
+		waitlist = wl
+
+		return s.reservationRepo.UpdateWaitlistStatus(ctx, tx, wl, map[string]interface{}{
+			"status":      models.WaitlistStatusNotified,
+			"notified_at": time.Now(),
+			"expires_at":  time.Now().Add(10 * time.Minute),
+		})
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	s.redisStore.FlushByPattern(ctx,
+		fmt.Sprintf("availability:%s:%s:*", reservation.Date.Format("2006-01-02"), reservation.TimeSlot),
+	)
+	s.redisStore.FlushByPattern(ctx, "reservations:user:*")
+	s.redisStore.FlushByPattern(ctx, "reservations:all:*")
+
+	fullReservation, err := s.reservationRepo.GetByIDWithRelations(ctx, reservationID)
+	if err != nil {
+		return nil, err
+	}
+
+	// notify waitlist person
+	if waitlist != nil {
+		s.publisher.PublishMessage(
+			events.ChannelEmailWaitlistNotification,
+			events.WaitlistNotificationPayload{
+				Email:     waitlist.User.Email,
+				FirstName: waitlist.User.FirstName,
+				Date:      waitlist.Date.Format("2006-01-02"),
+				TimeSlot:  utils.FormatDataTypesTime(reservation.TimeSlot),
+				TableName: fullReservation.Table.Name,
+			},
+			map[string]string{"Priority": "Important Mail"},
+		)
+	}
+
+	// notify cancelled user
+	s.publisher.PublishMessage(
+		events.ChannelEmailReservationCancelled,
+		events.ReservationCancelledPayload{
+			Email:     fullReservation.User.Email,
+			FirstName: fullReservation.User.FirstName,
+			Date:      fullReservation.Date.Format("2006-01-02"),
+			TimeSlot:  utils.FormatDataTypesTime(fullReservation.TimeSlot),
+			TableName: fullReservation.Table.Name,
+		},
+		map[string]string{"Priority": "Important Mail"},
+	)
+
+	return mapper.ReservationResponse(fullReservation), nil
+}
+
 func (s *ReservationService) SearchReservations(ctx context.Context, req *dto.ReservationSearchRequest) ([]*dto.ReservationSearchResponse, *utils.PaginatedMeta, error) {
 	cacheKey := fmt.Sprintf("reservations:%s:p%d:s%d", req.Query, req.Page, req.Limit)
 	cached, err := s.redisStore.Get(ctx, cacheKey)
@@ -497,7 +631,7 @@ func (s *ReservationService) SearchReservations(ctx context.Context, req *dto.Re
 
 	rows, count, err := s.reservationRepo.TsvectorSearchReservations(ctx, req)
 	if err != nil {
-		return nil, nil, domain.ErrIngredientSearchNotFound
+		return nil, nil, domain.ErrReservationSeachNotFound
 	}
 
 	response := make([]*dto.ReservationSearchResponse, len(rows))

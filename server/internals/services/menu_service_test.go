@@ -72,6 +72,9 @@ func (m *MockMenuRepository) Delete(_ context.Context, menuID uint) error { retu
 func (m *MockMenuRepository) GetAll(_ context.Context, filter *dto.MenuFilterRequest) ([]models.Menu, int64, error) {
 	return m.menus, m.total, m.getErr
 }
+func (m *MockMenuRepository) AdminGetAll(_ context.Context, filter *dto.MenuFilterRequest) ([]models.Menu, int64, error) {
+	return m.menus, m.total, m.getErr
+}
 func (m *MockMenuRepository) CountImages(_ context.Context, menuID uint) (int64, error) {
 	return m.imageCount, m.countErr
 }
