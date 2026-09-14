@@ -1,28 +1,20 @@
 services:
-  
   geritcht-app:
     build:
       context: ..
       dockerfile: docker/Dockerfile
     ports:
       - "9090:9090"
-    environment:
-      - DATABASE_URL
     env_file:
       - ../.env
     command: ["./api"]
     restart: unless-stopped
 
-   geritcht-notifier:
+  geritcht-notifier:
     build:
       context: ..
       dockerfile: docker/Dockerfile
-    environment:
-      - DATABASE_URL
     env_file:
       - ../.env
     command: ["./notifier"]
     restart: unless-stopped
-    deploy:
-      replicas: 1
-1
