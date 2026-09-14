@@ -601,7 +601,8 @@ func TestProcessTakeoutRefund_Success(t *testing.T) {
 		},
 	}
 
-	err = service.ProcessTakeoutRefund(testPaymentCtx, 1, "customer requested cancellation")
+	req := &dto.ProcessRefundRequest{Notes: "customer requested cancellation"}
+	err = service.ProcessTakeoutRefund(testPaymentCtx, 1, req)
 
 	assert.NoError(t, err)
 	assert.NoError(t, mock.ExpectationsWereMet())

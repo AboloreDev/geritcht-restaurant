@@ -121,7 +121,7 @@ func (r *PaymentRepository) GetAll(ctx context.Context, filter *dto.PaymentFilte
 	query = utils.ApplyPaymentFilters(query, filter)
 	query.Count(&total)
 
-	err := r.db.WithContext(ctx).
+	err := query.
 		Preload("Order").Preload("User").
 		Order("created_at DESC").
 		Offset(offset).Limit(filter.PageSize).

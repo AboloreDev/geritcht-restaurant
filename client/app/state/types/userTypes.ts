@@ -24,9 +24,28 @@ export interface MessageResponse {
 
 export interface UserSearchRequest {
   q: string;
-  //   page?: number;
-  //   limit?: number;
-  //   email?: string;
-  //   first_name?: string;
-  //   last_name?: string;
+}
+
+export interface GetAllUsersResponse {
+  status: boolean;
+  message: string;
+  data: UserResponse[];
+  meta: {
+    total: number;
+    page: number;
+    limit: number;
+    total_pages: number;
+  };
+}
+
+export interface GetAllStaffsResponse {
+  status: boolean;
+  message: string;
+  data: UserResponse[];
+  meta: {
+    total: number;
+    page: number;
+    limit: number;
+    total_pages: number;
+  };
 }

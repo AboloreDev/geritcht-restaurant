@@ -15,7 +15,10 @@ import { formatTimeSlot } from "@/app/utils/timeSlots";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { useGetAllUserRservationsQuery } from "@/app/state/api/reservationsApi";
-import { ReservationResponse } from "@/app/state/types/reservationTypes";
+import {
+  Reservation,
+  ReservationResponse,
+} from "@/app/state/types/reservationTypes";
 import {
   Select,
   SelectContent,
@@ -160,7 +163,7 @@ export function MyReservationsContent() {
               )}
             >
               <AnimatePresence initial={false}>
-                {reservations.map((r: ReservationResponse, i: number) => (
+                {reservations.map((r: Reservation, i: number) => (
                   <motion.div
                     key={r.id}
                     initial={{ opacity: 0, y: 12 }}

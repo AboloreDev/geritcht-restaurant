@@ -94,6 +94,9 @@ func (m *MockAuthRepository) ChangePassword(user *models.User, password string) 
 func (m *MockUserRepository) TsvectorSearchUsers(_ context.Context, req *dto.UserSearchRequest) ([]models.UserWithRank, int64, error) {
 	return m.userSearchRank, m.total, m.getErr
 }
+func (m *MockUserRepository) UpdateRoleToStaff(ctx context.Context, id uint, role models.UserRole, active bool) error {
+	return m.updateErr
+}
 
 // ─── MockPublisher
 

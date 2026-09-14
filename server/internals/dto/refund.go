@@ -16,3 +16,7 @@ type RefundResponse struct {
 	Order       OrderResponse   `json:"order,omitempty"`
 	Payment     PaymentResponse `json:"payment,omitempty"`
 }
+
+type ProcessRefundRequest struct {
+	Notes string `json:"notes"`
+}

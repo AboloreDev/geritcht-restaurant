@@ -1,8 +1,6 @@
 import type { Menu } from "@/app/state/types/menuTypes";
-import { PaymentResponse } from "./paymentTypes";
+import { Payment } from "./paymentTypes";
 import { UserResponse } from "./userTypes";
-
-// --- Requests ---
 
 export interface CreateTakeoutOrderRequest {
   notes?: string;
@@ -56,7 +54,7 @@ export interface Order {
   payment_status: string;
   notes: string;
   order_items: OrderItem[];
-  payment?: PaymentResponse;
+  payment?: Payment;
   created_at: string;
   updated_at: string;
 }

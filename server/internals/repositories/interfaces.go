@@ -23,6 +23,7 @@ type UserRepositoryInterface interface {
 	GetAllByRole(ctx context.Context, role models.UserRole, page, pageSize int) ([]models.User, int64, error)
 	GetByIDAndRole(ctx context.Context, id uint, role models.UserRole) (*models.User, error)
 	UpdateActiveByRole(ctx context.Context, id uint, role models.UserRole, active bool) error
+	UpdateRoleToStaff(ctx context.Context, id uint, role models.UserRole, active bool) error
 
 	TsvectorSearchUsers(ctx context.Context, req *dto.UserSearchRequest) ([]models.UserWithRank, int64, error)
 }

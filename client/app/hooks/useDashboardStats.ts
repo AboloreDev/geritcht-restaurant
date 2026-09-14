@@ -24,14 +24,14 @@ export function useDashboardStats() {
 
   // all users — no date filtering available server-side, so we
   // fetch everything and bucket by created_at locally
-  const { data: usersData, isLoading: isLoadingUsers } = useGetAllUsersQuery();
+  const { data: usersData, isLoading: isLoadingUsers } = useGetAllUsersQuery(
+    {},
+  );
 
-  // @ts-expect-error "type inference"
   const pendingOrdersCount = pendingOrdersData?.data.total ?? 0;
   // @ts-expect-error "type inference"
   const reservationsTodayCount = reservationsTodayData?.data.total ?? 0;
 
-  // @ts-expect-error "type inference"
   const revenueToday = (todaysOrdersData?.data.orders ?? []).reduce(
     (sum: number, order: Order) => sum + order.total_amount,
     0,

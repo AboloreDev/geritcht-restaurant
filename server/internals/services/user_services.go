@@ -141,6 +141,23 @@ func (s *UserService) updateUser(ctx context.Context, user *models.User, req *dt
 	if req.PhoneNumber != "" {
 		user.PhoneNumber = req.PhoneNumber
 	}
+	if err := s.userRepo.Update(ctx, user); err != nil {
+		return nil, err
+	}
+
+	return s.ConvertToUserResponse(user), nil
+}
+
+func (s *UserService) AdminUpdateUser(ctx context.Context, userID uint, req *dto.UpdateProfileRequest) (*dto.UserResponse, error) {
+	user, err := s.userRepo.GetByIdAndActive(ctx, userID, true)
+
+	if err != nil {
+		return nil, domain.ErrNotFound
+	}
+	
+	if req.Role != "" {
+		user.Role = models.UserRole(req.Role)
+	}
 
 	if err := s.userRepo.Update(ctx, user); err != nil {
 		return nil, err

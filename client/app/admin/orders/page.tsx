@@ -38,7 +38,7 @@ const OrderPage = () => {
   return (
     <div className="p-4 flex flex-col space-y-4 h-screen overflow-y-auto">
       <Header title="Orders" subTitle="View and Manage all orders" />
-      <div className="bg-[#faedcd] flex flex-col md:flex-row items-center rounded-2xl">
+      <div className=" flex flex-col md:flex-row items-center rounded-2xl">
         <OrderFilters isLoading={isLoading} isFetching={isFetching} />
         <OrderSearch />
       </div>

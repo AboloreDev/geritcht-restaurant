@@ -184,6 +184,12 @@ func (s *Server) CancelTakeoutOrderHandler(ctx *gin.Context) {
 	}
 	orderID := uint(id)
 
+	var req dto.ProcessRefundRequest
+	if err := ctx.ShouldBindJSON(&req); err != nil {
+		utils.BadRequest(ctx, "Invalid request data", err)
+		return
+	}
+
 	err = s.orderService.CancelTakeoutOrder(ctx.Request.Context(), userID, orderID)
 	if err != nil {
 		switch err {
@@ -194,7 +200,7 @@ func (s *Server) CancelTakeoutOrderHandler(ctx *gin.Context) {
 		case domain.ErrCannotCancel:
 			utils.BadRequest(ctx, "Order cannot be cancelled at this stage", err)
 		case domain.ErrRefundIsProcessing:
-			refundErr := s.paymentService.ProcessTakeoutRefund(ctx.Request.Context(), orderID, "Customer requested cancellation")
+			refundErr := s.paymentService.ProcessTakeoutRefund(ctx.Request.Context(), orderID, &req)
 			if refundErr != nil {
 				switch refundErr {
 				case domain.ErrAlreadyRefunded:

@@ -11,6 +11,7 @@ import {
   CalendarCheck,
   CogThree,
   Logout,
+  CreditCard,
 } from "@mynaui/icons-react";
 import { useLogoutMutation } from "@/app/state/api/baseApi";
 
@@ -71,6 +72,12 @@ export function UserMenu({ name, email }: { name: string; email: string }) {
               href="/account"
               icon={CogThree}
               label="Account Details"
+              onClick={() => setOpen(false)}
+            />
+            <MenuLink
+              href="/payment"
+              icon={CreditCard}
+              label="Payment History"
               onClick={() => setOpen(false)}
             />
 

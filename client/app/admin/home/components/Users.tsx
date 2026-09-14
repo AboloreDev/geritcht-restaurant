@@ -5,7 +5,7 @@ import { useGetAllUsersQuery } from "@/app/state/api/userApi";
 import { DashboardListCard } from "./DashboardListCard";
 
 export function RecentUsersList() {
-  const { data, isLoading, isFetching } = useGetAllUsersQuery();
+  const { data, isLoading, isFetching } = useGetAllUsersQuery({ page: 1 });
 
   const users = [...(data?.data ?? [])]
     .sort(

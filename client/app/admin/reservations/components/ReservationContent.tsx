@@ -20,7 +20,8 @@ const ReservationContent = () => {
     time_slot: filterTimeSlot,
   });
 
-  const reservations = data?.data.reservations ?? [];
+  const reservations = data?.data ?? [];
+  // @ts-expect-error "<>"
   const hasMore = data ? page < data.total_pages : false;
 
   return (

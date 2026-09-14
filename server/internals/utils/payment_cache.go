@@ -22,14 +22,14 @@ func GetPaymentCacheTTL(filter *dto.PaymentFilterRequest) time.Duration {
 	hasFilter := filter.Amount != 0 || filter.Status != "" || filter.Reference != ""
 
 	if hasFilter {
-		return 50 * time.Second
+		return 30 * time.Second
 	}
-	return 5 * time.Minute
+	return 1 * time.Minute
 }
 
 func BuildUserPaymentCacheKey(userID uint, filter *dto.PaymentFilterRequest) string {
 	return fmt.Sprintf(
-		"reservations:user:%d:page:%d:size:%d:amount:%s:status:%s:reference:%s",
+		"payments:user:%d:page:%d:size:%d:amount:%s:status:%s:reference:%s",
 		userID,
 		filter.Page,
 		filter.PageSize,

@@ -402,6 +402,7 @@ func (s *PaymentService) VerifyPayment(ctx context.Context, req *dto.VerifyPayme
 		Currency:  payment.Currency,
 	}, nil
 }
+
 func (s *PaymentService) HandlePaystackWebhook(ctx context.Context, body []byte, signature string) error {
 
 	if !s.verifySignature(body, signature) {
@@ -479,7 +480,7 @@ func (s *PaymentService) HandlePaystackWebhook(ctx context.Context, body []byte,
 	return nil
 }
 
-func (s *PaymentService) ProcessTakeoutRefund(ctx context.Context, orderID uint, notes string) error {
+func (s *PaymentService) ProcessTakeoutRefund(ctx context.Context, orderID uint, req *dto.ProcessRefundRequest) error {
 	order, err := s.paymentRepo.GetOrderByID(ctx, nil, orderID)
 	if err != nil {
 		return domain.ErrOrderNotFound
@@ -511,7 +512,7 @@ func (s *PaymentService) ProcessTakeoutRefund(ctx context.Context, orderID uint,
 			OrderID:        orderID,
 			PaymentID:      payment.ID,
 			Amount:         order.TotalAmount,
-			Reason:         notes,
+			Reason:         req.Notes,
 			Reference:      payment.Reference,
 			Currency:       "NGN",
 			IdempotencyKey: uuid.New().String(),
@@ -537,7 +538,7 @@ func (s *PaymentService) ProcessTakeoutRefund(ctx context.Context, orderID uint,
 			OrderID:   orderID,
 			Amount:    int64(payment.Amount),
 			Reference: payment.Reference,
-			Reason:    notes,
+			Reason:    req.Notes,
 		})
 
 		return s.paymentRepo.CreateOutboxEvent(ctx, tx, &models.OutboxEvent{
@@ -559,7 +560,7 @@ func (s *PaymentService) ProcessTakeoutRefund(ctx context.Context, orderID uint,
 				FirstName: order.User.FirstName,
 				Amount:    int64(payment.Amount),
 				Reference: payment.Reference,
-				Reason:    notes,
+				Reason:    req.Notes,
 			},
 			map[string]string{"Priority": "Important Mail"},
 		)

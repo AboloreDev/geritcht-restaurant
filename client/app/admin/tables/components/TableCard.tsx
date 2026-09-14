@@ -42,16 +42,11 @@ export default function TableRow({ table }: { table: Table }) {
       {/* Left — identity */}
       <div className="min-w-0 flex-1">
         <div className="flex items-center gap-2">
-          <p className="font-serif text-base font-semibold">{table.name}</p>
-          <Badge
-            className={`rounded-full text-white ${tableStatusStyle(table.status)}`}
-          >
-            {table.status}
-          </Badge>
+          <p className="font-serif font-semibold">{table.name}</p>
         </div>
 
-        <div className="mt-1 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-muted-foreground">
-          <div className="flex items-center gap-1.5">
+        <div className="mt-1 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-muted-foreground">
+          <div className="flex items-center gap-1.5 text-slate-500 ">
             <HugeiconsIcon icon={UserGroupIcon} strokeWidth={2} size={14} />
             Seats {table.capacity}
           </div>
@@ -63,6 +58,12 @@ export default function TableRow({ table }: { table: Table }) {
           )}
         </div>
       </div>
+
+      <Badge
+        className={`rounded-full text-white ${tableStatusStyle(table.status)}`}
+      >
+        {table.status}
+      </Badge>
 
       {/* Middle — current activity, if any */}
       <div className="hidden shrink-0 sm:block">

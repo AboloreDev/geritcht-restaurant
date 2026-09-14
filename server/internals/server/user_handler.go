@@ -346,3 +346,35 @@ func (s *Server) SearchUserHandler(ctx *gin.Context) {
 
 	utils.PaginatedSuccessResponse(ctx, "user retrieved successfully", response, *meta)
 }
+
+func (s *Server) AdminUpdateUserProfileHandler(ctx *gin.Context) {
+	idStr := ctx.Param("id")
+	id, err := strconv.ParseUint(idStr, 10, 32)
+	if err != nil {
+		utils.BadRequest(ctx, "Invalid user ID", err)
+		return
+	}
+
+	userID := uint(id)
+
+	var req dto.UpdateProfileRequest
+
+	err = ctx.ShouldBindJSON(&req)
+	if err != nil {
+		utils.BadRequest(ctx, "Invalid request data", err)
+		return
+	}
+
+	response, err := s.userServices.AdminUpdateUser(ctx.Request.Context(), userID, &req)
+	if err != nil {
+		switch err {
+		case domain.ErrNotFound:
+			utils.NotFound(ctx, "User not found", err)
+		default:
+			utils.InternalServerError(ctx, "Failed to update role", err)
+		}
+		return
+	}
+
+	utils.SuccessResponse(ctx, "User updated successfully", response)
+}

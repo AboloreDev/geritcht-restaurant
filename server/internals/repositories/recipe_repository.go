@@ -21,7 +21,7 @@ func (r *Recipe) CheckForLinkedIngredient(ctx context.Context, menuItemID uint, 
 
 	err := r.db.Preload("Ingredient").
 		WithContext(ctx).
-		Where("menu_item_id = ? AND ingredient_id = ?", menuItemID, ingredientID).First(&recipe).Error
+		Where("menu_id = ? AND ingredient_id = ?", menuItemID, ingredientID).First(&recipe).Error
 	if err == nil {
 		return nil, domain.ErrIngredientAlreadyLinked
 	}
@@ -38,7 +38,7 @@ func (r *Recipe) GetLinkedIngredient(ctx context.Context, menuItemID uint, ingre
 
 	err := r.db.Preload("Ingredient").
 		WithContext(ctx).
-		Where("menu_item_id = ? AND ingredient_id = ?", menuItemID, ingredientID).First(&recipe).Error
+		Where("menu_id = ? AND ingredient_id = ?", menuItemID, ingredientID).First(&recipe).Error
 	if err != nil {
 		return nil, domain.ErrLinkedIngredeintNotFound
 	}
@@ -52,7 +52,7 @@ func (r *Recipe) UpdateLinkedIngredients(ctx context.Context, recipe *models.Men
 
 func (r *Recipe) DeleteLinkedIngredient(ctx context.Context, menuItemID uint, ingredientID uint) error {
 	result := r.db.WithContext(ctx).
-		Where("menu_item_id = ? AND ingredient_id = ?", menuItemID, ingredientID).
+		Where("menu_id = ? AND ingredient_id = ?", menuItemID, ingredientID).
 		Delete(&models.MenuItemIngredient{})
 	if result.Error != nil {
 		return result.Error
@@ -68,7 +68,7 @@ func (r *Recipe) GetRecipesByMenuItemID(ctx context.Context, menuItemID uint) ([
 
 	err := r.db.Preload("Ingredient").
 		WithContext(ctx).
-		Where("menu_item_id = ?", menuItemID).
+		Where("menu_id = ?", menuItemID).
 		Find(&recipes).Error
 	if err != nil {
 		return nil, domain.ErrMenuNotFound

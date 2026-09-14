@@ -129,6 +129,22 @@ func (r *UserRepository) UpdateActiveByRole(ctx context.Context, id uint, role m
 	return nil
 }
 
+func (r *UserRepository) UpdateRoleToStaff(ctx context.Context, id uint, role models.UserRole, active bool) error {
+	// active=false means deactivate, active=true means activate
+	// query checks opposite active state to prevent no-op
+	result := r.db.WithContext(ctx).Model(&models.User{}).
+		Where("id = ? AND role = ? AND is_active = ?", id, role, !active).
+		Update("role", models.RoleStaff)
+
+	if result.Error != nil {
+		return result.Error
+	}
+	if result.RowsAffected == 0 {
+		return domain.ErrNotFound
+	}
+	return nil
+}
+
 func (r *UserRepository) TsvectorSearchUsers(ctx context.Context, req *dto.UserSearchRequest) ([]models.UserWithRank, int64, error) {
 	if req.Page <= 0 {
 		req.Page = 1

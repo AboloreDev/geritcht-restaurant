@@ -134,6 +134,7 @@ func (s *Server) SetUpRoutes() *gin.Engine {
 				users.PATCH("/profile/activate", s.ActivateUserHandler)
 				users.GET("/", s.AdminMiddleware(), s.GetAllUserHandler)
 				users.GET("/search", s.AdminMiddleware(), s.SearchUserHandler)
+				users.PATCH("/:id/role/update", s.AdminMiddleware(), s.AdminUpdateUserProfileHandler)
 			}
 
 			staffs := protected.Group("/staff")
@@ -236,10 +237,11 @@ func (s *Server) SetUpRoutes() *gin.Engine {
 				payment.POST("/initialize", s.RateLimiter(10, time.Minute), s.InitilaisePaymentHandler)
 				payment.GET("/verify/:reference", s.RateLimiter(20, time.Minute), s.VerifyPaymentHandler)
 				payment.GET("/history", s.GetAllPaymentHistory)
+				payment.GET("/all", s.AdminMiddleware(), s.AdminGetAllPaymentHistory)
 				payment.GET("/:id", s.GetPaymentDetailsHandler)
 				payment.GET("/refund/:id", s.GetRefundDetailsHandler)
 				payment.GET("/ref/:reference", s.GetPaymentByReferenceHandler)
-
+				payment.POST("/refund/:id", s.RateLimiter(10, time.Minute), s.AdminMiddleware(), s.ProcessRefundHandler)
 			}
 
 			ingredient := protected.Group("/ingredients")
@@ -251,7 +253,7 @@ func (s *Server) SetUpRoutes() *gin.Engine {
 				ingredient.PATCH("/:id", s.RateLimiter(20, time.Minute), s.AdminMiddleware(), s.UpdateIngredientHandler)
 				ingredient.DELETE("/:id", s.AdminMiddleware(), s.DeleteIngredientHandler)
 				ingredient.GET("/low-stock", s.AdminMiddleware(), s.GetLowStockIngredientsHandler)
-				ingredient.POST("/limit", s.RateLimiter(20, time.Minute), s.AdminMiddleware(), s.SetThresholdLimitHandler)
+				ingredient.POST("/:id/limit", s.RateLimiter(20, time.Minute), s.AdminMiddleware(), s.SetThresholdLimitHandler)
 				ingredient.GET("/search", s.AdminMiddleware(), s.SearchIngredientHandler)
 				ingredient.GET("/check-low-stock", s.AdminMiddleware(), s.CheckLowStockHandler)
 				ingredient.GET("/alerts", s.AdminMiddleware(), s.GetInventoryAlertsHandler)

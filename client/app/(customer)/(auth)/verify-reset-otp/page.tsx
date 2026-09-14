@@ -1,5 +1,5 @@
 import Link from "next/link";
-import React from "react";
+import React, { Suspense } from "react";
 import AuthLayout from "../layout";
 import { ResetOTPForm } from "./components/ResetOTPForm";
 import { ArrowLeft } from "@mynaui/icons-react";
@@ -48,7 +48,9 @@ const VerifyResetOTP = () => {
         </div>
 
         <div className="mt-8">
-          <ResetOTPForm />
+          <Suspense fallback={null}>
+            <ResetOTPForm />
+          </Suspense>
         </div>
       </div>
     </AuthLayout>

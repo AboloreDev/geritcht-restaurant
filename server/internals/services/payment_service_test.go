@@ -524,8 +524,8 @@ func TestProcessTakeoutRefund(t *testing.T) {
 				paymentErr: tt.paymentErr,
 				refundErr:  tt.refundErr,
 			})
-
-			err := service.ProcessTakeoutRefund(testPaymentCtx, 1, "cancelled by customer")
+			req := &dto.ProcessRefundRequest{Notes: "customer requested cancellation"}
+			err := service.ProcessTakeoutRefund(testPaymentCtx, 1, req)
 
 			assert.Equal(t, tt.expectedErr, err)
 		})

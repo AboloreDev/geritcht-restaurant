@@ -57,7 +57,7 @@ const baseQueryWithReauth: BaseQueryFn<
 
         if (refreshResult.data) {
           const data = refreshResult.data as any;
-          const newAccessToken = data?.data?.token?.accessToken;
+          const newAccessToken = data?.data?.access_token;
 
           if (newAccessToken && typeof window !== "undefined") {
             localStorage.setItem("accessToken", newAccessToken);
@@ -97,6 +97,8 @@ export const baseApi = createApi({
     "Allergen",
     "DietaryTags",
     "Tables",
+    "Refund",
+    "Recipe",
   ],
   endpoints: (builder) => ({
     logout: builder.mutation<
@@ -124,6 +126,8 @@ export const baseApi = createApi({
         "Allergen",
         "DietaryTags",
         "Tables",
+        "Refund",
+        "Recipe",
       ],
       async onQueryStarted(_, { queryFulfilled }) {
         try {

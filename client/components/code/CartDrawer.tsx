@@ -169,9 +169,9 @@ export function CartDrawer() {
                       <div className="relative h-20 w-20 overflow-hidden rounded-2xl">
                         {item.menu_item.images?.length ? (
                           <Image
-                            src={item.menu_item.images[0].alt_text}
+                            src={item.menu_item.images[0].url}
                             alt={
-                              item.menu_item.images[0].url ||
+                              item.menu_item.images[0].alt_text ||
                               item.menu_item.name
                             }
                             fill

@@ -12,7 +12,10 @@ import { DashboardListCard } from "./DashboardListCard";
 import { toast } from "sonner";
 import { getApiError } from "@/app/utils/apiError";
 import { todayDateString } from "@/app/utils/dateRanges";
-import { ReservationResponse } from "@/app/state/types/reservationTypes";
+import {
+  Reservation,
+  ReservationResponse,
+} from "@/app/state/types/reservationTypes";
 
 export function TodaysReservationsList() {
   const today = todayDateString();
@@ -26,7 +29,7 @@ export function TodaysReservationsList() {
     useCheckInReservationMutation();
 
   const reservation = data?.data ?? [];
-  const reservations = reservation.reservations ?? [];
+  const reservations = reservation ?? [];
 
   async function handleCheckIn(e: React.MouseEvent, id: number) {
     e.preventDefault();
@@ -51,7 +54,7 @@ export function TodaysReservationsList() {
       emptyMessage="No reservations today."
       isFetching={isFetching}
     >
-      {reservations.map((r: ReservationResponse) => (
+      {reservations.map((r: Reservation) => (
         <Link
           key={r.id}
           href={`/admin/reservations/${r.id}`}

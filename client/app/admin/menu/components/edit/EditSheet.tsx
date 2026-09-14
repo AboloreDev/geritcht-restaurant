@@ -38,6 +38,7 @@ import { CreateStep } from "../create/CreateSteps";
 import EditImageGrid from "./EditImageGrid";
 import AddMoreImages from "./AddMoreImage";
 import EditMenuSkeleton from "./EditMenuSkeleton";
+import RecipeSection from "./RecipeSection";
 
 export default function EditMenuSheet() {
   const dispatch = useAppDispatch();
@@ -103,7 +104,7 @@ export default function EditMenuSheet() {
     <Sheet open={open} onOpenChange={handleClose}>
       <SheetContent
         side="right"
-        className="flex w-full flex-col bg-[#faedcd] sm:max-w-3xl! px-6 py-3 overflow-y-auto"
+        className="flex w-full flex-col bg-[#faedcd] sm:max-w-3xl! px-6 py-3 overflow-y-scroll"
       >
         <SheetHeader>
           <SheetTitle>Edit Menu</SheetTitle>
@@ -168,6 +169,7 @@ export default function EditMenuSheet() {
                             currentCount={images.length}
                           />
                         )}
+                        <RecipeSection menuId={menuId} />
                       </>
                     )}
 

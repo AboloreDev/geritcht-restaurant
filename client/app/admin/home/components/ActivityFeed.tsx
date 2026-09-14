@@ -3,7 +3,10 @@
 import { useGetAllOrdersQuery } from "@/app/state/api/orderApi";
 import { useGetAllRservationsQuery } from "@/app/state/api/reservationsApi";
 import { DashboardListCard } from "./DashboardListCard";
-import { ReservationResponse } from "@/app/state/types/reservationTypes";
+import {
+  Reservation,
+  ReservationResponse,
+} from "@/app/state/types/reservationTypes";
 import { Order } from "@/app/state/types/orderTypes";
 import { CalendarCheck, Clipboard } from "@mynaui/icons-react";
 
@@ -50,14 +53,12 @@ export function ActivityFeed() {
 
   const reservationItems: ActivityItem[] =
     // @ts-expect-error "type inference"
-    (reservationsData?.data.reservations ?? []).map(
-      (r: ReservationResponse) => ({
-        id: `reservation-${r.id}`,
-        type: "reservation",
-        label: `New reservation for ${r.party_size} guests`,
-        timestamp: r.created_at,
-      }),
-    );
+    (reservationsData?.data.reservations ?? []).map((r: Reservation) => ({
+      id: `reservation-${r.id}`,
+      type: "reservation",
+      label: `New reservation for ${r.party_size} guests`,
+      timestamp: r.created_at,
+    }));
 
   const activity = [...orderItems, ...reservationItems]
     .sort(

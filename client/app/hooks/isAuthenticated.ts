@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { UserResponse } from "../state/types/authTypes";
+import { UserResponse } from "../state/types/userTypes";
 
 function readUser(): UserResponse | null {
   if (typeof window === "undefined") return null;

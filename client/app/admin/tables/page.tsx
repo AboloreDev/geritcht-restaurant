@@ -29,7 +29,7 @@ export default function TablesPage() {
         subTitle="Manage seating, capacity, and table status."
       />
 
-      <div className="flex flex-col space-y-5 rounded-2xl bg-[#faedcd] py-4 px-6">
+      <div className="flex flex-col space-y-5 rounded-2xl  py-4 px-6">
         <div className="flex items-center justify-between">
           <p className="text-xl text-muted-foreground">
             {isFetching && !isLoading ? "Updating…" : `${tables.length} tables`}

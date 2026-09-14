@@ -24,9 +24,9 @@ import {
   Notification03Icon,
   Logout01Icon,
 } from "@hugeicons/core-free-icons";
-import { UserResponse } from "@/app/state/types/authTypes";
 import { useRouter } from "next/navigation";
 import { useLogoutMutation } from "@/app/state/api/baseApi";
+import { UserResponse } from "@/app/state/types/userTypes";
 
 interface UserProps {
   user: UserResponse;

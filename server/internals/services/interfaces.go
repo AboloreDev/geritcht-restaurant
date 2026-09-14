@@ -123,7 +123,7 @@ type PaymentServiceInterface interface {
 	verifySignature(body []byte, signature string) bool
 	InitialisePayment(ctx context.Context, userID uint, req *dto.InitializePaymentRequest) (*dto.InitializePaymentResponse, error)
 	HandlePaystackWebhook(ctx context.Context, body []byte, signature string) error
-	ProcessTakeoutRefund(ctx context.Context, orderID uint, notes string) error
+	ProcessTakeoutRefund(ctx context.Context, orderID uint, req *dto.ProcessRefundRequest) error
 	GetPaymentByReference(ctx context.Context, reference string) (*dto.PaymentResponse, error)
 	GetPaymentDetails(ctx context.Context, paymentID uint) (*dto.PaymentResponse, error)
 	GetRefundDetails(ctx context.Context, refundID uint) (*dto.RefundResponse, error)
@@ -181,6 +181,7 @@ type UserServiceInterface interface {
 	updateUser(ctx context.Context, user *models.User, req *dto.UpdateProfileRequest) (*dto.UserResponse, error)
 	buildUserListResponse(users []models.User, total int64, page, pageSize int) ([]*dto.UserResponse, *utils.PaginatedMeta, error)
 	SearchUser(ctx context.Context, req *dto.UserSearchRequest) ([]*dto.UserSearchResponse, *utils.PaginatedMeta, error)
+	AdminUpdateUser(ctx context.Context, userID uint, req *dto.UpdateProfileRequest) (*dto.UserResponse, error)
 }
 
 // Waitlist service

@@ -229,7 +229,6 @@ func (s *Server) GetPaymentDetailsHandler(ctx *gin.Context) {
 }
 
 func (s *Server) AdminGetAllPaymentHistory(ctx *gin.Context) {
-
 	
 	var paymentFilter dto.PaymentFilterRequest
 
@@ -281,4 +280,43 @@ func (s *Server) GetRefundDetailsHandler(ctx *gin.Context) {
 	}
 
 	utils.SuccessResponse(ctx, "Refund fetched successfully", response)
+}
+
+
+func (s *Server) ProcessRefundHandler(ctx *gin.Context) {
+	idStr := ctx.Param("id")
+	id, err := strconv.ParseUint(idStr, 10, 32)
+	if err != nil {
+		utils.BadRequest(ctx, "Invalid id", err)
+		return
+	}
+	orderID := uint(id)
+
+	var req dto.ProcessRefundRequest
+
+	err = ctx.ShouldBindJSON(&req)
+	if err != nil {
+		utils.BadRequest(ctx, "Invalid request data", err)
+		return
+	}
+
+	err = s.paymentService.ProcessTakeoutRefund(ctx, orderID, &req)
+	if err != nil {
+		switch err {
+		case domain.ErrOrderNotFound:
+			utils.NotFound(ctx, "Order not found", err)
+		case domain.ErrInvalidOrderStatus:
+			utils.BadRequest(ctx, "Invalid order status", err)
+		case domain.ErrOrderAlreadyPaid:
+			utils.BadRequest(ctx, "Order already paid", err)
+		case domain.ErrPaymentNotFound:
+			utils.NotFound(ctx, "Payment not found", err)
+		default:
+			utils.InternalServerError(ctx, "Failed to process refund", err)
+			return
+		}
+		return
+	}
+
+	utils.SuccessResponse(ctx, "Refund processed successfully", nil)
 }

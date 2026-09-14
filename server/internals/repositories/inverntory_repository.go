@@ -27,7 +27,7 @@ func (r *InventoryRepository) getDB(tx *gorm.DB) *gorm.DB {
 func (r *InventoryRepository) GetRecipesByMenuItemID(ctx context.Context, tx *gorm.DB, menuItemID uint) ([]models.MenuItemIngredient, error) {
 	var recipes []models.MenuItemIngredient
 	err := r.getDB(tx).WithContext(ctx).
-		Where("menu_item_id = ?", menuItemID).Find(&recipes).Error
+		Where("menu_id = ?", menuItemID).Find(&recipes).Error
 	return recipes, err
 }
 
@@ -93,7 +93,7 @@ func (r *InventoryRepository) GetMenuItemIDsByIngredient(ctx context.Context, tx
 	var menuItemIDs []uint
 	err := r.getDB(tx).WithContext(ctx).Model(&models.MenuItemIngredient{}).
 		Where("ingredient_id = ?", ingredientID).
-		Pluck("menu_item_id", &menuItemIDs).Error
+		Pluck("menu_id", &menuItemIDs).Error
 	return menuItemIDs, err
 }
 

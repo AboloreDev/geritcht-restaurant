@@ -16,7 +16,6 @@ export default function ReservationDetailsPage() {
 
   if (isLoading) return <ReservationDetailsSkeleton />;
 
-  // @ts-expect-error "<>"
   if (isError || !data?.data) {
     return (
       <div className="flex min-h-screen flex-col items-center justify-center gap-3 text-center">
@@ -33,7 +32,6 @@ export default function ReservationDetailsPage() {
     );
   }
 
-  // @ts-expect-error "<>"
   const reservation = data.data;
 
   return (
