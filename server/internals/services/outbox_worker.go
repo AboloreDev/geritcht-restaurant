@@ -1,6 +1,7 @@
 package services
 
 import (
+	"encoding/json"
 	"time"
 
 	"github.com/AboloreDev/geritcht-restaurant/internals/interfaces"
@@ -67,9 +68,14 @@ func (w *OutboxWorker) ProcessOutbox(ctx context.Context, log zerolog.Logger) {
 }
 
 func (w *OutboxWorker) publish(event models.OutboxEvent) error {
+	var payload interface{}
+	if err := json.Unmarshal([]byte(event.Payload), &payload); err != nil {
+		return err
+	}
+	
 	w.eventPublisher.PublishMessage(
 		event.EventType,
-		event.Payload,
+		payload,
 		map[string]string{"Priority": "Important Mail"},
 	)
 
