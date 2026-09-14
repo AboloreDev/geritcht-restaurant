@@ -19,8 +19,7 @@ export function PasswordSection() {
   const [changePassword, { isLoading }] = useChangePasswordMutation();
 
   const { control, handleSubmit, reset } = useForm<PasswordValues>({
-    // @ts-expect-error: zod resolver types
-    resolver: zodResolver(passwordSchema),
+    resolver: zodResolver(passwordSchema as never),
     defaultValues: {
       current_password: "",
       new_password: "",
