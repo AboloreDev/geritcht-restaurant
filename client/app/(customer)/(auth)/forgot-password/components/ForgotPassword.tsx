@@ -84,6 +84,7 @@ export function ForgotPasswordForm() {
                 placeholder="you@example.com"
                 aria-invalid={fieldState.invalid}
                 autoComplete="email"
+                className="placeholder:text-slate-500"
               />
               {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
             </Field>

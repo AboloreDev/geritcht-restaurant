@@ -68,6 +68,7 @@ export function RegisterForm() {
                   placeholder="Ada"
                   aria-invalid={fieldState.invalid}
                   autoComplete="given-name"
+                  className="placeholder:text-slate-500"
                 />
                 {fieldState.invalid && (
                   <FieldError
@@ -91,6 +92,7 @@ export function RegisterForm() {
                   placeholder="Lovelace"
                   aria-invalid={fieldState.invalid}
                   autoComplete="family-name"
+                  className="placeholder:text-slate-500"
                 />
                 {fieldState.invalid && (
                   <FieldError
@@ -116,6 +118,7 @@ export function RegisterForm() {
                 placeholder="you@example.com"
                 aria-invalid={fieldState.invalid}
                 autoComplete="email"
+                className="placeholder:text-slate-500"
               />
               {fieldState.invalid && (
                 <FieldError
@@ -140,6 +143,7 @@ export function RegisterForm() {
                 placeholder="••••••••"
                 aria-invalid={fieldState.invalid}
                 autoComplete="new-password"
+                className="placeholder:text-slate-500"
               />
               {fieldState.invalid && (
                 <FieldError
@@ -164,6 +168,7 @@ export function RegisterForm() {
                 placeholder="••••••••"
                 aria-invalid={fieldState.invalid}
                 autoComplete="new-password"
+                className="placeholder:text-slate-500"
               />
               {fieldState.invalid && (
                 <FieldError

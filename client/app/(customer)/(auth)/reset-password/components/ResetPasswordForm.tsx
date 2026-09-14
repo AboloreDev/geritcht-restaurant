@@ -117,7 +117,7 @@ export function ResetPasswordForm() {
                   placeholder="••••••••"
                   aria-invalid={fieldState.invalid}
                   autoComplete="new-password"
-                  className="pr-10"
+                  className="pr-10 placeholder:text-slate-500"
                 />
                 <button
                   type="button"
@@ -158,7 +158,7 @@ export function ResetPasswordForm() {
                   placeholder="••••••••"
                   aria-invalid={fieldState.invalid}
                   autoComplete="new-password"
-                  className="pr-10"
+                  className="pr-10  placeholder:text-slate-500"
                 />
                 <button
                   type="button"

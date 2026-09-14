@@ -73,6 +73,7 @@ export function LoginForm() {
                 placeholder="you@example.com"
                 aria-invalid={fieldState.invalid}
                 autoComplete="email"
+                className="placeholder:text-slate-500"
               />
               {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
             </Field>
@@ -102,7 +103,7 @@ export function LoginForm() {
                   placeholder="••••••••"
                   aria-invalid={fieldState.invalid}
                   autoComplete="current-password"
-                  className="pr-10"
+                  className="pr-10 placeholder:text-slate-500"
                 />
 
                 <button
