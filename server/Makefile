@@ -55,10 +55,10 @@ migrate-down-local:
 	migrate -path db/migrations -database "postgresql://postgres:password@localhost:5433/geritcht_db?sslmode=disable" down
 	
 docker-up:
-	docker-compose -f docker/docker-compose.yml up -d
+	docker compose -f docker/docker-compose.yml up -d
 
 docker-down:
-	docker-compose -f docker/docker-compose.yml down
+	docker compose -f docker/docker-compose.yml down
 
 docker-rebuild:
 	docker compose -f docker/docker-compose.yml down
