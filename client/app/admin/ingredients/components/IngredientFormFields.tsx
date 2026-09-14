@@ -10,7 +10,7 @@ interface Props {
   onSubmit: React.FormEventHandler<HTMLFormElement>;
   submitText?: string;
   onCancel: () => void;
-  showStockField?: boolean; // current_stock is set on create only; edit only touches name/unit/threshold
+  showStockField?: boolean;
 }
 
 export default function IngredientFormFields({

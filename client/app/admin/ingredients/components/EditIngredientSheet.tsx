@@ -44,8 +44,7 @@ export default function EditIngredientSheet() {
     useUpdateIngredientMutation();
 
   const methods = useForm<IngredientFormValues>({
-    // @ts-expect-error "<>"
-    resolver: zodResolver(ingredientSchema) as never,
+    resolver: zodResolver(ingredientSchema as never),
     defaultValues: ingredientDefaultValues,
   });
 

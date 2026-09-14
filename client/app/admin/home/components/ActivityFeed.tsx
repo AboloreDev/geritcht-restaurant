@@ -51,14 +51,14 @@ export function ActivityFeed() {
     }),
   );
 
-  const reservationItems: ActivityItem[] =
-    // @ts-expect-error "type inference"
-    (reservationsData?.data.reservations ?? []).map((r: Reservation) => ({
+  const reservationItems: ActivityItem[] = (reservationsData?.data ?? []).map(
+    (r: Reservation) => ({
       id: `reservation-${r.id}`,
       type: "reservation",
       label: `New reservation for ${r.party_size} guests`,
       timestamp: r.created_at,
-    }));
+    }),
+  );
 
   const activity = [...orderItems, ...reservationItems]
     .sort(

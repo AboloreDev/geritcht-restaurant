@@ -12,8 +12,6 @@ export default function InventoryAlerts() {
   const lowStock = data?.data.low_stock_ingredients ?? [];
   const outOfStock = data?.data.out_of_stock_items ?? [];
 
-  console.log(data);
-
   if (isLoading) {
     return <div className="h-16 animate-pulse rounded-xl bg-muted" />;
   }

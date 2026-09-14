@@ -36,10 +36,7 @@ export default function CreateCategorySheet({
 }: CreateCategorySheetProps) {
   const [createCategory, { isLoading }] = useCreateCategoryMutation();
   const { control, handleSubmit, reset } = useForm<CreateCategoryFormValues>({
-    resolver: zodResolver(
-      // @ts-expect-error "<>"
-      createCategorySchema,
-    ),
+    resolver: zodResolver(createCategorySchema as never),
     defaultValues: {
       name: "",
       description: "",

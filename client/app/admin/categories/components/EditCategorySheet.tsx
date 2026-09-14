@@ -61,10 +61,7 @@ export default function EditCategorySheet({
 }: EditCategorySheetProps) {
   const [editCategory, { isLoading }] = useEditCategoryMutation();
   const { control, handleSubmit } = useForm<EditCategoryFormValues>({
-    resolver: zodResolver(
-      // @ts-expect-error "<>"
-      editCategorySchema,
-    ),
+    resolver: zodResolver(editCategorySchema as never),
     defaultValues: {
       name: category.name,
       description: category.description,
