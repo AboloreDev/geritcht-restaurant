@@ -25,8 +25,7 @@ export function ProfileSection() {
     useUpdateUserProfileMutation();
 
   const { control, handleSubmit, reset } = useForm<ProfileValues>({
-    // @ts-expect-error: zod resolver types
-    resolver: zodResolver(profileSchema),
+    resolver: zodResolver(profileSchema as never),
     defaultValues: { first_name: "", last_name: "", phone_number: "" },
   });
 
