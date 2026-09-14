@@ -8,7 +8,7 @@ import MenuHeader from "./components/MenuHeader";
 
 export default function MenuPage() {
   return (
-    <main className="h-screen bg-[url('/assets/bg.png')] bg-cover bg-center bg-fixed">
+    <main className="min-h-screen bg-[url('/assets/bg.png')] bg-cover bg-center bg-fixed">
       <Navbar />
       <MenuHeader />
 
