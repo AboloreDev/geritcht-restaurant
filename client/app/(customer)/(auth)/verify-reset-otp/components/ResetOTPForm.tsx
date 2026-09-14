@@ -31,10 +31,7 @@ export function ResetOTPForm() {
   const [resendMessage, setResendMessage] = useState<string | null>(null);
 
   const { control, handleSubmit, watch } = useForm<OtpFormValues>({
-    resolver: zodResolver(
-      // @ts-expect-error "<>"
-      otpSchema,
-    ),
+    resolver: zodResolver(otpSchema as never),
     defaultValues: { token: "" },
   });
 

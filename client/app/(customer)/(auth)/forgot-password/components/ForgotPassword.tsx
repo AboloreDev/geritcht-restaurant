@@ -27,10 +27,7 @@ export function ForgotPasswordForm() {
   const [forgotPassword, { isLoading, error }] = useForgotPasswordMutation();
 
   const { control, handleSubmit } = useForm<ForgotPasswordValues>({
-    resolver: zodResolver(
-      // @ts-expect-error "<>"
-      forgotPasswordSchema,
-    ),
+    resolver: zodResolver(forgotPasswordSchema as never),
     defaultValues: { email: "" },
   });
 

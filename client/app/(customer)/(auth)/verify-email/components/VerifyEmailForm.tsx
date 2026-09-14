@@ -23,10 +23,7 @@ export function VerifyEmailForm() {
   const [verifyEmail, { isLoading, error }] = useVerifyEmailMutation();
 
   const { control, handleSubmit, watch } = useForm<OtpFormValues>({
-    resolver: zodResolver(
-      // @ts-expect-error "<>"
-      otpSchema,
-    ),
+    resolver: zodResolver(otpSchema as never),
     defaultValues: { token: "" },
   });
 

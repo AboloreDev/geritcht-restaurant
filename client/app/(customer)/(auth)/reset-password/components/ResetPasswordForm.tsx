@@ -46,10 +46,7 @@ export function ResetPasswordForm() {
   const [resetPassword, { isLoading, error }] = useResetPasswordMutation();
 
   const { control, handleSubmit, watch } = useForm<ResetPasswordValues>({
-    resolver: zodResolver(
-      // @ts-expect-error "<>"
-      resetPasswordSchema,
-    ),
+    resolver: zodResolver(resetPasswordSchema as never),
     defaultValues: { password: "", confirmPassword: "" },
   });
 

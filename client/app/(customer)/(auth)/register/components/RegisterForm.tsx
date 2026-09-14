@@ -23,10 +23,7 @@ export function RegisterForm() {
   const [registerUser, { isLoading, error }] = useRegisterMutation();
 
   const { control, handleSubmit } = useForm<RegisterFormData>({
-    resolver: zodResolver(
-      // @ts-expect-error "<>"
-      registerSchema,
-    ),
+    resolver: zodResolver(registerSchema as never),
     defaultValues: {
       firstName: "",
       lastName: "",

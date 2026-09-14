@@ -30,10 +30,7 @@ export function LoginForm() {
   const redirectTo = searchParams.get("redirect") || "/menu";
 
   const { control, handleSubmit } = useForm<LoginFormData>({
-    resolver: zodResolver(
-      // @ts-expect-error "<>"
-      loginSchema,
-    ),
+    resolver: zodResolver(loginSchema as never),
     defaultValues: {
       email: "",
       password: "",
